@@ -1,0 +1,1 @@
+<isprint value="${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, '/requestbuild.txt')}" />

@@ -1,0 +1,316 @@
+/* -------------------------------------------------------------------------- */
+
+.large .warranty-resale-widget {
+    width: 437px;
+}
+
+.small .warranty-resale-widget {
+    width: 237px;
+}
+
+.warranty-resale-widget {
+    /* border: 1px solid black; */
+}
+
+/* -------------------------------------------------------------------------- */
+
+.warranty-resale-widget {
+    font-size: 12px;
+    text-align: left;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.small .warranty-resale-widget .warranty-header {
+    font-family: 'Open Sans Condensed', Arial, Helvetica, sans-serif;
+}
+
+.small .warranty-resale-widget .warranty-header {
+    font-weight: bold;
+    font-size: 22px;
+    padding: 5px 0 0 12px;
+}
+
+.large .warranty-resale-widget .warranty-header {
+    display: inline-block;
+    padding: 12px 0 0 12px;
+}
+
+.small .warranty-resale-widget .warranty-details {
+    background-color: #edecec;
+}
+
+.small .warranty-resale-widget .warranty-details-header {
+    color: white;
+    background-color: #18a2dc;
+    padding: 5px 12px;
+    font-size: 13px;
+}
+
+.small .warranty-resale-widget .warranty-details-footer-shadow {
+    height: 7px;
+    /* http://stackoverflow.com/questions/17099650/how-to-apply-linear-gradient-for-ie8 */
+    /*gradient background color */
+    background: #0071a0; /* Old browsers */
+    background: -moz-linear-gradient(top, #bcb9ba 1%, #ffffff 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(1%, #bcb9ba), color-stop(100%, #ffffff)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #bcb9ba 1%, #ffffff 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #bcb9ba 1%, #ffffff 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #bcb9ba 1%, #ffffff 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #bcb9ba 1%, #ffffff 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#bcb9ba', endColorstr='#ffffff', GradientType=0); /* IE6-9 */
+}
+
+.large .warranty-resale-widget .warranty-details-footer-shadow {
+    display: none;
+}
+
+.large .warranty-resale-widget .warranty-details-header {
+    display: none;
+}
+
+.small .warranty-resale-widget .warranty-details-expander {
+    display: inline-block;
+    color: #18a2dc;
+    margin: 0 0 6px 12px;
+}
+
+.large .warranty-resale-widget .warranty-details-expander {
+    display: inline-block;
+    color: #0B9BC0;
+    margin: 0 0 6px 12px;
+    font-weight: bold;
+}
+
+.warranty-resale-widget .warranty-details-expander,
+.warranty-resale-widget .warranty-details-expander:active {
+    text-decoration: none;
+}
+
+.warranty-resale-widget .warranty-details-expander:after {
+    content: " +";
+}
+
+.warranty-resale-widget .warranty-details-expander.expanded:after {
+    content: " -";
+}
+
+.small .warranty-resale-widget [data-expander-name] {
+    height: 0px;
+    overflow: hidden;
+}
+
+.small .warranty-resale-widget [data-expander-name].expanded {
+    height: auto;
+}
+
+.large .warranty-resale-widget [data-expander-name] {
+    height: 0px;
+    overflow: hidden;
+}
+
+.large .warranty-resale-widget [data-expander-name].expanded {
+    height: auto;
+}
+
+.warranty-resale-widget .warranty-details .warranty-features {
+    list-style: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 5px 12px;
+}
+
+.warranty-resale-widget .warranty-feature {
+    padding: 5px 5px 5px 27px;
+    background-position: left 50%;
+    background-repeat: no-repeat;
+}
+
+.warranty-resale-widget .warranty-feature.icon-wrenches {
+    /* 18 x 19 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjo5MjwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+Ci4qwUoAAAK4SURBVDgR1ZRLaBNRFIYnk4yiLkShWEx2ZtOFm2aRBBoUrKUKPkCqUFwouOlC0PrARStdtQoiuisoUsQHggULgoIbwTwXwYKKqAgGEkFcSG2xmCjjd8a519tr050LD/xzzz2Pf865L8f5RxJRvJlM5jj6OTBcLpfvKbs9ptPpTZFI5Cr2PuD5vr+rUqnk7TjXMIyibwZ3+cn9bDa70fAFai6X64BUSA6BDeCt53mvAqf1MYmvhD7p4gCVlK1Yp9VqTWBLhvbXxOzO5/Nf7DiZa2LaH2f+0ghKplKptcZc1D3hfC4ajfayBJ9Mv9mlJg4DZJ1/hHqENqch94zkjlBfLBQKHw27w/JdooNZZVtCTNVPcfSwjmcZF0E/5LcYlXwPlU42UTY6ECo9jzIMOn9bHEefCmVQI8EDVCCkP0EPGASngBIf5RGYBweBcD2nuG7G9sTipKqjrusuoHbxkzHGtoXgI8QfYN2n0Z2ofNpJo9GYjcfjO/FfACuRNiEdhfSa4lopWDbkGIGTwC5AlucGWAM+0NVUsVh8j66lLTFrPEgVU0Sap0ISpeWTjF/Z5C2s6YgYbbErCfys7T6Um2C1leBDNoatxigVb0skEq16vf7MivurRdmwPpLkrVhnBzO/DORGymmRn0rH29mHOfajgq5lScWQyhmWXV2vI/4ostZ3wAwwf+qSswPyumy2CtcXhI3qJuABDnlcbLnNWg7xVrzA8cZ2MvfInZSzr3yaGIO0J7ftIZDDHwgJM5Aelkm1Wv0Wi8Xk+JlvShDHZxWbel1NTOIujKchkYdGJT5pNpu6CkmS1wyCXtR3MrekpeYm8WeMQ7RzhjEJ8rS+nyp1sEqSV42zK5XXlI1xge6CzsSmiTGeYL6Vai4yFml5r7QuQcsJF6JGTj8+IZ8n70ipVHq8XOz/YfsFtIHn8I6pYRgAAAAASUVORK5CYII=);
+}
+
+.warranty-resale-widget .warranty-feature.icon-arrows {
+    /* 18 x 19 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjozMTwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CvYkB/IAAAI/SURBVDgR1ZQ/aFRBEMbfnXeFooKVIIoJSLAJFof3z2siksTCs7AQxeJAEBRMIWIpYilioWDAwigkIJLqAhFF0eK8f3I2aVQEFYNgFVBJc+edv4lv1n17t1pZZGGZme+b/XZndt8Lgv80Yj7dbDb7Fm5kAN8BK9br9UcDOAPFjdfvPOmH1pD5f4lK1t+EZz3CR6nmkoczsLcVkoHAZ8xOkx11yolEolSpVFai8O8ocuJ0Or3PSXrmxHZY7HQ6r/P5/H4bVN8IIzoSj8cvKiG21+s9DOMvEoa+bYa63e4LKjtvg+Ib4VgsdoG4yAl2a1Kj0VjEf8/iMTY5jf9dOctuwr+J+IyFRYQnILYispDJZLZrElUcajab79hkhs0PgL9RzrGlXC53WTFzYgC9pFEEaoinJKlarX7S5FqtttRutwV/oJhtqeqMxrbwBgWxw4hL785a2JrbarVWeccnCM4xfzj8Do1tYbkge2wmuI34XCqVkj5GBuLTtOkg4AeL+Km+EeaEdxR07MlkMtmif6OK6wXTpleUnwNfCrllzTHC9O8q4H0lHLsXgZecviTPkgt+qjyX+pWTHyH+Rs5jxY2wAJRXwkwxV5nu2AJwF5Hn2D1sclgTwgsuI3xDsYiwgIjfoi1juB8ldob8AvSCjtscVVyXZ6mYJA4chUJhG5/sPcjiwIQgWOYQuzxc4BXWBZQsf7IrzI2KWTaLeMOKjdvXCsOEDguv4ZZdPIxPefA/n7QvgWc2CXfMw4978HUI/wJra6+kqtoRuAAAAABJRU5ErkJggg==);
+}
+
+.warranty-resale-widget .warranty-feature.icon-home {
+    /* 18 x 18 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjoyNTwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CtEPBZMAAAGZSURBVDgR1ZS/S8QwFMevrYOn6C70FgVHhxv6A5x0FVx0PBwFN3c3HcTF1VVxdHLw/oEb2g4iDg4ugtQ/QFQQtK3fV5KYpjl96wXC++blvU/S1ySdzqQ1h7vhKIr6FJskyW0QBMuu6w6qqvpI0/TYxmCB4zjeBuScAI7j7ECvQB7QuCzLxSzLnkjrzdUHNq1Bu5jv0gKA59Avtnjp+xNsQEdIok7wU8APocfCp+QKpjWhgG1RDIBXMKsCvu953quZS2Prjm1QAG+oiwXUzsFYt4E90zkOijg6FQuArwG+CRthvIS+0ev1HvM8f4BWrQH+ByqTWHAFZkLZcFVjfN4JsuhIjaiOVE/o+lJImmH7lpoTo25qx77vlwA+w7vHgIr035rDMYe8a9Q6o8nWzQvD8AwBuzKTaS9x1Qd6bOscAzqrBwhdwX4KPQ1rbmhezCmjaqw8djHEjmaoY3poD2l6ueBvLU3XmrspueBmFmNkA78x8syQd9PR+nl4VI6KoqBXi35S3XAM7zR9gR98L8fQX+j1Wy19k2l/AM0TyEQlTyY+AAAAAElFTkSuQmCC);
+}
+
+.warranty-resale-widget .warranty-feature.icon-gear {
+    /* 20 x 20 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjo0NzwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CuLNTwEAAAJuSURBVDgRtZS9bxNBEMV9BilGAoQLEMIgmYCo0+CPzkkDrlOARMdngQQt/wZIFECgQyIFtamIG2SbNNQI0CmEECXFNQiZSPj4vc3Oac+OMAUZ6XlmZ96Md2dnr1DYJ4n+pW6j0XgN77Tnrvf7/cVpecW9CK1W6/CY/yLrmofsTNrt9ky2CIyJwvV6/e5wOPzSbDZVqMBuq6gwecb7CuIkSRKzviZuKLlWqGgURQ8hHAAJ+ABaIMdjnYIumANlsAOu06KXaCdZgo6vneI97mOh2kjT9JMc/PF51Kkw6O3Ncrlc7XQ6v7TOCmuho1HgDaZ2IdkC99jJslv5H45+BfMROOFdCX94udfrvffrfGE5SXqLmgcqWqdojJ4Q3+cBARVfgbcQknI79mS1Q/6rtlP8t1jf9IlL+J/Jxq+dvwLq+Wy4CVcYguZUY6Tb1w42IFXQSlbRp7IDuR0U/4ZfPdcJ1d9VYos2bhr+M8B69hHbxHZqa+nQZ1zlqoZ7SFZY5P8qVnidql+BjiO5sKvceL0wO9BLgW1c5aqGauWnolarnS0Wi5+9P7s8xvAOY3jDJUTRc8bqieyplyeSCWQbt018zfCmjSMNr4rqgZNgYtysFcR2HwhKz1SihJ7flXPYj/dZUbnn7NtinGyOpz1pEuz21VON17hsl0ql2W63+0MBfWycxHG8U6lUfvI0L+HQSfQR6oMqOOq17CPAPkLHsA+B39zBg3cItpNcKwaDwWMI94ls6+3T34XRaHSOtU2LkrbkU0wccZWjXAX/KuMfenq6BlKPtTB5nGuxg2aE2voU+Faxv/u1m1OL7cG10P7oP88/3ojK8CzkAAAAAElFTkSuQmCC);
+}
+
+.warranty-resale-widget .warranty-feature.icon-headset {
+    /* 19 x 19 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjoyODwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CqGTJnkAAAIGSURBVDgR3VQ9SwNBEM3lDhJsbBSjVlopQhQkX0UghWBhYaMIkiZg4Q+wsomIWomVhYVgZWEldloIgRQJBhEEJf4BDVqIjUkgx/ne5jZcvD1NFBsH5mZ35r23s3t75/P9kWleuqlUyqjX66uWZWWAGYP3wN/hZU3TjgKBwEEul2tgrjSlcCQSCem6fgZGVMlqJq9M05wvlUoVFcYlzE5rtdo1wGEHgZ29wXvhhiN/GwwGp1Wd+x0gMaxWq5sYSFET431sfaBYLPYxcg5nnha28c2Z4+nqOB6PP6EeIgZC2UKhwIXaDJgNJLJ2soJFB9sAmLR1jLOdQE6IIj7jBe18JnCO7W+xbtdCNs+eNkNLOBqNzhmGcSKr6PZBdXasM8+6xJJHvpwzCmFsbcnv95/harFjYRjX5VgVnXXyyKeOxMqOt5HQZfKHkXzqCJPCozLxy9jSkcJfbruLxVo6Qhgv4rILsifUqSOEG43GCtD3ngx1wXKmIXqH28H/ijAhzO8dd3MSmTTe8AUrAAYEwvvBO74H3C58GXd+Kp/Pv0i468tLJBKzED8H4BFf1LAEdhvly2vxsDLP+xU+FIvF1ljA/ZzhOJlM9nPeibk6JglC6wi8k/yrncIX4MSWsYtxxG/N1TEZIPP8juH8RS7CZQMjGHdkSmEyIZ5GyMBv4Lyf/D8cIv5T+wBjqZKQ99EN+wAAAABJRU5ErkJggg==);
+}
+
+.warranty-resale-widget .warranty-feature.icon-hazard {
+    /* 19 x 17 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjowNTwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CmONO7UAAAGoSURBVDgR7VSxSgNBEN27c0WEfECK43pLDw13sbC0CQTsJG1IIfkFsRCxEbGwEGyEfIYQG0NArhL8ghSWNopwkPhm3c1N3M1dWsGFZWfee/MYdvZOiL+2vKqG4zjelFLeQreP/ZjneS/Lss+qurUqAUyvoeloXQf5F+JuVV1px2ma7kyn0yeYSGaU+77fHI1GzwyzQt9CGADTK6TclFipcaa0w6XGSZIcQd60SxTS1PwSWginMQYmZ7PZOat6QUz3Sqda4C9IZ/Lfp9MYAzqFMGLi4Xg8vkM+ZFiodQwqQssYAyPDfiEpjfpab4ksYwzmEqqapXQDNa232AXjRqOxB0XbUglhnqU5uaSt6zgmFj4Qz/PoYwgWFD9JC6/gAwNrObhA18Wcm5ugsAeCJu9a1ABdD93/ukNQD8PwbTKZZIZTV0H/A3RzYkDHOcCr2AU+cHAKonryMbzqOIqiMwAHBnScPjqif8Qhdt3BE1QLgkCi6wdKzPDKTEm3jY7u6aSkZM19lDGK3kvEK1PcR70KAF1M9gYOW9gbKzsVQrqmV/gcF9B/pG/gG3PmcAPaAq2DAAAAAElFTkSuQmCC);
+}
+
+.warranty-resale-widget .warranty-feature.icon-calendar {
+    /* 19 x 21 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjo4NTwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CsQWye4AAAJESURBVDgRtZTLa1NBFMZzQyJYcdFoF12JNYUilC7zgNBCbXdtFwpZShctWFxUKFkJ4k5F6F66KfQP6ANKoTsT8oK4EjdGXJe+oFAr5pL4O+OMTibpTRd24OSb+c43X87M3Bkv5LRUKhWHigndbDZPK5XKV0cSSiQSw+FwuF/zJ6VSqe5qwi7RarUSxK4EuSk3r8dTRiP6bhpPyEwmM9BoNFbo3vQ87wjxay1eBSO6b4PP4IUQ6F+hv0v3IhqNvs/n84fCq0m+72fp54RAtC4ojUlDjOf+jP79wm/BKwIcovNUBhT3BVDz1VaQjErif7Zuy4xJRb3+xGgoSh20q+9mPGOW6YrNmHzH9picQdd4tlwu75jkVTGZTM6g3bb1rrGdU32+2TmWvekkFihgzeHahh3fcVuWAaYjLsf4TheujepZMft5H3OZ9I7b9kE6xWLxm2BQu0rFY9ogyxXfIJ4EGZpcT2OEg1p8D0wSbzist5oz8FA6rOyHIXpuBcuflKWn0+kHUjETxXwe81+gfMPDxDjhk/8IqhZYMS9dGvGimIo5FZ3peQPgS2KJkIfqBrHOS3gAqhZozMFlUOUwr1PhOeNpPc+FPd6JZzYZaEyFecSfCdm7Po37oN0KmD6u1WoNmww05gEvchFGiVvsdVyQyfbN/BSJRGYx/Xtoxtw9vGmWHDdJG9mOEDnZy2XNi+mjQqFwautMXxmz5GP2T7jnJhGAItxDn8XUHGaHXF0pYalmArgt/csaZj+JerVa/X6Z5tr5307Y4sglvncrAAAAAElFTkSuQmCC);
+}
+
+.warranty-resale-widget .warranty-feature.icon-cancel {
+    /* 18 x 18 */
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyIKICAgICAgICAgICAgeG1sbnM6ZXhpZj0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC8iPgogICAgICAgICA8eG1wOk1vZGlmeURhdGU+MjAxNC0xMi0wMVQxMToxMjo5NzwveG1wOk1vZGlmeURhdGU+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+UGl4ZWxtYXRvciAzLjM8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6WVJlc29sdXRpb24+NzI8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFhEaW1lbnNpb24+MjI8L2V4aWY6UGl4ZWxYRGltZW5zaW9uPgogICAgICAgICA8ZXhpZjpDb2xvclNwYWNlPjE8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxZRGltZW5zaW9uPjIyPC9leGlmOlBpeGVsWURpbWVuc2lvbj4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+CqJi2EQAAAHVSURBVDgR1ZS/S8NAFMebWCHoH+BQxUGlg5A1dhPpUvDnH+HkJPhnuIn/hItaBR0KurXBLas6dhBEXFIyNX6/yd1xeU0U1KUPLnfv3fc+l3uXl1pt2sz56YV935/3PG/TcZxVatM0fUmS5DGKovi7tZXgIAjWADvF4jbanICM4PewyUkYhs9iLnNnyoKAHgF6ibl1tNkSDWNNaA4bjcbncDh8kpoJsIKeVQDl+jrgHcDfJbyQCnX8CKs9RQjRv6HtKl93XQwW0AIVSJAW306Lq5XsVU4NdDAYbKDtIX6tdRwzxjnEuDHNU2tzD08D5u3D50Vp45tm1u/39wlk41jH0RsNxm3FyKZNKlqt1jaOc2Mt4gkkyExDfwX9nglgAP0ONr5lzLzxeDxesUUccyEBMl4GpcZmGLBc/FffgF3XfZWwqlTonEu9zTDgOI4fIGRFaevaF8Xj22lRc/zstI0UI/MNWNV+T6vQ8zvNTOe0JOdGA2HP/n+Yr4KE/yyQQkmjLD9Y+8htB/tw00W0Jpo0xjhHw0HSY1Tdfe7mzwKYIdY8ax/wLbj1XFb5ZCkTei4VE2AKFPwC8GW4S2jyD8dLvgP0QL4p4pkVcqyDdv/bH73NmI7xFzmr04eFA4IaAAAAAElFTkSuQmCC);
+}
+
+.warranty-resale-widget .warranty-more-info {
+    display: inline-block;
+    color: #18a2dc;
+    padding: 0 0 6px 12px;
+}
+
+.warranty-resale-widget .warranty-more-info,
+.warranty-resale-widget .warranty-more-info:active {
+    text-decoration: none;
+}
+
+.large .warranty-resale-widget .warranty-more-info {
+    display: block;
+    text-align: right;
+    color: #18a2dc;
+    padding: 0 12px 6px;
+    font-weight: bold;
+}
+
+.small .warranty-resale-widget .warranty-selector {
+    margin: 5px;
+    border: 1px solid #e7e7e7;
+    border-radius: 5px;
+}
+
+.large .warranty-resale-widget .warranty-selector {
+    margin: 5px;
+    border: 1px solid #bdbbbb;
+    padding: 10px;
+}
+
+.warranty-resale-widget .warranty-selector .dropdown {
+    position: relative;
+}
+
+.warranty-resale-widget .warranty-selector .dropdown .carat {
+    position: absolute;
+    display: inline-block;
+    width: 14px;
+    height: 8px;
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAICAYAAADJEc7MAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAABlppVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIgogICAgICAgICAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgICAgICAgICAgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiCiAgICAgICAgICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx0aWZmOllSZXNvbHV0aW9uPjcyPC90aWZmOllSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+ODwvZXhpZjpQaXhlbFlEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOlBpeGVsWERpbWVuc2lvbj4xNDwvZXhpZjpQaXhlbFhEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8eG1wTU06SW5zdGFuY2VJRD54bXAuaWlkOjg5NENDRDczNkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC94bXBNTTpJbnN0YW5jZUlEPgogICAgICAgICA8eG1wTU06RG9jdW1lbnRJRD54bXAuZGlkOjg5NENDRDc0NkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC94bXBNTTpEb2N1bWVudElEPgogICAgICAgICA8eG1wTU06RGVyaXZlZEZyb20gcmRmOnBhcnNlVHlwZT0iUmVzb3VyY2UiPgogICAgICAgICAgICA8c3RSZWY6aW5zdGFuY2VJRD54bXAuaWlkOjQ2QUExNEY2NkQ3NDExRTRCQTcxRTM2NkNGRUNCRTFBPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjg5NENDRDcyNkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC9zdFJlZjpkb2N1bWVudElEPgogICAgICAgICA8L3htcE1NOkRlcml2ZWRGcm9tPgogICAgICAgICA8ZGM6c3ViamVjdD4KICAgICAgICAgICAgPHJkZjpTZXEvPgogICAgICAgICA8L2RjOnN1YmplY3Q+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0OjEyOjAyIDE0OjEyOjAzPC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5QaXhlbG1hdG9yIDMuMzwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KvNyLQwAAAHRJREFUGBmNjkEOQEAQBOdfnLn7gAd4K59wlYiTgwNdopONsExSsenpWhsR0YtZtOJr6NAdKE5iF6vIyezo0MWJRiyCYBOduA8ZOzp0cc7Jya+S5VoHP9t/TiV2dB6nUmqZZxkydtm5y78k31joMF6UDtPvAVncLYnDA5LWAAAAAElFTkSuQmCC);
+    background-repeat: no-repeat;
+}
+
+.large .warranty-resale-widget .warranty-selector .dropdown .carat {
+    right: 5px;
+    top: 4px;
+}
+
+.small .warranty-resale-widget .warranty-selector .dropdown .carat {
+    right: 8px;
+    top: 8px;
+}
+
+.warranty-resale-widget .warranty-selector .dropdown.open .carat {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAICAYAAADJEc7MAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAABlppVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIgogICAgICAgICAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgICAgICAgICAgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiCiAgICAgICAgICAgIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIj4KICAgICAgICAgPHRpZmY6UmVzb2x1dGlvblVuaXQ+MjwvdGlmZjpSZXNvbHV0aW9uVW5pdD4KICAgICAgICAgPHRpZmY6Q29tcHJlc3Npb24+NTwvdGlmZjpDb21wcmVzc2lvbj4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzI8L3RpZmY6WFJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOk9yaWVudGF0aW9uPjE8L3RpZmY6T3JpZW50YXRpb24+CiAgICAgICAgIDx0aWZmOllSZXNvbHV0aW9uPjcyPC90aWZmOllSZXNvbHV0aW9uPgogICAgICAgICA8ZXhpZjpQaXhlbFlEaW1lbnNpb24+ODwvZXhpZjpQaXhlbFlEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOlBpeGVsWERpbWVuc2lvbj4xNDwvZXhpZjpQaXhlbFhEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+MTwvZXhpZjpDb2xvclNwYWNlPgogICAgICAgICA8eG1wTU06SW5zdGFuY2VJRD54bXAuaWlkOjg5NENDRDczNkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC94bXBNTTpJbnN0YW5jZUlEPgogICAgICAgICA8eG1wTU06RG9jdW1lbnRJRD54bXAuZGlkOjg5NENDRDc0NkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC94bXBNTTpEb2N1bWVudElEPgogICAgICAgICA8eG1wTU06RGVyaXZlZEZyb20gcmRmOnBhcnNlVHlwZT0iUmVzb3VyY2UiPgogICAgICAgICAgICA8c3RSZWY6aW5zdGFuY2VJRD54bXAuaWlkOjQ2QUExNEY2NkQ3NDExRTRCQTcxRTM2NkNGRUNCRTFBPC9zdFJlZjppbnN0YW5jZUlEPgogICAgICAgICAgICA8c3RSZWY6ZG9jdW1lbnRJRD54bXAuZGlkOjg5NENDRDcyNkUxODExRTRCQTcxRTM2NkNGRUNCRTFBPC9zdFJlZjpkb2N1bWVudElEPgogICAgICAgICA8L3htcE1NOkRlcml2ZWRGcm9tPgogICAgICAgICA8ZGM6c3ViamVjdD4KICAgICAgICAgICAgPHJkZjpTZXEvPgogICAgICAgICA8L2RjOnN1YmplY3Q+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDE0OjEyOjAyIDE0OjEyOjM0PC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcDpDcmVhdG9yVG9vbD5QaXhlbG1hdG9yIDMuMzwveG1wOkNyZWF0b3JUb29sPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4Kt8TYRgAAAHZJREFUGBmNjrENgDAMBLMX1NCzAAMwKyxBi4SoKCjgD+ULwIp46RXHvneSUqxK7Tm7jpFvt1Frkc9sanpFvUO/wq1W+qVD9ZBNzQJmMA91um0ygEMGWOAwDOytUshMGPb3dlG9yeBkBuNvp1GXVS6FNL4FAztdP8wtiYgTixsAAAAASUVORK5CYII=);
+    background-repeat: no-repeat;
+}
+
+/* `EasyDropDown` plugin moves the <select> input here, remove it from view: */
+.warranty-resale-widget .warranty-selector .dropdown .old {
+    display: none;
+}
+
+.warranty-resale-widget .warranty-selector .dropdown > div {
+    overflow: hidden;
+}
+
+.small .warranty-resale-widget .warranty-selector .dropdown .selected {
+    position: relative;
+    display: block;
+    padding: 5px 8px;
+    cursor: pointer;
+    background: #0071a0; /* Old browsers */
+    background: -moz-linear-gradient(top, #ffffff 1%, #e3e3e3 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(1%, #ffffff), color-stop(100%, #e3e3e3)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ffffff 1%, #e3e3e3 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #ffffff 1%, #e3e3e3 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #ffffff 1%, #e3e3e3 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #ffffff 1%, #e3e3e3 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e3e3e3', GradientType=0); /* IE6-9 */
+}
+
+.large .warranty-resale-widget .warranty-selector .dropdown .selected {
+    cursor: pointer;
+}
+
+.warranty-resale-widget .warranty-selector .dropdown ul {
+    margin: 0;
+    padding: 0;
+}
+
+.small .warranty-resale-widget .warranty-selector .dropdown ul {
+    border-top: 1px solid #e7e7e7;
+    background: #0071a0; /* Old browsers */
+    background: -moz-linear-gradient(top, #ffffff 40%, #e3e3e3 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(40%, #ffffff), color-stop(100%, #e3e3e3)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ffffff 40%, #e3e3e3 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #ffffff 40%, #e3e3e3 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #ffffff 40%, #e3e3e3 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #ffffff 40%, #e3e3e3 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e3e3e3', GradientType=0); /* IE6-9 */
+}
+
+.small .warranty-resale-widget .warranty-selector .warranty-option {
+    display: table;
+    position: relative;
+    cursor: pointer;
+}
+
+.small .warranty-resale-widget .warranty-selector .warranty-option .warranty-description {
+    display: table-cell;
+    padding: 5px 8px;
+}
+
+.small .warranty-resale-widget .warranty-selector ul li:first-child .warranty-option .warranty-description {
+    padding: 10px 8px 5px 8px;
+}
+
+.small .warranty-resale-widget .warranty-selector .warranty-option .warranty-price {
+    display: table-cell;
+    padding: 5px 8px 0 0;
+}
+
+.large .warranty-resale-widget .warranty-selector .warranty-option {
+    color: #1f63ad;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.large .warranty-resale-widget .warranty-selector .warranty-option .warranty-description {
+    display: inline-block;
+    padding: 5px 0;
+}
+
+.large .warranty-resale-widget .warranty-selector ul li:first-child .warranty-option .warranty-description {
+    padding: 15px 0 5px 0;
+}
+
+.large .warranty-resale-widget .warranty-selector .warranty-option .warranty-price {
+    float: right;
+    display: inline-block;
+    padding: 5px 0;
+}

@@ -1,0 +1,456 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Displays order details, such as order number, creation date, payment information,
+	order totals and information for each contained shipment.
+	This template module can be used in order confirmation pages as well as in the
+	order history to render the details of a given order. Depending on the context
+	being used in, one might omit rendering certain information.
+
+	Parameters:
+
+	order		: the order whose details to render
+	orderstatus	: if set to true, the order status will be rendered
+	              if set to false or not existing, the order status will not be rendered
+</iscomment>
+<isset name="Order" value="${pdict.order}" scope="page"/>
+<isset name="PageName" value="ConfirmationPage" scope="page"/>
+<isset name="recycleProductID" value="${('recycleProductID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.recycleProductID)? dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim() : ''}" scope="page" />
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	importScript("util/GetAmplienceImageUrl.ds");
+</isscript>
+<h2 class="content-header">
+	<isprint value="${Resource.msg('summary.title','checkout',null)}" />
+</h2>
+
+<table class="item-list order-iformation-details">
+<thead>
+	<tr>
+		<th class="section-header first">${Resource.msg('orderdetails.orderinformation','components',null)}</th>
+		<th class="section-header middle">${Resource.msg('orderdetails.shippingto','components',null)}</th>
+		
+		<th class="section-header last">
+			<isif condition="${Order.paymentInstruments.length == 1}">
+				${Resource.msg('orderdetails.paymentmethod','components',null)}
+			<iselse/>
+				${Resource.msg('orderdetails.paymentmethods','components',null)}
+			</isif>
+		</th>
+		
+	</tr>
+</thead>
+<tbody>	
+	<tr>
+	
+		<td class="order-information">
+		<div class="order-section-header mobileBlock">Order Information</div>
+			<div class="order-date ">
+				<span class="label">${Resource.msg('orderdetails.orderplaced','components',null)}:</span>
+				<span class="value"><isprint value="${Order.creationDate}" style="DATE_LONG"/></span>			
+			</div>
+		
+			<isif condition="${!empty(pdict.orderstatus) && pdict.orderstatus == 'true'}">
+				<isinclude template="account/orderhistory/orderstatusinclude"/>
+			</isif>
+		
+			<div class="order-number ">
+				<span class="label">${Resource.msg('orderdetails.ordernumber','components',null)}</span>
+				<span class="value"><isprint value="${Order.orderNo}"/></span>	
+			</div>
+		</td>
+		
+		<isscript>
+			importPackage(dw.util);
+			
+			var shippingMethodsIter : Iterator = pdict.order.shipments.iterator();
+			var uniqueshipmethodIDsMap : SortedMap = new SortedMap();
+			var uniqueshipmethods : Array = new Array();
+			
+			while(shippingMethodsIter.hasNext()){
+				var shippingMethodsForEachShipmentMap = shippingMethodsIter.next();
+				var shippingmethodId : String = shippingMethodsForEachShipmentMap.shippingMethod.ID;
+				var shippingmethodName : String = shippingMethodsForEachShipmentMap.shippingMethod.displayName;
+				uniqueshipmethodIDsMap.put(shippingmethodName,shippingmethodId)
+			}
+		</isscript>
+		<iscomment>Display shipping address</iscomment>
+		<td class="order-shipment-details">
+		<div class="order-section-header mobileBlock">Shipping Address</div>
+		<isloop items="${Order.shipments}" var="shipment" status="shipmentloopstate" begin="0" end="0"  >
+			<isset name="rowSpan" value="${shipment.productLineItems.size()}" scope="page"/>
+		    <div class="order-shipment-container">
+		    	<div class="order-shipment-address">
+		    		<isminishippingaddress p_shipment="${shipment}" p_editable="${false}" p_showmethod="${false}" p_showpromos="${false}"/>
+		    		<isset name="loopIndex" value="${1}" scope="page" />
+					<isset name="shipmentMethods" value="${uniqueshipmethodIDsMap.keySet()}" scope="pdict" />
+					<iscomment><isloop items="${uniqueshipmethodIDsMap.keySet()}" var="multishipment" status="loopstate"> 
+						<isif condition="${!empty(multishipment)}">
+							<div class="minishipments-method">
+								<isif condition="${loopstate.last && loopstate.count == 1}">
+									<span>${Resource.msg('orderdetails.shippingmethod','components',null)}: </span>
+								<iselse/>
+									<span>${Resource.msg('orderdetails.shippingmethod','components',null)} <isprint value="${loopIndex.toFixed()}"/> :</span>
+								</isif>
+								
+						    	<span><isprint value="${multishipment}"/></span>
+							</div>
+							<isset name="loopIndex" value="${loopIndex+1}" scope="page" />	
+						</isif>
+					</isloop></iscomment>
+					<isloop items="${Order.shipments}" var="multishipment" status="loopstate">
+							<isif condition="${!empty(multishipment.shippingMethod)}">
+								<isif condition="${uniqueshipmethodIDsMap.containsValue(multishipment.shippingMethod.ID)}">
+									<div class="minishipments-method">
+										<isif condition="${loopstate.last && loopstate.count == 1}">
+											<span>${Resource.msg('orderdetails.shippingmethod','components',null)}: </span>
+										<iselse/>
+												<span>${Resource.msg('orderdetails.shippingmethod','components',null)} <isprint value="${loopIndex.toFixed()}"/> :</span>
+										</isif>
+								    		<span><isprint value="${multishipment.shippingMethod.displayName}"/></span>
+								    		<isset name="loopIndex" value="${loopIndex+1}" scope="page" />	
+									</div> 
+								</isif>				 			
+							</isif>
+						</isloop>
+		    	</div>
+		    	<isif condition="${!empty(shipment.trackingNumber)}">
+			    	<div class="track-ingnumber">
+			    		<span class="label">${Resource.msg('orderdetails.tracking','components',null)}</span>
+			    		<span class="value"><!-- Tracking Number --><isprint value="${shipment.trackingNumber}"/></span>
+			    	</div>
+		    	</isif>
+		    </div>
+		    
+		    	
+		</isloop>
+		 </td>
+		<td class="order-payment-instruments">
+		<div class="order-section-header mobileBlock">Payment Method</div>
+			<isloop items="${Order.getPaymentInstruments()}" var="paymentInstr" status="piloopstate">
+				<isif condition="${dw.order.PaymentInstrument.METHOD_GIFT_CERTIFICATE.equals(paymentInstr.paymentMethod)}">
+				   <div class="orderpaymentinstrumentsgc">
+						   <span class="label"><isprint value="${dw.order.PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).name}" /></span>
+				           <span class="value"><isprint value="${paymentInstr.maskedGiftCertificateCode}"/></span>
+				           <span class="payment-amount">
+				              <span class="label">${Resource.msg('global.amount','locale',null)}:</span>
+				              <span class="value"><isprint value="${paymentInstr.paymentTransaction.amount}"/></span>
+				           </span>
+				    </div> 
+				<iselse/> 
+					<iscomment><div class="payment-type"><isprint value="${dw.order.PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).name}" /></div></iscomment>         
+					<div class="conf-page-mcard">
+						<isif condition="${'PayPal'.equals(paymentInstr.paymentMethod)}">
+							<isprint value="${paymentInstr.paymentMethod}"/><br/>
+						<iselse/>
+							<isminicreditcard p_card="${paymentInstr}" p_show_expiration="${false}"/>
+						</isif>
+					</div>
+					<div class="payment-amount">
+						<span class="label">${Resource.msg('global.amount','locale',null)}:</span>
+						<span class="value"><isprint value="${paymentInstr.paymentTransaction.amount}"/></span>
+					</div><!-- END: payment-amount -->
+				</isif>
+			</isloop>
+		</td>
+	</tr>
+ 
+	<tr>
+		<td>&nbsp;</td>
+		<iscomment>display billing address</iscomment>
+		<td class="order-billing">
+			<div class="order-section-header">${Resource.msg('orderdetails.billingaddress','components',null)}</div>
+			<isminiaddress p_address="${Order.billingAddress}"/>
+			<div class="mobileBlock"><isprint value="${Order.customerEmail}" /> </div>
+		</td>
+		
+		
+		<iscomment>display Order payment summary</iscomment>
+		<td class="order-payment-summary">
+		<div class="order-section-header">${Resource.msg('orderdetails.paymenttotal','components',null)}</div>
+			<div class="order-detail-summary">
+			<isif condition="${Order.shipments.length > 1}">
+				<isordertotals p_lineitemctnr="${Order}" p_showshipmentinfo="${true}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.ordertotal','locale',null)}"/>
+			<iselse/>
+				<isordertotals p_lineitemctnr="${Order}" p_showshipmentinfo="${false}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.ordertotal','locale',null)}"/>
+			</isif>
+			</div>
+		</td>
+	</tr>
+</tbody>	
+</table>
+
+<iscomment>render a box for each shipment</iscomment>
+<div class="content-header">Shipment</div>
+	<isloop items="${Order.shipments}" var="shipment" status="shipmentloopstate">
+		
+	<isif condition="${shipment.productLineItems.size() > 0}">
+
+			<iscomment>Shipment items table</iscomment>
+			<table class="item-list order-shipment-table" id="cart-table">
+				<thead>
+					<tr>
+						<th class="section-header first" colspan="2">${Resource.msg('global.product','locale',null)}</th>
+						<th class="section-header middle">${Resource.msg('global.unitprice','locale',null)}</th>
+						<th class="section-header last">${Resource.msg('global.price','locale',null)}</th>			
+					</tr>
+				</thead>
+				<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+				 <isif condition="${productLineItem.product.ID != recycleProductID || !productLineItem.product.ID.equals(recycleProductID)}">
+						 
+					<tr class="<isif condition="${pliloopstate.last}">last</isif>">	
+					<td class="item-image">
+								<isset name="image" value="${new ProductImage('image150X150',productLineItem.product,0)}" scope="page"/>
+								<isif condition="${productLineItem.product != null}">
+									<a class="confimage" href="${URLUtils.http('Product-Show','pid', productLineItem.productID)}">
+										<!-- img src="${image.getURL()}" alt="${!(productLineItem.product.getImage('small',0)==null)? productLineItem.product.getImage('small',0).alt: productLineItem.product.name}" title="${productLineItem.productName}"/-->
+										<picture>
+													<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+													<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+													<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+													<img src="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" alt="${!(productLineItem.product.getImage('small',0)==null)? productLineItem.product.getImage('small',0).alt: productLineItem.product.name}" title="${productLineItem.productName}" />
+										</picture>
+									</a>
+								<iselse/>
+									<img src="${URLUtils.staticURL('/images/noimagesmall.png')}" alt="${productLineItem.productName}" title="${productLineItem.productName}"/>
+								</isif>
+								<isif condition="${productLineItem.bonusProductLineItem}">
+									<div class="bonus-item">${Resource.msg('global.bonus','locale',null)}</div>
+								</isif>
+							</td>
+							<td class="item-right-details" colspan="3">
+								<table>
+									<tr>
+										<td class="item-details">
+											<iscomment>Display product line and product using module</iscomment>
+											<div class="block1">
+												<iscomment>Display product line and product using module</iscomment>
+												<isdisplayliproduct p_productli="${productLineItem}" p_editable="${true}"/>
+												<div class="confirmation-promo-callout product-row-promotion">
+													<isloop items="${productLineItem.priceAdjustments}" var="pli" status="loopstate">
+														<isif condition="${pli != null}">
+															<div class="promo-adjustment">
+																<isprint value="${pli.promotion.calloutMsg}" encoding="off"/>
+															</div>
+														</isif>
+													</isloop>
+												</div>
+												<div class="mobileBlock">
+													<isdisplayproductavailability p_productli="${productLineItem}" p_displayinstock="${true}" p_displaypreorder="${true}" p_displaybackorder="${true}" p_hidedates="${true}"/>
+												</div>
+											</div>
+											<div class="block2">
+											<iscomment>Prints a message about the product's availability. </iscomment>					
+												<isif condition="${productLineItem.product!=null && productLineItem.product.availabilityModel != null}">							
+													<isset name="availabilityModel" value="${productLineItem.product.availabilityModel}" scope="PAGE"/>
+													<isset name="availabilityStatus" value="${productLineItem.product.availabilityModel.availabilityStatus}" scope="PAGE"/>
+													<isset name="inventoryRecord" value="${productLineItem.product.availabilityModel.inventoryRecord}" scope="PAGE"/>
+													<div class="availability-msg">
+													<iscomment>
+														<isif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK && inventoryRecord != null && inventoryRecord.stockLevel.available}">
+															<p class="in-stock-msg">${StringUtils.format(Resource.msg('global.instock','locale',null))}</p>	
+														<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER}">
+															<isif condition="${productLineItem.product.availabilityModel.inventoryRecord != null && productLineItem.product.availabilityModel.inventoryRecord.inStockDate != null && productLineItem.product.availabilityModel.inventoryRecord.inStockDate>new Date()}">
+																<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+															</isif>
+														<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER}">
+															<isif condition="${('isPreOrderable' in productLineItem.product.custom) && (productLineItem.product.custom.isPreOrderable)}">
+																<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+															<iselse>
+																<p class="backorder-msg">${StringUtils.format(Resource.msg('global.allbackorder','locale',null))}</p>
+															</isif>
+														</isif>
+													</iscomment>
+													<isinclude url="${URLUtils.url('Order-AvailabilityMsgRemote' , 'pid' , productLineItem.product.ID,'orderConfirmPage', true,'orderDetailPage', false)}"/>
+														<isif condition="${productLineItem.product.primaryCategory !=null && productLineItem.product.primaryCategory.ID == 'warranty'}">
+															<div class="default-shippingmethod-msg">
+																<isprint value="${dw.system.Site.current.preferences.custom.customerCarePlanShippingMessage}" encoding="off" />
+															</div>
+														<iselse/>	
+															<div class="default-shippingmethod-msg">
+																<iscomment>Displaying estimated ship date</iscomment>
+																<iscomment><isministockmessage product="${productLineItem.product}"/></iscomment>
+																<isinclude url="${URLUtils.url('Product-ShippingMessage' , 'pid' , productLineItem.product.ID,'shippingmethodID', shipment.shippingMethod.ID, 'shippingmethodName', shipment.shippingMethod.displayName)}"/>
+																<isset name="defaultShipping" value="${false}" scope="page"/>
+		  														<isloop items="${dw.order.ShippingMgr.getProductShippingModel(productLineItem.product).getApplicableShippingMethods()}" var="shippingObj" status="loopstate">
+		 															 <isif condition="${shippingObj.isDefaultMethod()}">
+		 															 	<isset name="defaultShipping" value="${true}" scope="page"/>
+																  		<isset name="defaultShippingDescription" value="${shippingObj.getDescription()}" scope="page"/>
+																  		<isset name="defaultShippingName" value="${shippingObj.getDisplayName()}" scope="page"/>
+																  	</isif>
+																</isloop>																
+																<isprint value="${shipment.shippingMethod.displayName}"/>																
+															</div>
+														</isif>
+													</div>	
+												</isif>	
+							
+							<iscomment>Prints quantity of the product. </iscomment>	
+							<span>${Resource.msg('global.qnty','locale',null)}:</span><isprint value="${productLineItem.quantity}"/>	
+											</div>
+										</td>
+						<td class="item-price">		
+						
+							<span class="price-sales">
+								<isset name="PriceModel" value="${productLineItem.product.getPriceModel()}" scope="page" />
+								<isinclude template="product/components/standardprice" />
+								<iscomment>Get SalesPrice from line item itself.</iscomment>
+								<isset name="SalesPrice" value="${productLineItem.basePrice}" scope="page" />
+								<isif condition="${StandardPrice.available && StandardPrice > SalesPrice}">
+									<iscomment>StandardPrice and SalesPrice are different, show standard</iscomment>
+									<div class="price-promotion">
+										<span class="price-sales"><isprint value="${SalesPrice}" /></span>
+										<span class="price-standard"><isprint value="${StandardPrice}" /></span>
+									</div>
+								<iselse/>
+									<span class="price-sales"><isprint value="${SalesPrice}" /></span>
+								</isif>
+							</span>
+						</td>									
+					    <td class="item-total">
+					    	<iscomment>Render quantity. If it is a bonus product render word 'Bonus'</iscomment>
+					    	<isif condition="${productLineItem.bonusProductLineItem}">
+					    		<span class="bonus-item">${Resource.msg('global.bonus','locale',null)}</span>
+					    	<iselse/>
+					    		
+				            	<isprint value="${productLineItem.adjustedPrice}"/>				    						            
+					            <iscomment><isif condition="${productLineItem.optionProductLineItems.size() > 0}">
+									<isloop items="${productLineItem.optionProductLineItems}" var="optionLI">
+										<p>+ <isprint value="${optionLI.adjustedPrice}"/></p>
+									</isloop>
+								</isif></iscomment>
+							</isif>
+					    </td>	
+										
+									</tr>
+									<tr>
+									<td colspan="3">
+									<div class="mobileBlock">
+										<isif condition="${productLineItem.product.primaryCategory !=null && productLineItem.product.primaryCategory.ID == 'warranty'}">
+											<div class="default-shippingmethod-msg">
+												<isprint value="${dw.system.Site.current.preferences.custom.customerCarePlanShippingMessage}" encoding="off" />
+											</div>
+										<iselse/>	
+											<div class="default-shippingmethod-msg">
+												<iscomment>Displaying estimated ship date</iscomment>
+												<iscomment><isministockmessage product="${productLineItem.product}"/></iscomment>
+												<isinclude url="${URLUtils.url('Product-ShippingMessage' , 'pid' , productLineItem.product.ID,'shippingmethodID', shipment.shippingMethod.ID, 'shippingmethodName', shipment.shippingMethod.displayName)}"/>
+												<isset name="defaultShipping" value="${false}" scope="page"/>
+														<isloop items="${dw.order.ShippingMgr.getProductShippingModel(productLineItem.product).getApplicableShippingMethods()}" var="shippingObj" status="loopstate">
+														 <isif condition="${shippingObj.isDefaultMethod()}">
+														 	<isset name="defaultShipping" value="${true}" scope="page"/>
+												  		<isset name="defaultShippingDescription" value="${shippingObj.getDescription()}" scope="page"/>
+												  		<isset name="defaultShippingName" value="${shippingObj.getDisplayName()}" scope="page"/>
+												  	</isif>
+												</isloop>																
+												<isprint value="${shipment.shippingMethod.displayName}"/>																
+											</div>
+										</isif>
+									</div>
+									</td>
+									</tr>
+								</table>
+							</td>				
+					</tr>
+				 </isif>
+				</isloop>
+			<iscomment>Shipment Gift Message</iscomment>
+			<isif condition="${shipment.gift}">
+				<tr class="giftrow_cont">
+					<td colspan="4" class="order-shipment-gift-message-header">
+						${Resource.msg('orderdetails.giftmessage','components',null)}
+						
+						<isif condition="${!empty(shipment.giftMessage)}">
+							<isprint value="${shipment.giftMessage}"/>
+						<iselse/>
+							&nbsp;
+						</isif>
+					</td>
+				</tr>
+			 
+			</isif>
+			</table>
+
+		</isif>
+
+		<isif condition="${shipment.giftCertificateLineItems.size() > 0}">
+
+			<iscomment>Shipment Gift Certificate</iscomment>
+			<table >
+				<thead>
+					<tr>
+						<th class="section-header">${Resource.msg('global.item','locale',null)}</th>
+						<th class="section-header">${Resource.msg('global.price','locale',null)}</th>
+						<th class="section-header">${Resource.msg('orderdetails.shippingto','components',null)}</th>
+					</tr>
+				</thead>
+				<isloop items="${shipment.giftCertificateLineItems}" var="giftCertificateLineItem" status="gcliloopstate">
+					<tr>
+						<td class="order-gift-cert-attributes">
+							<span class="label">${Resource.msg('global.giftcertificate','locale',null)}</span>
+							<div class="order-gift-cert-to">
+								<span class="label">${Resource.msg('orderdetails.giftcertto','components',null)}</span>
+								<span class="value">
+									<isprint value="${giftCertificateLineItem.recipientName}"/><br />
+									<isprint value="${giftCertificateLineItem.recipientEmail}"/>
+								</span>
+							</div>
+							<div class="order-gift-cert-from">
+								<span class="label">${Resource.msg('orderdetails.giftcertfrom','components',null)}</span>
+								<span class="value">
+									<isprint value="${giftCertificateLineItem.senderName}"/><br />
+									<isprint value="${Order.customerEmail}"/>
+								</span>
+							</div>
+						</td>
+						<td>
+							<isprint value="${giftCertificateLineItem.price}"/>
+						</td>
+						<td class="order-shipment-details">
+							<div class="order-shipment-address">
+					    		<span class="label">${Resource.msg('orderdetails.giftcertshippingaddress','components',null)}</span>
+					    		<div class="order-gift-cert-to">
+									<span class="value"><isprint value="${giftCertificateLineItem.recipientName}"/></span>
+									<span class="value"><isprint value="${giftCertificateLineItem.recipientEmail}"/></span>
+								</div>
+					    	</div>
+							<div class="shipping-method">
+					    		<span class="label">${Resource.msg('orderdetails.shippingmethod','components',null)}</span>
+					    		<span class="value">${Resource.msg('orderdetails.giftcertshipping','components',null)}</span>
+					    	</div>							
+						</td>
+					</tr>
+				</isloop>
+				
+				<iscomment>if shipment is marked as gift</iscomment>
+				<tr>
+					<td colspan="4" class="order-shipment-gift-message-header">
+						${Resource.msg('orderdetails.giftmessage','components',null)}
+					</td>
+				</tr>
+
+				<isif condition="${shipment.gift}">
+					<tr>
+						<td colspan="4" class="order-shipment-gift-message">
+							<isif condition="${!empty(shipment.giftMessage)}">
+								<isprint value="${shipment.giftMessage}"/>
+							<iselse/>
+								&nbsp;
+							</isif>
+						</td>
+					</tr>
+				<iselse/>
+					<tr>
+						<td colspan="4" class="order-shipment-gift-message">
+							<isset name="theGiftCert" value="${shipment.giftCertificateLineItems.iterator().next()}" scope="page"/>
+							<isif condition="${!empty(theGiftCert.message)}">
+								<isprint value="${theGiftCert.message}"/>
+							<iselse/>
+								&nbsp;
+							</isif>
+						</td>
+					</tr>
+				</isif>
+			</table>
+
+		</isif>
+	</isloop>

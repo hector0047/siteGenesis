@@ -1,0 +1,1001 @@
+/**
+ * Class which helps working with amplience Interactive Merchandizing 
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.content );
+
+importScript( 'bc_amplience:api/libAmplienceAPIAuth.ds' );
+importScript( "bc_amplience:im/libAmplienceIMClient.ds" );
+
+function AmplienceIMHelper( params : Object ) {
+	
+	var AMP_AREAS_PATH : String = 'merchandising/areas';
+	
+	var AMP_AREA_SEARCH_PARAM_NAME = 'query';
+	
+	var AMP_IM_OFFSET_PARAM_NAME = 'offset';
+	
+	var AMP_IM_LIMIT_PARAM_NAME = 'limit';
+	
+	var AMP_AREA_PUBLISHED_FILTER = 'filter=isPublished:true';
+	
+	var AMP_LIMIT_VALUE = 100;
+	
+	var guidRegex : RegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+	var ampApiURL : String = params[ 'ampApiURL' ];
+ 	var username  : String = params[ 'username' ];
+ 	var password  : String = params[ 'password' ];
+ 	var ampIMApiURL : String = params[ 'ampIMApiURL' ];
+ 	
+ 	var searchPhrase : String = params[ 'searchPhrase' ];
+ 	
+ 	var selectedAreaIDs : Array = params[ 'selectedAreaIDs' ];
+ 	
+ 	// last selected Area ID, we need to determine the current page of imported areas
+ 	var selectedAreaID : Array = params[ 'selectedAreaID' ];
+ 	
+ 	var isSearchByID = guidRegex.test(searchPhrase);
+ 	
+ 	var orderBy : String = params[ 'orderBy' ];
+ 	
+ 	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+		ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+
+	/**
+	 * Get Amplience IM assets
+	 *
+	 * @return {Collection} availableIMAreas - Available IM Areas
+	 *
+	 */
+ 	this.getAvailableIMAreas = function () : Collection {
+ 		
+ 		/**
+ 		 * Get All IM assets from API
+ 		 */
+		var assets : Collection = this.getAllIMAssetsFromAPI();
+		
+		/**
+		 * Get IM Area IDs from the founded content assets in 'amp_modules_im' folder
+		 */
+		var imFolder : Folder = ContentMgr.getFolder("amp_modules_im");
+		var importedIMAssets : Collection = imFolder.getContent();
+		
+		/**
+		 * Construct array with alreay imported IM Area IDs
+		 */
+		var importedIMAreaIds : Array = [];
+		for each (var importedIMAsset in importedIMAssets) {
+
+				importedIMAreaIds.push( importedIMAsset.getCustom()['amplienceId'] );
+		}
+		
+		var availableIMAreas : ArrayList = new ArrayList();
+		
+		/**
+		 * Iterate through all IM Areas and add only not imported once.
+		 */
+		for each (var asset in assets) {
+		
+			 if ( importedIMAreaIds.indexOf(asset.id) == -1 ) {
+			 
+			 		/**
+			 		 * If we have search by ID, check if the current assets has same id as the search phrase
+			 		 */
+			 		if ( isSearchByID ) {
+			 			
+			 			if ( asset.id.toLowerCase() == searchPhrase.toLowerCase() ) {
+			 			
+			 				availableIMAreas.push(asset);
+			 			}
+			 			
+			 		} else {
+			 		
+			 			availableIMAreas.push(asset);
+			 		}
+			 }
+		}
+		
+		return availableIMAreas;
+ 	};
+ 	
+ 	/**
+	 * Get Imported Amplience IM assets
+	 *
+	 * @return {Object} importedIMAreas - Imported IM Areas object including both available and selected areas
+	 *
+	 */
+ 	this.getImportedIMAreas = function () : Object {
+ 		
+ 		/**
+		 * Get IM Area IDs from the founded content assets in 'amp_modules_im' folder
+		 */
+		var imFolder : Folder = ContentMgr.getFolder("amp_modules_im");
+		var importedIMAssets : Collection = imFolder.getContent();
+		
+		var allImportedIMAreas : ArrayList = new ArrayList();
+		
+		var offlineIMAreas : ArrayList = new ArrayList();
+		var needUpdatesIMAreas : ArrayList = new ArrayList();
+		
+		/**
+ 		 * Get All IM assets from API
+ 		 */
+		var assets : Collection = this.getAllIMAssetsFromAPI();
+		
+		/**
+		 * When selectedAreaID is provided, we determine the current position of imported area
+		 */
+		var currentImportedAreaIndex : Number = 0;
+		
+		
+		/**
+		 * Iterate through already imported IM Assets objects and update last updated date
+		 * and content with data read from Amplience API
+		 */
+		var importedIMAssetsIter : Iterator = importedIMAssets.iterator();
+		while(importedIMAssetsIter.hasNext()) {
+			var importedIMAsset : Object = importedIMAssetsIter.next();
+	
+			var assetId = importedIMAsset.ID;
+			var assetUUID = importedIMAsset.UUID;
+			var assetName = importedIMAsset.name;
+			var amplienceId = importedIMAsset.custom['amplienceId'];
+			var amplienceAssociatedModuleName = importedIMAsset.custom['amplienceAssociatedModuleName'];
+			var amplienceWidth = importedIMAsset.custom['amplienceWidth'];
+			var amplienceHeight = importedIMAsset.custom['amplienceHeight'];
+			var ampLastPublished = '';
+			var amplienceName = '';
+			var amplienceThumbnail = '';
+			
+			// search for corresponding IM area to get additional data
+			var correspondingAreaFound : Boolean = false;
+			for each (var asset in assets) {
+			
+				if (importedIMAsset.custom['amplienceId'] == asset.id) {
+				
+					ampLastPublished = asset.lastPublished;
+					amplienceName = asset.name;
+					amplienceThumbnail = asset.thumbnail;
+					correspondingAreaFound = true;
+					
+					// check if the area needs to be updated
+					var correspondingAreaWidth = (!empty(asset.lastPublishedModule) && !empty(asset.lastPublishedModule.width))
+																		?  asset.lastPublishedModule.width : '';
+																		
+					var correspondingAreaHeight = (!empty(asset.lastPublishedModule) && !empty(asset.lastPublishedModule.height))
+																		?  asset.lastPublishedModule.height : '';
+																		
+					var correspondingAreaAssociatedModuleName = !empty(asset.lastPublishedModule) ? asset.lastPublishedModule.name : '';
+					
+					var correspondingAreaName = asset.name;
+			
+					if (amplienceWidth != correspondingAreaWidth || amplienceHeight != correspondingAreaHeight
+						 || amplienceAssociatedModuleName != correspondingAreaAssociatedModuleName
+						 || assetName != correspondingAreaName) {
+								
+						needUpdatesIMAreas.push({
+							assetId						  : assetId,
+							assetName					  : assetName,
+							amplienceId				 	  : amplienceId,
+							amplienceName				  : amplienceName, 
+							amplienceAssociatedModuleName : correspondingAreaAssociatedModuleName,
+							amplienceWidth				  : correspondingAreaWidth,
+							amplienceHeight				  : correspondingAreaHeight
+						});	
+					}
+					
+					break;
+				}
+			}
+
+			allImportedIMAreas.push({
+				assetId						  : assetId,
+				assetUUID					  : assetUUID,
+				assetName					  : assetName,
+				amplienceId				 	  : amplienceId,	     
+				amplienceAssociatedModuleName : amplienceAssociatedModuleName,
+				amplienceWidth				  : amplienceWidth,
+				amplienceHeight				  : amplienceHeight,
+				amplienceLastPublished		  : ampLastPublished,
+				amplienceName				  : amplienceName,
+				amplienceThumbnail			  : amplienceThumbnail
+			});
+			
+			// add not-found data
+			if (!correspondingAreaFound) {
+			
+				offlineIMAreas.push({
+					assetId : assetId,
+					assetName : assetName,
+					amplienceId : amplienceId,
+					amplienceAssociatedModuleName : amplienceAssociatedModuleName
+				});
+			}
+		}
+		
+		/**
+		 * Iterate through already imported IM Areas and update the selected areas collection
+		 */
+		var importedSelectedIMAreas : ArrayList = new ArrayList();
+		var widthsToSkip : Array = new Array();
+		for each (var importedIMArea in allImportedIMAreas) {
+		
+			// check if the current IM Areas should be added in selected Areas
+			if (selectedAreaIDs.indexOf(importedIMArea['assetId']) != -1) {
+			
+				importedSelectedIMAreas.push(importedIMArea);
+				widthsToSkip.push(importedIMArea['amplienceWidth']);
+			}
+		}
+		
+		/**
+		 * Get Collection of associated Groups for the selected areas
+		 */
+		var associatedGroups : ArrayList = getAssociatedGroupsForSelectedAreas(importedSelectedIMAreas);
+		
+		/**
+		 * Iterate through already imported IM Areas and update the selected areas collection
+		 * and width that need to be skipped in the available areas grid
+		 */
+		var importedIMAreas : ArrayList = new ArrayList();
+		for each (var importedIMArea in allImportedIMAreas) {
+			
+			// determine if we need to stop calculating the current imported area index
+			if ( !empty(selectedAreaID) && selectedAreaID == importedIMArea['assetId'] ) {
+			
+				selectedAreaID = null;
+			}
+		
+			// check if area should be skipped, because of selected width
+			if (widthsToSkip.indexOf(importedIMArea['amplienceWidth']) != -1) {
+			
+				continue;		
+			}
+			
+			var addIMAreaElement : Boolean = true;
+			/**
+			 * Check if we need to apply seach filter
+			 */
+			if ( !empty(searchPhrase) ) {
+			
+				addIMAreaElement = isSearchByID ? (importedIMArea['amplienceId'].toLowerCase() == searchPhrase.toLowerCase()) :
+											importedIMArea['assetName'].toLowerCase().indexOf(searchPhrase.toLowerCase()) > -1;
+			}
+			
+			if (addIMAreaElement) {
+				importedIMAreas.push(importedIMArea);
+				
+				// determine current imported area index
+				if ( !empty(selectedAreaID) ) {
+				
+					++currentImportedAreaIndex;
+				}
+			}
+		}
+		
+		/**
+		 * Check if we need to perform sorting
+		 */
+		if ( !empty(orderBy) ) {
+			
+			switch (orderBy) {
+				case 'namedesc':
+					importedIMAreas.sort(comparatorByNameDesc);
+					break;
+				case 'nameasc':
+					importedIMAreas.sort(comparatorByNameAsc);
+					break;
+				case 'publisheddatedesc':
+					importedIMAreas.sort(comparatorByPublishedDateDesc);
+					break;
+				case 'publisheddateasc':
+					importedIMAreas.sort(comparatorByPublishedDateAsc);
+					break;
+				case 'modulenamedesc':
+					importedIMAreas.sort(comparatorByModuleNameDesc);
+					break;
+				case 'modulenameasc':
+					importedIMAreas.sort(comparatorByModuleNameAsc);
+					break;
+				case 'widthdesc':
+					importedIMAreas.sort(comparatorByWidthDesc);
+					break;
+				case 'widthasc':
+					importedIMAreas.sort(comparatorByWidthAsc);
+					break;
+				case 'heightdesc':
+					importedIMAreas.sort(comparatorByHeightDesc);
+					break;
+				case 'heightasc':
+					importedIMAreas.sort(comparatorByHeightAsc);
+					break;	
+			}
+		}
+		
+		return {
+			availableImportedIMAreas : importedIMAreas,
+			selectedImportedIMAreas  : importedSelectedIMAreas,
+			offlineIMAreas			 : offlineIMAreas,
+			needUpdatesIMAreas 		 : needUpdatesIMAreas,
+			associatedGroups		 : associatedGroups,
+			currentImportedAreaIndex : currentImportedAreaIndex
+		};
+ 	}
+ 
+ 	/**
+	 * Get Grouped Amplience IM assets
+	 *
+	 * @return {Object} groupedIMAreas - Object with All Grouped IM Areas 
+	 *
+	 */
+ 	this.getGroupedIMAreas = function () : Object {
+ 		
+ 		/**
+		 * Get IM Area IDs from the founded content assets in 'amp_modules_im' folder
+		 */
+		var imgroupFolder : Folder = ContentMgr.getFolder("amp_modules_imgroup");
+		var groupedIMAssets : Collection = imgroupFolder.getContent();
+		
+		var groupedIMAreas : ArrayList = new ArrayList();
+		
+		/**
+ 		 * Get All IM assets from API
+ 		 */
+		var assets : Collection = this.getAllIMAssetsFromAPI();
+
+		/**
+		 * Iterate through already grouped IM Assets objects and update last updated date
+		 * and content with data read from Amplience API
+		 */
+		var groupedIMAssetsIter : Iterator = groupedIMAssets.iterator();
+		while ( groupedIMAssetsIter.hasNext() ) {
+			
+			var groupedIMAsset : Object = groupedIMAssetsIter.next();
+			
+			var groupName : String = groupedIMAsset.name;
+			var groupDescription : String = groupedIMAsset.description;
+			var groupLastModified : Date = groupedIMAsset.getLastModified();
+
+			var areaIDs : Object = JSON.parse(groupedIMAsset.custom['ampConfig']);
+
+			var areaGroup : ArrayList = new ArrayList();
+			
+			/**
+			 * Iterate through area IDs and load area info
+			 */
+			for each (areaID in areaIDs) {
+
+				var amplienceId = areaID,
+					assetName = '',
+					amplienceAssociatedModuleName = '',
+					amplienceWidth = '',
+					amplienceHeight = '',
+					amplienceLastPublished = '',
+					amplienceName = '',
+					amplienceThumbnail = '';
+							
+				/**
+				 * If content asset is found in DW, read info from it.
+				 */
+				var dwContent : Content = ContentMgr.getContent(areaID);
+				if ( !empty(dwContent) ) {
+				
+					amplienceId = dwContent.custom['amplienceId'];
+					assetName = dwContent.name;
+					amplienceAssociatedModuleName = dwContent.custom['amplienceAssociatedModuleName'];
+					amplienceWidth = dwContent.custom['amplienceWidth'];
+					amplienceHeight = dwContent.custom['amplienceHeight'];
+				}
+			
+				// search for corresponding IM area to get additional data
+				for each (var asset in assets) {		
+					if (areaID == asset.id) {
+						
+						if ( empty(amplienceAssociatedModuleName) ) {
+								amplienceAssociatedModuleName = !empty(asset.lastPublishedModule) ? asset.lastPublishedModule.name : '';
+						}
+						
+						if ( empty(amplienceWidth) ) {
+								amplienceWidth = (!empty(asset.lastPublishedModule) && !empty(asset.lastPublishedModule.width))
+																		?  asset.lastPublishedModule.width : '';
+						}
+						
+						if ( empty(amplienceHeight) ) {
+								amplienceHeight = (!empty(asset.lastPublishedModule) && !empty(asset.lastPublishedModule.height))
+																		?  asset.lastPublishedModule.height : '';
+						}
+						
+						amplienceLastPublished = asset.lastPublished;
+						amplienceName = asset.name;
+						amplienceThumbnail = asset.thumbnail;
+
+						break;
+					}
+				}
+				
+				areaGroup.push({
+							amplienceId				 	  : amplienceId,
+							assetName					  : assetName,
+							amplienceAssociatedModuleName : amplienceAssociatedModuleName,
+							amplienceWidth				  : amplienceWidth,
+							amplienceHeight				  : amplienceHeight,
+							amplienceLastPublished		  : amplienceLastPublished,
+							amplienceName				  : amplienceName,
+							amplienceThumbnail			  : amplienceThumbnail
+						});
+			}
+			
+			// sort grouped assets by width
+			areaGroup.sort(function(area1, area2) : Number {
+				
+				var area1Width : Number = empty(area1['amplienceWidth']) ? 0 : new Number(area1['amplienceWidth']);
+				var area2Width : Number = empty(area2['amplienceWidth']) ? 0 : new Number(area2['amplienceWidth']);
+
+				if (area1Width < area2Width) {
+					return 1;	
+				}
+				
+				if (area1Width > area2Width) {
+					return -1;	
+				}
+				
+				return 0;
+			});
+			
+			groupedIMAreas.push({
+								assetId : groupedIMAsset.ID,
+								assetUUID : groupedIMAsset.UUID,
+								areaGroup 	: areaGroup,
+								groupName : groupName,
+								groupDescription : groupDescription,
+								groupLastModified : groupLastModified
+								});
+		}
+		
+		/**
+		 * Check if we need to perform sorting
+		 */
+		if ( !empty(orderBy) ) {
+			
+			switch (orderBy) {
+				case 'creationdatedesc':
+					groupedIMAreas.sort(comparatorByLastModifiedDateDesc);
+					break;
+				case 'creationdateasc':
+					groupedIMAreas.sort(comparatorByLastModifiedDateAsc);
+					break;
+				case 'groupnamedesc':
+					groupedIMAreas.sort(comparatorByGroupNameDesc);
+					break;
+				case 'groupnameasc':
+					groupedIMAreas.sort(comparatorByGroupNameAsc);
+					break;
+			}
+		}
+		
+		return groupedIMAreas;
+ 	}
+ 	
+ 	/**
+	 * Get ALL Amplience IM assets from Amplience API
+	 *
+	 * @return {Collection} result - Amplience IM Assets Object
+	 *
+	 */
+ 	this.getAllIMAssetsFromAPI = function () : Collection {
+ 	
+ 		var result : ArrayList = new ArrayList();
+ 	
+ 		/**
+ 		 * get Auth token
+ 		 */
+ 		var ampAuth = new AmplienceAPIAuth({
+ 			ampApiURL : ampApiURL,
+ 			username : username,
+ 			password : password
+ 		});
+ 		
+ 		var authToken : Object = ampAuth.getAuthToken();		
+ 		var permissionsToken : String = '';
+
+ 		if ('content' in authToken && 'permissionsToken' in authToken.content) {
+ 			
+ 			permissionsToken = authToken.content.permissionsToken;
+ 			
+ 		} else {
+ 			
+ 			throw new Error('Invalid auth token: ' + authToken);
+ 		}
+
+		/*
+		 * Make call to IM API Service to retrieve ALL IM Areas
+		 */
+		var offset : Number = 0;
+		var numFound : Number = 0;
+		
+		do {
+		 
+	  		var httpClient : HTTPClient = new HTTPClient();
+			httpClient.setTimeout(ampTimeout);
+			httpClient.enableCaching(0);
+			
+	 		var queryString : String = buildAssetsQuery(offset, AMP_LIMIT_VALUE, true);
+	 		
+	 		var url : String = ampIMApiURL + AMP_AREAS_PATH + queryString;
+	
+	 		httpClient.open('GET', url);
+	
+	 		httpClient.setRequestHeader('X-Amp-Auth', permissionsToken);
+	
+	 		httpClient.send();
+	 		
+	 		if (httpClient.statusCode != 200) {
+				throw new Error('HTTP Communication error : Status code ' + httpClient.statusCode + ' - ' + httpClient.statusMessage);
+			};
+			
+			var assets : Object = JSON.parse(httpClient.getText('UTF-8'));
+			
+			numFound = new Number(assets.content.numFound);
+			
+			// increase the offset to ready next portion of areas if necessary
+			offset += AMP_LIMIT_VALUE;
+			
+			for each (var asset in assets.content.data) {
+				
+				result.push(asset);
+			}
+			
+		} while( offset < numFound );
+		
+		return result;
+ 	}
+ 	
+ 	/**
+	 * Build Request query string
+	 *
+	 * @param {Number} offset - the offset query string parameter value
+	 * @param {Number} limit -  the limit query string parameter value
+	 * @param {Boolean} applyPublishedFilter - flag if we need to include a filter by Published state
+	 *
+	 * @return {String} query string - request url query parameters
+	 *
+	 */
+ 	var buildAssetsQuery = function (offset : Number, limit : Number, applyPublishedFilter : Boolean) {
+ 		
+ 		var paramsSet : Array = [];
+
+		// add search phrase parameter if it's not a GUID
+ 		if ( !empty(searchPhrase) && !isSearchByID ) {
+ 			
+			paramsSet.push(AMP_AREA_SEARCH_PARAM_NAME + '=' + searchPhrase);
+ 		}
+ 		
+ 		if ( !empty(applyPublishedFilter) && applyPublishedFilter ) {
+ 			
+ 			paramsSet.push(AMP_AREA_PUBLISHED_FILTER);
+ 		}
+ 		
+ 		// add offset parameter
+ 		paramsSet.push(AMP_IM_OFFSET_PARAM_NAME + '=' + offset);
+ 		
+ 		// add limit parameter
+ 		paramsSet.push(AMP_IM_LIMIT_PARAM_NAME + '=' + limit);
+
+ 		return (paramsSet.length > 0) ?
+ 						'?' + paramsSet.join('&') : '';					
+ 	}
+ 	
+ 	/**
+ 	 * Get associated groups for a collection of selected IM Areas
+ 	 *
+ 	 * @param {ArrayList} selectedIMAreas - array list with selected IM Areas
+	 *
+	 * @return {ArrayList} associatedGroups - array list with 
+ 	 */
+ 	var getAssociatedGroupsForSelectedAreas = function(selectedIMAreas : ArrayList) : ArrayList {
+ 		
+ 		var associatedGroups : ArrayList = new ArrayList();
+ 		
+ 		var imFolder : Folder = ContentMgr.getFolder("amp_modules_im");
+		var importedIMAssets : Collection = imFolder.getContent();
+		
+		var imgroupFolder : Folder = ContentMgr.getFolder("amp_modules_imgroup");
+		var groupedIMAssets : Collection = imgroupFolder.getContent();
+		
+		/**
+		 * Iterate through all grouped IM Assets and check if contains IM Areas in the slected Areas
+		 */
+		var groupedIMAssetsIter : Iterator = groupedIMAssets.iterator();
+		while ( groupedIMAssetsIter.hasNext() ) {
+			
+			var groupedIMAsset : Content = groupedIMAssetsIter.next();
+
+			var areaIDs : Object = JSON.parse(groupedIMAsset.custom['ampConfig']);
+			
+			// check if we need to add the current group to the result
+			var addGroupToResult : Boolean = false;
+			for each (var areaID in areaIDs) {
+				for each (var selectedIMArea : Object in selectedIMAreas) {
+					if (selectedIMArea['amplienceId'] == areaID) {
+						addGroupToResult = true;
+						break;
+					}
+				}
+			}
+
+			if (addGroupToResult) {
+				
+				var groupName : String = groupedIMAsset.name;
+				var groupId : String = groupedIMAsset.ID;
+				var associatedIMAreas : ArrayList = new ArrayList();
+				
+				for each (var areaID in areaIDs) {
+					
+					var amplienceId = areaID;
+						
+					/**
+					 * If content asset is found in DW, read info from it.
+					 */
+					var dwContent : Content = ContentMgr.getContent(areaID);
+					if ( !empty(dwContent) ) {
+						
+						associatedIMAreas.push(dwContent.name);		
+					}
+				}
+				
+				associatedGroups.push({
+					groupName : groupName,
+					groupId : groupId,
+					associatedIMAreas : associatedIMAreas
+				});
+			} 
+		}
+		
+		return associatedGroups;
+ 	}
+ 	
+ 	/**
+ 	 * Comparator for sorting by ByLastModifiedDate Descending
+ 	 *
+ 	 * @param {Object} group1 - first group to compare
+ 	 * @param {Object} group1 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByLastModifiedDateDesc = function(group1 : Object, group2 : Object) : Number {
+				
+		var date1 : Date = new Date( group1['groupLastModified'] );
+		var date2 : Date = new Date( group2['groupLastModified'] );
+	
+		if (date1 < date2) {
+			return 1;	
+		}
+		
+		if (date1 > date2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by ByLastModifiedDate Ascending
+ 	 *
+ 	 * @param {Object} group1 - first group to compare
+ 	 * @param {Object} group1 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByLastModifiedDateAsc = function(group1 : Object, group2 : Object) : Number {
+				
+		var date1 : Date = new Date( group1['groupLastModified'] );
+		var date2 : Date = new Date( group2['groupLastModified'] );
+	
+		if (date1 > date2) {
+			return 1;	
+		}
+		
+		if (date1 < date2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Group Name Descending
+ 	 *
+ 	 * @param {Object} group1 - first group to compare
+ 	 * @param {Object} group1 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByGroupNameDesc = function(group1 : Object, group2 : Object) : Number {
+				
+		var name1 : String = group1['groupName'];
+		var name2 : String = group2['groupName'];
+
+		if (name1 < name2) {
+			return 1;	
+		}
+		
+		if (name1 > name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Group Name Ascending
+ 	 *
+ 	 * @param {Object} group1 - first group to compare
+ 	 * @param {Object} group1 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByGroupNameAsc = function(group1 : Object, group2 : Object) : Number {
+				
+		var name1 : String = group1['groupName'];
+		var name2 : String = group2['groupName'];
+	
+		if (name1 > name2) {
+			return 1;	
+		}
+		
+		if (name1 < name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+
+	/**
+ 	 * Comparator for sorting by Area Name Descending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByNameDesc = function(area1 : Object, area2 : Object) : Number {
+				
+		var name1 : String = area1['assetName'];
+		var name2 : String = area2['assetName'];
+
+		if (name1 < name2) {
+			return 1;	
+		}
+		
+		if (name1 > name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Name Ascending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByNameAsc = function(area1 : Object, area2 : Object) : Number {
+				
+		var name1 : String = area1['assetName'];
+		var name2 : String = area2['assetName'];
+	
+		if (name1 > name2) {
+			return 1;	
+		}
+		
+		if (name1 < name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Published Date Descending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByPublishedDateDesc = function(area1 : Object, area2 : Object) : Number {
+				
+		var date1 : Date = new Date( area1['amplienceLastPublished'] );
+		var date2 : Date = new Date( area2['amplienceLastPublished'] );
+	
+		if (date1 < date2) {
+			return 1;	
+		}
+		
+		if (date1 > date2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Published Date Ascending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByPublishedDateAsc = function(area1 : Object, area2 : Object) : Number {
+				
+		var date1 : Date = new Date( area1['amplienceLastPublished'] );
+		var date2 : Date = new Date( area2['amplienceLastPublished'] );
+	
+		if (date1 > date2) {
+			return 1;	
+		}
+		
+		if (date1 < date2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+
+	/**
+ 	 * Comparator for sorting by Area Module Name Descending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByModuleNameDesc = function(area1 : Object, area2 : Object) : Number {
+				
+		var name1 : String = area1['amplienceAssociatedModuleName'];
+		var name2 : String = area2['amplienceAssociatedModuleName'];
+
+		if (name1 < name2) {
+			return 1;	
+		}
+		
+		if (name1 > name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Module Name Ascending
+ 	 *
+ 	 * @param {Object} area1 - first group to compare
+ 	 * @param {Object} area2 - second group to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByModuleNameAsc = function(area1 : Object, area2 : Object) : Number {
+				
+		var name1 : String = area1['amplienceAssociatedModuleName'];
+		var name2 : String = area2['amplienceAssociatedModuleName'];
+	
+		if (name1 > name2) {
+			return 1;	
+		}
+		
+		if (name1 < name2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Width Descending
+ 	 *
+ 	 * @param {Object} area1 - first area to compare
+ 	 * @param {Object} area2 - second area to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByWidthDesc = function(area1 : Object, area2 : Object) : Number {
+				
+		var width1 : Number = empty( area1['amplienceWidth'] ) ? 0 : new Number (area1['amplienceWidth'] );
+		var width2 : Number = empty( area2['amplienceWidth'] ) ? 0 : new Number (area2['amplienceWidth'] );
+
+		if (width1 < width2) {
+			return 1;	
+		}
+		
+		if (width1 > width2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Width Ascending
+ 	 *
+ 	 * @param {Object} area1 - first area to compare
+ 	 * @param {Object} area2 - second area to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByWidthAsc = function(area1 : Object, area2 : Object) : Number {
+				
+		var width1 : Number = empty( area1['amplienceWidth'] ) ? 0 : new Number (area1['amplienceWidth'] );
+		var width2 : Number = empty( area2['amplienceWidth'] ) ? 0 : new Number (area2['amplienceWidth'] );
+	
+		if (width1 > width2) {
+			return 1;	
+		}
+		
+		if (width1 < width2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Height Descending
+ 	 *
+ 	 * @param {Object} area1 - first area to compare
+ 	 * @param {Object} area2 - second area to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByHeightDesc = function(area1 : Object, area2 : Object) : Number {
+				
+		var height1 : Number = empty( area1['amplienceHeight'] ) ? 0 : new Number (area1['amplienceHeight'] );
+		var height2 : Number = empty( area2['amplienceHeight'] ) ? 0 : new Number (area2['amplienceHeight'] );
+
+		if (height1 < height2) {
+			return 1;	
+		}
+		
+		if (height1 > height2) {
+			return -1;
+		}
+		
+		return 0;
+	}
+	
+	/**
+ 	 * Comparator for sorting by Area Height Ascending
+ 	 *
+ 	 * @param {Object} area1 - first area to compare
+ 	 * @param {Object} area2 - second area to compare
+	 *
+	 * @return {Number} result - compare result
+ 	 */
+ 	var comparatorByHeightAsc = function(area1 : Object, area2 : Object) : Number {
+				
+		var height1 : Number = empty( area1['amplienceHeight'] ) ? 0 : new Number (area1['amplienceHeight'] );
+		var height2 : Number = empty( area2['amplienceHeight'] ) ? 0 : new Number (area2['amplienceHeight'] );
+	
+		if (height1 > height2) {
+			return 1;	
+		}
+		
+		if (height1 < height2) {
+			return -1;	
+		}
+		
+		return 0;
+	}
+	
+}

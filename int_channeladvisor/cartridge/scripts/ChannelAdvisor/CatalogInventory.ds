@@ -1,0 +1,344 @@
+/**
+
+*
+
+*	Demandware ChannelAdvisor Catalog Extract File v15.1.0
+
+*
+
+*	Based on SiteGenesis version 2.10.0.2
+
+*	Created By: Precision Design Studios
+
+*	Last Modified On: 1/15/2015 
+
+*	Last Modified By: Mike Wolff, ChannelAdvisor	
+
+*
+
+*/
+
+importPackage( dw.system );
+
+importPackage( dw.util );
+
+importPackage( dw.catalog );
+
+importPackage( dw.customer );
+
+importPackage( dw.io );
+
+importPackage( dw.net );
+
+importPackage( dw.object );
+
+importPackage( dw.campaign );
+
+importPackage( dw.web );
+
+importPackage( dw.value);
+
+
+/**
+ * Iterates through all site products, creates an XML representation of the price and quantity data, and FTP's that data based on the settings in the custom preferences.
+ *
+ * @param PipelineDictionary pdict
+ * @return Number  The next Pipelet to fire
+ */
+function execute( pdict : PipelineDictionary ) : Number {
+	
+	var caStringWriter : StringWriter = new StringWriter();
+	
+	var productCounter : Number = 0;
+	
+	var writeCounter : Number = 0;
+	
+	(new dw.io.File(dw.io.File.IMPEX +'/src/channeladvisor/')).mkdirs();
+	
+	caStringWriter.write('<?xml version="1.0" encoding="iso-8859-1"?>\n');
+	
+	caStringWriter.write('<Offers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ssc.channeladvisor.com/files/cageneric.xsd">\n');
+	
+	caStringWriter.flush();
+	
+	if (!writeToFile(caStringWriter.toString(), false))	{
+		
+		return PIPELET_ERROR;
+		
+	}
+	
+	caStringWriter.close();
+	
+	var prods : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	
+	var counter : Number = 0;
+	
+	Logger.info("Channel Advisor Promotion Details Starts :"+ new Date() +"\n");
+	while(prods.hasNext())
+	{
+		var product : Product = prods.next();
+		
+		var isMaster : Boolean = product.isMaster();
+		
+		var isVariant : Boolean = product.isVariant();
+		
+		if ( product.isOnline() && product.isSearchable() && !product.isProductSet() && ( isMaster || (!isMaster && !isVariant) ) && (!('supportOnly' in product.custom && product.custom.supportOnly)) && (!product.categories.contains(CatalogMgr.getCategory('support-only'))) ) {
+			
+			if (isMaster) {
+
+				for(var x : Number = 0; x < product.variationModel.variants.size(); x++) {
+					
+					var varient  = product.variationModel.variants[x];
+					
+					if(!('supportOnly' in varient.custom && varient.custom.supportOnly) && !varient.categories.contains(CatalogMgr.getCategory('support-only'))){
+						
+						var CurrentOffer : XML = buildProductNode(product.variationModel.variants[x]);
+						
+						productCounter++;
+						
+						var xmlString : String = CurrentOffer.toXMLString()+"\n";
+	 					
+	 					if (!writeToFile(xmlString, true))	{
+			
+							return PIPELET_ERROR;
+			
+						}
+					}
+				}	
+				
+			} else if (!isVariant) {
+
+				var CurrentOffer : XML = buildProductNode(product);
+				
+	 			productCounter++;
+	 			
+				var xmlString : String = CurrentOffer.toXMLString()+"\n";
+ 				
+ 				if (!writeToFile(xmlString, true))	{
+		
+					return PIPELET_ERROR;
+		
+				}
+ 				
+			}
+				
+		} else if (!isVariant){
+			//we don't send product sets or products that aren't online or searchable
+		}
+		
+	}
+	
+	prods.close(); //close the seekable iterator
+	Logger.info("Channel Advisor Promotion Details Ends :"+ new Date() +"\n");
+	Logger.info("Total products in CA Inventory feed: "+ counter);
+	
+	if (!writeToFile('</Offers>\n', true))	{
+		
+		return PIPELET_ERROR;
+		
+	}
+	
+	
+	/*
+	var ftp : FTPClient = new FTPClient(); 
+
+	ftp.setTimeout(60*1000*30); 
+	
+	if(ftp.connect(dw.system.Site.getCurrent().preferences.custom.CA_FTP_Hostname , dw.system.Site.getCurrent().preferences.custom.CA_FTP_Username, dw.system.Site.getCurrent().preferences.custom.CA_FTP_Password)) {
+		
+		Logger.info('Connected to Channel Advisor FTP');
+		
+		//XML files have to be uploaded into the Inventory->Transform subfolder to be processed.
+		ftp.cd('Inventory/Transform');
+		
+		//Override the base settings in CA such that only updates are processed using this file, no new inventory is created
+		var targetFileName : String = 'UpdateOnly_Inventory.xml';
+
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/channeladvisor/Inventory.xml');
+	
+		if (!file.exists()) {
+			
+			return PIPELET_ERROR;
+			
+		} else {
+			
+			ftp.putBinary(targetFileName, file);
+			
+		}
+		
+		ftp.disconnect();
+		
+	}
+	*/
+	
+    return PIPELET_NEXT;
+    
+}
+
+
+/**
+ * Given a product,  extract the data and create the XML representation of that product.
+ *
+ * @param Product product  The content to be written to the file
+ * @return XML the full product XML representation
+ */
+function buildProductNode(product : Product) : XML
+{
+	var Offer : XML = <Offer></Offer>;
+	
+	Offer.Model = !empty(product.ID) ? product.ID : '' ; //Model is a required field, so this should never be empty
+
+	var pb : String = '';
+	var ps : String = ''; 
+	var pt : String = ''; 
+	
+
+	if(('listPriceDefault' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.listPriceDefault)){
+		pb = dw.system.Site.current.preferences.custom.listPriceDefault;
+	} else	{
+	    pb = 'shop-pna-list-price';
+	}
+	if(('salePriceDefault' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.salePriceDefault)){
+		ps = dw.system.Site.current.preferences.custom.salePriceDefault;
+	}else{
+	 	ps = 'shop-pna-sale-price';
+	}
+	if(('thresoldPriceDefault' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.thresoldPriceDefault)){
+		pt = dw.system.Site.current.preferences.custom.thresoldPriceDefault;
+	}else{
+	 	pt = 'shop-pna-thresold-price';
+	}
+	
+	var promotionalPrice : Money = getPromotionPrice(product);
+	
+	Offer.RegularPrice = !empty(product.priceModel.getPriceBookPrice(pb).toNumberString()) && product.priceModel.getPriceBookPrice(pb).toNumberString() != 'N/A' ? product.priceModel.getPriceBookPrice(pb).toNumberString() : ''; 
+	
+	//Offer.CurrentPrice = !empty(product.priceModel.getPriceBookPrice(ps).toNumberString()) && product.priceModel.getPriceBookPrice(ps).toNumberString() != 'N/A' ? product.priceModel.getPriceBookPrice(ps).toNumberString() : '';
+	
+	if(promotionalPrice.available && (promotionalPrice.compareTo(product.getPriceModel().getPrice())!= 0)){
+	
+		Offer.CurrentPrice = !empty(promotionalPrice.toNumberString()) && promotionalPrice.toNumberString() != 'N/A' ? promotionalPrice.toNumberString() : '';
+		
+	}else{
+		
+		Offer.CurrentPrice = !empty(product.getPriceModel().getPrice().toNumberString()) && product.getPriceModel().getPrice().toNumberString() != 'N/A' ? product.getPriceModel().getPrice().toNumberString() : '';
+	}
+	
+	Offer.ThresholdPrice = !empty(product.priceModel.getPriceBookPrice(pt).toNumberString()) && product.priceModel.getPriceBookPrice(pt).toNumberString() != 'N/A' ? product.priceModel.getPriceBookPrice(pt).toNumberString() : '';
+	
+	Offer.Quantity = product.availabilityModel.inventoryRecord != null ? StringUtils.stringToXml(product.availabilityModel.inventoryRecord.ATS.value) : StringUtils.stringToXml(0);
+	
+	return Offer;
+
+}
+
+
+/**
+ * Writes the content to an xml file (Inventory.xml) in the Impex /src/channeladvisor/ folder.
+ *
+ * @param String content  The content to be written to the file
+ * @param Boolean isAppend  Should the string be appended, or replace existing content
+ * @return Boolean returns true if the write succeeded, false if it failed
+ */
+function writeToFile(content : String, isAppend : Boolean) : Boolean {
+	
+	try	{		
+		
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/channeladvisor/Inventory.xml');
+		
+		if(!file.exists()) {
+			
+			if(!file.createNewFile()) {
+				
+				Logger.error("File "+file.name+" could not be created!");
+				
+				return false;
+				
+			}
+			
+		} 
+		
+		var out : FileWriter = new FileWriter(file, isAppend);
+		
+		out.write(content);
+		
+		out.flush();
+		
+		out.close();
+		
+	} catch(e) {
+		
+		Logger.error("An error occured while exporting channel advisor XML Inventory {0}.", e);
+		
+		return false;
+		
+	}	
+	
+	return true;
+	
+}
+/**
+ * New method for product promotional price
+ */
+function getPromotionPrice(product : Product) 
+{		
+
+		var Promos : Collection = dw.campaign.PromotionMgr.getActivePromotions().getProductPromotions(product);
+		//Print in log file
+		printPromotionListinLog(Promos,product);
+		var FilteredPromos : LinkedHashSet = new LinkedHashSet();
+		var firstPrice : Money = dw.value.Money.NOT_AVAILABLE;
+		for each(var promotion : Promotion in Promos){
+				var f1 : Boolean = promotion.active;
+				var f2 : Boolean = promotion.basedOnCustomerGroups;
+				var f3 : Boolean = (promotion.customerGroups.contains(CustomerMgr.getCustomerGroup('Everyone')) || promotion.customerGroups.contains(CustomerMgr.getCustomerGroup('Unregistered')));
+				var f4 : Boolean = (promotion.promotionClass == 'PRODUCT');
+				var f5 : Boolean = (!promotion.basedOnCoupons && !promotion.basedOnSourceCodes);
+				var f6 : Boolean = promotion.enabled;
+				var f7 : Boolean = promotion.getCampaign().enabled; 
+				var f8 : Boolean = promotion.getCampaign().isActive();
+				var f9 : Boolean = (promotion.qualifierMatchMode == "any") || ((promotion.qualifierMatchMode == "all") && !(promotion.getCampaign().coupons.size() > 0) && !(promotion.getCampaign().sourceCodeGroups.size() > 0) && f5 );
+				/**
+					Scenarios for flag check 10 :
+					1> If the promotion qualifies "any" with customer group(alredy checking)
+					2>If the promotion qualifies "all" if and only if the campaign/promotion having customer group value without any coupon & source code attachment.
+				**/
+			 if(f1 && f2 && f3 && f4 && f6 && f7 && f8 && f9){
+				FilteredPromos.add(promotion);
+			 }
+		}
+		
+		if(!empty(FilteredPromos) && FilteredPromos.size() > 0){
+			firstPrice  = FilteredPromos[0].getPromotionalPrice(product);
+		}
+		
+		if(firstPrice.available){
+			Logger.info("CA JOB Applied Promotion for the Product ("+product.ID+")= "+FilteredPromos[0].ID +"\n");	
+		}else{
+			Logger.info("CA JOB Applied Promotion for the Product ("+product.ID+")= N/A" +"\n");
+		}
+		
+	return 	firstPrice;
+
+}
+/**
+*Logger info for each product promotion
+*/
+function printPromotionListinLog(promos : Collection,product : Product) 
+{	
+		var promoDetails : String ="";
+		if(!empty(promos) && promos.size() > 0){
+			for each(var promo in promos){
+				if(promoDetails.length > 0){
+					promoDetails = 	promoDetails.concat(",").concat(promo.ID.concat("|").concat(promo.getCampaign().ID));
+				}else{
+					promoDetails = 	promo.ID.concat("|").concat(promo.getCampaign().ID);
+				}
+			}
+		}
+	if(promoDetails.length > 0){
+		Logger.info("CA JOB Applicable Promotion List(PromotionID:CampaignID) for the Product ("+product.ID+")= "+promoDetails +"\n");
+	}else{
+		Logger.info("CA JOB Applicable Promotion List(PromotionID:CampaignID) for the Product ("+product.ID+")= 0" + "\n");
+	}
+}

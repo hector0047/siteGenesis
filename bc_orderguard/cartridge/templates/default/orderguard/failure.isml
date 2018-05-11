@@ -1,0 +1,12 @@
+<iscontent type="text/plain" charset="ascii">
+*Warning*
+
+
+No Orders found since <isprint value="${pdict.Timestamp}" formatter="yyyy-MM-dd HH:mm:ss"><!---
+---><isif condition="${!empty(pdict.Search1Key)}"> with <isprint value="${pdict.Search1Key}"> = <isprint value="${pdict.Search1Value}"></isif><!---
+---><isif condition="${!empty(pdict.Search2Key)}"> with <isprint value="${pdict.Search2Key}"> = <isprint value="${pdict.Search2Value}"></isif><!---
+---><isif condition="${!empty(pdict.Search3Key)}"> with <isprint value="${pdict.Search3Key}"> = <isprint value="${pdict.Search3Value}"></isif><!---
+---> -- check the business manager for more details.
+
+${URLUtils.home()}
+

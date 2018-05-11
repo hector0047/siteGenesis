@@ -1,0 +1,64 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/pt_account">
+<isinclude template="util/modules"/>
+	<isset name="bctext2" value="Check Repair Status" scope="pdict"/>
+	<iscomment><isloop items="${pdict.RR.statusResponse.serviceJobStatusDetails.serviceJobStatusDetail}" var="serviceJobStatusDetail" status="loopstatus" >
+		<isset name="size" value="${serviceJobStatusDetail.length}" scope="page" />
+	</isloop></iscomment>
+	<isset name="size" value="${pdict.RR.statusResponse.serviceJobStatusDetails.serviceJobStatusDetail.length}" scope="page" />
+	<h1 class="existrequestHeader" id="chk-rep-status">${Resource.msg('checkout.existingRequest','sb_forms',null)}</h1>
+	<h1 class="matches">${size.toFixed()} Matches found</h1>
+	
+	<table class="status">
+		<tbody>
+		<tr class="Headings-for-reference-numbers">
+			<td>${Resource.msg('checkout.reference','sb_forms',null)}</td>
+			<td>${Resource.msg('checkout.model','sb_forms',null)}</td>
+			<td>${Resource.msg('checkout.serial','sb_forms',null)}</td>
+			<td>${Resource.msg('checkout.date','sb_forms',null)}</td>
+			<td>${Resource.msg('checkout.status','sb_forms',null)}</td>
+		</tr>
+		<isloop items="${pdict.RR.statusResponse.serviceJobStatusDetails.serviceJobStatusDetail}" var="serviceJobStatusDetail" status="loopstatus" >
+			<tr class="Existing-repair-requests-check-repair-status-data">
+				<iscomment> Displaying the reference numb, Displaying the model numb and serial numb in the below</iscomment>
+				<td class="Existing-repair-requests-check-repair-status-data-reference"><isprint value="${serviceJobStatusDetail.serviceJobID}" /></td>
+				<isloop items="${serviceJobStatusDetail.models.model}" var="model" status="loopstatus2" >
+					<td class="Existing-repair-requests-check-repair-status-data-model"><isprint value="${model.modelID}" /></td>
+					<td class="Existing-repair-requests-check-repair-status-data-serial"><isprint value="${model.serialNumber}" /></td>
+				</isloop>
+				<td class="Existing-repair-requests-check-repair-status-data-date">
+					<isset name="date" value="${serviceJobStatusDetail.dateAccepted.toString()}" scope="page" />
+					<isset name="year" value="${date.substr(0,4)}" scope="page" />
+					<isset name="month" value="${date.substr(4,2)}" scope="page" />
+					<isset name="day" value="${date.substr(6,2)}" scope="page" />
+					<isprint value="${dw.util.StringUtils.formatCalendar(new dw.util.Calendar(new Date(year,month-1,day)), 'MM/dd/yyyy')}" />
+				</td>
+				<td class="Existing-repair-requests-check-repair-status-data-status">
+					<isif condition="${serviceJobStatusDetail.serviceJobStatus == 'ACC'}" >
+						<span class="status-text"><isprint value="${Resource.msg('checkout.accepted','sb_forms',null)}" /></span>
+					<iselseif condition="${serviceJobStatusDetail.serviceJobStatus == 'REJ'}" >
+						<span class="status-text"><isprint value="${Resource.msg('checkout.rejected','sb_forms',null)}" /></span>
+					</iselseif>
+					<iselseif condition="${serviceJobStatusDetail.serviceJobStatus == 'CAN'}" >
+						<span class="status-text"><isprint value="${Resource.msg('checkout.cancelled','sb_forms',null)}" /></span>
+					</iselseif>
+					<iselseif condition="${serviceJobStatusDetail.serviceJobStatus == 'CMP'}" >
+						<span class="status-text"><isprint value="${Resource.msg('checkout.completed','sb_forms',null)}" /></span>
+					</iselseif>
+					</isif>
+				</td>
+			</tr>
+		</isloop>
+		</tbody>
+	</table>
+	
+	<a href="${URLUtils.https('SBRepairRequest-ShowForm')}" class="new_request">${Resource.msg('checkout.createNewRequest','sb_forms',null)}</a>
+	
+
+</isdecorate>
+<div class="pnsb2c-myaccnt-landing-page"> 
+     	<iscontentasset aid="account-landing"/>
+</div>
+
+
+

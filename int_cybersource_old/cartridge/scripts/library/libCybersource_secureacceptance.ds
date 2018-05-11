@@ -1,0 +1,263 @@
+/**
+ *
+ * A library file for Cybersource communication.
+ * This file is included by several script nodes using:
+ *
+ * importScript( "cybersource_secureacceptance/libCybersource_secureacceptance.ds" );
+ *
+ * It cannot be used in a script node by itself.
+ *
+ * @author Revsolutions
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+
+var numbersOnlyRegExp : RegExp = /\D/g;
+var Cybersource_SecureAcceptanceHelper = {
+    
+    subscription : "create_payment_token",
+    authorization : "authorization",
+    
+	getSASOPURL : function(){
+		return Site.getCurrent().getCustomPreferenceValue("SASOPURL") == null ? "" : Site.getCurrent().getCustomPreferenceValue("SASOPURL").toString();
+	},
+	
+	getSASOPURL_TEST : function(){
+		return Site.getCurrent().getCustomPreferenceValue("SASOPURL_TEST") == null ? "" : Site.getCurrent().getCustomPreferenceValue("SASOPURL_TEST").toString();
+	},
+	
+	getAceessKey : function() {
+		return Site.getCurrent().getCustomPreferenceValue("SASOPAccessKey");
+	},
+	
+	getProfileId : function() {
+		return Site.getCurrent().getCustomPreferenceValue("SASOPProfileId");
+	},
+	
+	getSecretKey : function() {
+		return Site.getCurrent().getCustomPreferenceValue("SASOPSecretKey");
+	},
+	
+	getReceiptPageURL : function() {
+		return Site.getCurrent().getCustomPreferenceValue("SASOPReceiptPageURL");
+	},
+	
+	getUUID : function() {
+		return UUIDUtils.createUUID();
+	},
+	
+	getSignedDateTime : function() {
+		return getUTCDateTime();
+	},
+	
+	getStartDate : function() {
+		var today : Calendar = new dw.util.Calendar();
+		today.timeZone = dw.system.Site.getCurrent().timezone;
+		var startDate = dw.util.StringUtils.formatCalendar(today,"yyyyMMdd");
+		return startDate;
+	},
+	
+	getReferenceNumber : function() {
+		return (new Date()).getTime();
+	},
+	
+	getCurrencyCode: function() {
+		return dw.system.Site.getCurrent().getDefaultCurrency();
+	},
+	
+	insertSASOPRequestFields : function (map : dw.util.Map) {
+	  if (map == null) {
+	    return "";
+	  }
+	  try {
+	    var keys : dw.util.Set = map.keySet();
+	    var output : String = "";
+	    var i : dw.util.Iterator = keys.iterator();
+	    while(i.hasNext()) {
+	      var key = i.next();
+	      output += "<input type=\"hidden\" name=\"";
+	      output += key;
+	      output += "\" value=\"";
+	      output += map.get(key).toString();
+	      output += "\">\n";
+	    }
+	    output += "<input type=\"hidden\" id=\"signature\" name=\"signature\" value=\"" + getPublicDigest(buildDataToSign(map)) + "\">\n";
+	    return output;
+	  } catch(e) {
+	    return e.message;
+	  }
+	},
+	
+	verifyTransactionSignature : function (request : dw.web.HttpParameterMap) {
+	    try{
+		    if (request == null) {
+		      return false;
+		    }
+		    var params : HashMap = new HashMap();
+		    var reqParamNames : Set = request.getParameterNames();
+		    for each(var reqParamName : String in reqParamNames) {
+		        var paramName : String =  reqParamName.toString();
+		        var paramValue: String =  request.get(paramName).toString();
+		        params.put(paramName, paramValue);
+		    }
+		   
+		    var transactionsignature :String = getPublicDigest(buildDataToSign(params)).toString();
+		    var responseSignature    :String = request.get("signature").toString();
+		    
+		    if(transactionsignature.equals(responseSignature)){
+		    	return true;
+		    }else{
+		    	return false;
+		    }
+	    }catch(e){
+	    	Logger.debug("Response Signature Varification Failed :"+e);
+	    	return false;
+	    }
+	},
+	
+	buildCCSubscriptionResponseObject : function (map : dw.web.HttpParameterMap){
+		var ccsubscriptionRespObj : Object = new Object();	 
+	  	ccsubscriptionRespObj.reasonCode = map.get("reason_code").stringValue;
+	  	ccsubscriptionRespObj.decision = map.get("decision").stringValue;
+	  	ccsubscriptionRespObj.subscriptionID = map.get("payment_token").stringValue;
+	  	session.custom.freshToken =	map.get("payment_token").stringValue;
+	  	ccsubscriptionRespObj.cardType = map.get("req_card_type").stringValue;
+	  	ccsubscriptionRespObj.requestId = map.get("transaction_id").stringValue;
+	  	var cardExpDate = map.get("req_card_expiry_date").stringValue;
+	  	ccsubscriptionRespObj.expMonth = new Number(cardExpDate.split("-")[0]);
+	  	ccsubscriptionRespObj.expYear = new Number(cardExpDate.split("-")[1]);
+	  	ccsubscriptionRespObj.maskedCCNumber = map.get("req_card_number").stringValue;
+	  	ccsubscriptionRespObj.billingEmailId = map.get("req_bill_to_email").stringValue;
+	  	ccsubscriptionRespObj.cardHolderName = map.get("req_bill_to_forename").stringValue+" "+map.get("req_bill_to_surname").stringValue;
+	  	ccsubscriptionRespObj.billtoCompanyName = map.get("req_bill_to_company_name").stringValue;
+	  	var ResInvalidFields = map.get("invalid_fields").stringValue;
+	  	var InvalidFieldsArray = [];
+	  	if(ResInvalidFields != null){
+	  	  	for each(var Invfield in ResInvalidFields.split(",")){
+		  		InvalidFieldsArray.push(Invfield.toString());
+		  	}
+	  	}
+	  	
+	  	if(map.get("reason_code").intValue == 231 && InvalidFieldsArray.length < 1){
+	  		InvalidFieldsArray.push("card_type");
+	  	}
+	  	
+	  	ccsubscriptionRespObj.invalidFields = InvalidFieldsArray;
+	  	ccsubscriptionRespObj.message = map.get("message").stringValue;
+	  	
+	  	var responseLog = '*********************************************';
+        responseLog = responseLog + getResponseAsString(map);
+	  	responseLog = responseLog + '\n*********************************************';
+	  	Logger.debug("SASOP Response  : "+ responseLog);
+	  	Logger.info("SASOP Response billingEmailId : "+ ccsubscriptionRespObj.billingEmailId);
+	  	Logger.info("SASOP Response reasonCode : "+ ccsubscriptionRespObj.reasonCode);
+	  	Logger.info("SASOP Response decision : "+ ccsubscriptionRespObj.decision);
+	  	
+	  	return ccsubscriptionRespObj;
+	},
+	buildCCAuthorizationResponseObject : function(map : dw.web.HttpParameterMap){
+	  	var ccauthRespObj : Object = new Object();	 
+	  	ccauthRespObj.reasonCode = map.get("reason_code").stringValue;
+	  	ccauthRespObj.decision = map.get("decision").stringValue;
+	  	ccauthRespObj.ccAuthReply_reasonCode = map.get("ccAuthReply_reasonCode").stringValue;
+	  	ccauthRespObj.ccAuthReply_processorResponse = map.get("ccAuthReply_processorResponse").stringValue;
+	  	ccauthRespObj.transactionSignature = map.get("signature").stringValue;
+	  	ccauthRespObj.orderAmount_publicSignature = map.get("signature").stringValue;
+	  	ccauthRespObj.ccAuthReply_amount = map.get("req_amount").stringValue;
+	  	ccauthRespObj.requestId = map.get("transaction_id").stringValue;
+	  	ccauthRespObj.ccAuthReply_amount = map.get("req_amount").stringValue;
+	  	ccauthRespObj.cardType = map.get("req_card_type").stringValue;
+	  	var cardExpDate = map.get("req_card_expiry_date").stringValue;
+	  	ccauthRespObj.expMonth = new Number(cardExpDate.split("-")[0]);
+	  	ccauthRespObj.expYear = new Number(cardExpDate.split("-")[1]);	  	
+	  	ccauthRespObj.maskedCCNumber = map.get("req_card_number").stringValue;
+	  	ccauthRespObj.billingEmailId = map.get("req_bill_to_email").stringValue;
+	  	ccauthRespObj.crownRewards = map.get("merchant_secure_data4").stringValue;
+	  	ccauthRespObj.cardHolderName = map.get("req_bill_to_company_name").stringValue;
+	  	ccauthRespObj.subscriptionID = map.get("payment_token").stringValue;
+	  	ccauthRespObj.ccAuthReply_authorizationCode = map.get("auth_code").stringValue;
+	  	ccauthRespObj.ccAuthReply_processorResponse = map.get("auth_trans_ref_no").stringValue;
+	  	ccauthRespObj.merchantReferenceCode = map.get("req_reference_number").stringValue;
+	  	ccauthRespObj.ccAuthReply_avsCodeRaw = map.get("auth_avs_code_raw").stringValue;
+	  	ccauthRespObj.ccAuthReply_avsCode = map.get("auth_avs_code").stringValue;
+	  	ccauthRespObj.reconciliationID = map.get("auth_trans_ref_no").stringValue;
+	  	ccauthRespObj.orderPage_requestToken = map.get("payment_token").stringValue;
+	  	var ResInvalidFields = map.get("invalid_fields").stringValue;
+	  	var InvalidFieldsArray = [];
+	  	if(ResInvalidFields != null){
+	  	  	for each(var Invfield in ResInvalidFields.split(",")){
+		  		InvalidFieldsArray.push(Invfield.toString());
+		  	}
+	  	}
+	  	ccauthRespObj.invalidFields = InvalidFieldsArray;	  	
+	  	return ccauthRespObj;
+	  }
+}
+
+//Utility functions
+
+function getCybersource_SecureAcceptanceHelper(){
+	return Cybersource_SecureAcceptanceHelper;
+}
+
+function getUTCDateTime(){
+    var today : Calendar = new dw.util.Calendar();
+	today.setTimeZone("UTC");
+	var presentUTCDate = dw.util.StringUtils.formatCalendar(today,"yyyy-MM-dd'T'HH:mm:ss'Z'");
+	return presentUTCDate;
+}
+
+function getPublicDigest(customValues) {
+  var pub = Cybersource_SecureAcceptanceHelper.getSecretKey();
+  var sha256Mac : dw.crypto.Mac = new dw.crypto.Mac(dw.crypto.Mac.HMAC_SHA_256);
+  var publicBytes : Bytes = sha256Mac.digest(customValues, pub);
+  var publicDigest : String = dw.crypto.Encoding.toBase64(publicBytes);
+  return publicDigest.replace("\n", "");
+}
+
+function buildDataToSign(params : HashMap){
+    var signedFieldNames = params.get("signed_field_names").toString().split(",");
+    var dataToSign : ArrayList = new ArrayList();
+    for each(var signedFieldName : String in signedFieldNames) {
+        dataToSign.add(signedFieldName.toString() + "=" + params.get(signedFieldName).toString());
+    }
+    return commaSeparate(dataToSign);
+}
+
+function commaSeparate(dataToSign : ArrayList){
+  	var csv : String = "";
+    var it : Iterator = dataToSign.iterator();
+    while(it.hasNext()) {
+        csv = csv+ (it.next()).toString();
+        if (it.hasNext()) {
+            csv = csv + ",";
+        }
+    }
+    return csv.toString();
+}
+
+function getResponseAsString(map : dw.web.HttpParameterMap){
+	var stringResponse : String ="";
+	stringResponse = stringResponse +"\nmessage = " + map.get("message").stringValue;
+	var invFields = map.get("invalid_fields").stringValue;
+	if(invFields!=null){
+		stringResponse = stringResponse +"\ninvalid_fields = " +invFields;
+	}
+	stringResponse = stringResponse +"\nreason_code = " + map.get("reason_code").stringValue;
+	stringResponse = stringResponse +"\ndecision = " +map.get("decision").stringValue;
+	stringResponse = stringResponse +"\npayment_token = " +map.get("payment_token").stringValue;
+	stringResponse = stringResponse +"\nreq_reference_number = " +map.get("req_reference_number").stringValue;
+	stringResponse = stringResponse +"\ntransaction_id = " +map.get("transaction_id").stringValue;
+	stringResponse = stringResponse +"\nreq_card_number = " +map.get("req_card_number").stringValue;
+	stringResponse = stringResponse +"\nreq_card_type = " +map.get("req_card_type").stringValue;
+	stringResponse = stringResponse +"\nreq_card_expiry_date = " + map.get("req_card_expiry_date").stringValue;
+	stringResponse = stringResponse +"\nreq_bill_to_company_name = " +map.get("req_bill_to_company_name").stringValue;
+	stringResponse = stringResponse +"\nreq_bill_to_forename = " +map.get("req_bill_to_forename").stringValue;
+	stringResponse = stringResponse +"\nreq_bill_to_surname = " +map.get("req_bill_to_surname").stringValue;
+	stringResponse = stringResponse +"\nreq_bill_to_email = " +map.get("req_bill_to_email").stringValue;
+	
+	return stringResponse;
+}

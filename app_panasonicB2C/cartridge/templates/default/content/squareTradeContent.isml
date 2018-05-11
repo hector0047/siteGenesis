@@ -1,0 +1,17 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+
+<iscomment>this is the template for rendering the square trade page</iscomment>
+<div class="pnsb2c-squaretrade-page">
+	<div class="page-header">${Resource.msg('forms.sqaureTradeHeader','forms',null)}</div>
+	<isslot id="squaretrade-product-image" context="global" description="Square Trade Product Image "/> 
+	<isslot id="squaretrade-body-content" context="global" description="Square Trade Body Content "/>
+	<isslot id="squaretrade-footer-content" context="global" description="Square Trade Footer Content "/>
+</div>
+</isdecorate>
+ 
+
+
+
+

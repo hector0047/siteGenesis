@@ -1,0 +1,36 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isinclude template="util/functions"/>
+<isif condition="${!empty(pdict.ProductSearchResult.category) && ('bannerSubcategoryLinks' in pdict.ProductSearchResult.category.getParent().custom && pdict.ProductSearchResult.category.getParent().custom.bannerSubcategoryLinks.length > 0)}">
+<div class="dynamic-guide-nav-wrapper">
+	<div class="dynamic-listng-page-nav-holder"> 
+		<isloop items="${pdict.ProductSearchResult.category.getParent().custom.bannerSubcategoryLinks}" var="ids" status="loopstate"> 
+			 <isif condition="${!empty(dw.catalog.CatalogMgr.getCategory(ids.trim())) && dw.catalog.CatalogMgr.getCategory(ids.trim()) != 'null'}"> 
+				<span class="links dynamic-listng-nav-link <isif condition="${pdict.ProductSearchResult.category.ID == ids.trim()}">active</isif> <isif condition="${loopstate.last}">last</isif>"><a href="${URLUtils.url('Search-Show','cgid', ids.trim())}"><isprint value="${dw.catalog.CatalogMgr.getCategory(ids.trim()).displayName}" encoding="off"/></a></span>
+			 </isif>
+		</isloop>
+	</div>
+    <div class="dynamic-listng-page-nav-holder-mobile" style="margin: 10px 10px 0px 10px;"> 
+     <select class="stateselect mobileBlock" id="sidebar1Mobile" style="font-weight: 600;font-size: 16px; color: #717171" >
+        <isloop items="${pdict.ProductSearchResult.category.getParent().custom.bannerSubcategoryLinks}" var="ids" status="loopstate"> 
+             <isif condition="${!empty(dw.catalog.CatalogMgr.getCategory(ids.trim())) && dw.catalog.CatalogMgr.getCategory(ids.trim()) != 'null'}"> 
+                  <option id="${ids.trim()}" href="${URLUtils.url('Search-Show','cgid', ids.trim())}" <isif condition="${pdict.ProductSearchResult.category.ID == ids.trim()}">selected="selected"</isif>> <isprint value="${dw.catalog.CatalogMgr.getCategory(ids.trim()).displayName}" encoding="off"/> </option>
+             </isif>
+        </isloop>
+     </select>
+    </div>
+    
+</div>
+</isif>
+
+<script type="text/javascript">
+//$(document).ready(function() {
+	$('#sidebar1Mobile').on('change', function() {
+		var href = $(this).children(":selected").attr("href");
+		//alert( href); // or $(this).val()
+		window.location.href  = href; 
+	  //alert( id); // or $(this).val()
+//	});
+
+});
+</script>

@@ -1,0 +1,6 @@
+<iscontent type="application/json" charset="UTF-8" compact="true"/>
+<isif condition="${pdict.OptinStatus.error}">
+	{"success": false}
+<iselse/>  
+	{"success": true} 
+</isif>

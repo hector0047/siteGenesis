@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="job">
+  <description>Regular job to check order generation and processing health.</description>
+  <branch basename="Run">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="Run" secure="false"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="new Date(Date.now() - (CurrentJobParameterMap.MaxAge * 60000))" key="From_0"/>
+          <key-binding alias="Timestamp" key="To_0"/>
+          <key-binding alias="CurrentJobParameterMap.NotifyTo" key="From_1"/>
+          <key-binding alias="NotifyTo" key="To_1"/>
+          <key-binding alias="CurrentJobParameterMap.ConfirmationStatus &amp;&amp; dw.order.Order[&quot;CONFIRMATION_STATUS_&quot; + CurrentJobParameterMap.ConfirmationStatus]" key="From_2"/>
+          <key-binding alias="Search1Value" key="To_2"/>
+          <key-binding alias="null != Search1Value ? &quot;confirmationStatus&quot; : undefined" key="From_3"/>
+          <key-binding alias="Search1Key" key="To_3"/>
+          <key-binding alias="CurrentJobParameterMap.ExportStatus &amp;&amp; dw.order.Order[&quot;EXPORT_STATUS_&quot; + CurrentJobParameterMap.ExportStatus]" key="From_4"/>
+          <key-binding alias="Search2Value" key="To_4"/>
+          <key-binding alias="null != Search2Value ? &quot;exportStatus&quot; : undefined" key="From_5"/>
+          <key-binding alias="Search2Key" key="To_5"/>
+          <key-binding alias="CurrentJobParameterMap.ShippingStatus &amp;&amp; dw.order.Order[&quot;SHIPPING_STATUS_&quot; + CurrentJobParameterMap.ShippingStatus]" key="From_6"/>
+          <key-binding alias="Search3Value" key="To_6"/>
+          <key-binding alias="null != Search3Value ? &quot;shippingStatus&quot; : undefined" key="From_7"/>
+          <key-binding alias="Search3Key" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="SearchSystemObject" pipelet-set-identifier="bc_api">
+          <config-property key="ObjectType" value="Order"/>
+          <config-property key="CaseSensitive" value="false"/>
+          <config-property key="SearchExpression" value="creationDate &gt;= {4}"/>
+          <config-property key="SortExpression" value="creationDate DESC"/>
+          <key-binding alias="null" key="SearchResult"/>
+          <key-binding alias="SearchResultCount" key="SearchResultCount"/>
+          <key-binding alias="Search1Key" key="Search1Key"/>
+          <key-binding alias="Search1Value" key="Search1Value"/>
+          <key-binding alias="Search2Key" key="Search2Key"/>
+          <key-binding alias="Search2Value" key="Search2Value"/>
+          <key-binding alias="Search3Key" key="Search3Key"/>
+          <key-binding alias="Search3Value" key="Search3Value"/>
+          <key-binding alias="null" key="Search4Key"/>
+          <key-binding alias="Timestamp" key="Search4Value"/>
+          <key-binding alias="null" key="Search5Key"/>
+          <key-binding alias="null" key="Search5Value"/>
+          <key-binding alias="null" key="SortBy2"/>
+          <key-binding alias="null" key="SortBy2Direction"/>
+          <key-binding alias="null" key="SortBy3"/>
+          <key-binding alias="null" key="SortBy3Direction"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="SearchResultCount &gt; 0" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in1" target-path="./+1"/>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="!empty(NotifyTo)" condition-operator="expr"/>
+        <node-display orientation="horizontal" x="1" y="0"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="NotifyTo" key="MailFrom"/>
+                <key-binding alias="&quot;orderguard/failure.isml&quot;" key="MailTemplate"/>
+                <key-binding alias="NotifyTo" key="MailTo"/>
+                <key-binding alias="&quot;OrderGuard Failure Notification&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Eval" pipelet-set-identifier="bc_api">
+          <config-property key="OnError" value="null"/>
+          <config-property key="Transactional" value="false"/>
+          <config-property key="Expression" value="dw.system.Logger.getLogger(&quot;OrderGuard&quot;).error(&quot;Failure, and no notification recipient.&quot;);"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_2">
+    <segment>
+      <node>
+        <text-node>
+          <description>Parameters:
+MaxAge: Number -- maximum age of the most recent order found, in minutes.
+NotifyTo: String -- optional email address to send notifications to.
+ConfirmationStatus: String -- optional confirmation status to look for.
+ExportStatus : String -- optional order export status to look for.
+ShippingStatus: String -- optional order shipping status to look for.</description>
+        </text-node>
+        <node-display height="2" width="4" x="2" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

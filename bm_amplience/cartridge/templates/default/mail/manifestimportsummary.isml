@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<iscontent type="text/html" charset="UTF-8"/>
+
+<isset name="totalProductsWithoutImagesCount" value="${pdict.ManifestReport['productsWithoutImagesArray'].length.toFixed(0)}" scope="page" />
+<isset name="totalUpdatedProducts" value="${pdict.ManifestReport['totalUpdatedProducts'].toFixed(0)}" scope="page" />
+<isset name="notMacthedSetsCount" value="${pdict.ManifestReport['notMacthedSets'].length.toFixed(0)}" scope="page" />
+<isset name="manifestReportURL" value="${pdict.ManifestReportURL}" scope="page" />
+
+<html>
+<head>
+<subject>${Resource.msg('summarymail.emailsubject','report',null)}</subject>
+</head>
+<body bgcolor="#CCCCCC" lang=EN-US link="#8D3A82" vlink="#8D3A82" style="tab-interval:.5in;font-family: "Helvetica Neue",Helvetica,Arial,Verdana,sans-serif;">
+ <div class="WordSection1">
+  <table border="0" cellspacing="10" cellpadding="0" width="100%" style="padding:10px;">
+   <tr>
+    <td>
+     <div align=center>
+      <table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=706 style='width:423.6pt;mso-cellspacing:0in;background:white;border:solid #F2EEEB 6.0pt;padding:10px;'>
+       <tr>
+        <td colspan="2">
+         <p>${Resource.msg('summarymail.dearuser','report',null)},</p>
+         <p>${Resource.msg('summarymail.summaryreportintro','report',null)}</p>
+         <p>${Resource.msg('summarymail.typedataimport','report',null)}</p>
+        </td>
+       </tr>
+       <tr>
+       	<td colspan="2">
+       	 <p>${Resource.msg('summarymail.starttime','report',null)}: ${pdict.ReportStart}</p>
+       	 <p>${Resource.msg('summarymail.endtime','report',null)}: ${pdict.ReportEnd}</p>
+       	</td>
+       </tr>  
+       <tr>
+        <td colspan="2">
+         <h1 style="color:#84bd00;font-size:24px;">${Resource.msg('summarymail.summarytitle','report',null)}</h1>
+        </td>
+       </tr>
+       <tr style='mso-yfti-irow:7'>
+        <td>
+         ${Resource.msg('summarymail.totalupdatedproducts','report',null)}:
+        </td>
+        <td>
+         <isprint value="${totalUpdatedProducts}" encoding="off"/>
+        </td>
+       </tr>
+       <tr>
+        <td>
+          ${Resource.msg('summarymail.totalproductswithoutimages','report',null)}:
+        </td>
+        <td>
+          <isprint value="${totalProductsWithoutImagesCount}" encoding="off"/>
+        </td>   
+       </tr>
+       <tr>
+        <td>
+         ${Resource.msg('summarymail.totalnotmatchedsets','report',null)}:
+        </td>
+        <td>
+          <isprint value="${notMacthedSetsCount}" encoding="off"/>
+        </td>
+       </tr>
+       <tr>
+        <td>
+         &nbsp;
+        </td>
+        <td style='padding:30px 0'>
+         <a href="${manifestReportURL}">${Resource.msg('summarymail.viewdetailedreport','report',null)}</a>
+        </td>
+       </tr>
+      </table>
+     </div>
+    </td>
+   </tr>
+  </table>
+ </div>
+</body>
+</html>

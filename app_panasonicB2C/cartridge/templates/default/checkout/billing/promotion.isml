@@ -1,0 +1,21 @@
+<isinclude template="util/modules"/>
+
+	<isloop items="${pdict.CurrentForms.billing.coupons}" var="Coupon" status="loopstateCoupons">
+	 
+		<div class="coupon number">
+			<div class="payment-coupon-code">${Resource.msg('cart.couponcode','checkout',null)} <b>${Coupon.object.couponCode}</b></div>
+			<div class="item-total">
+				<isif condition="${Coupon.object.applied || (Coupon.object.statusCode==dw.campaign.CouponStatusCodes.NO_APPLICABLE_PROMOTION && Coupon.object.bonusDiscountLineItems.size()>0)}">
+					<span class="bonus-item">${Resource.msg('global.applied','locale',null)}</span>
+				<iselse> 
+					<span class="bonus-item couponerror">${Resource.msg('global.notapplied','locale',null)}</span>
+				</isif>
+			</div>
+			<div class="remove">
+				<a href="${URLUtils.url('COBilling-RemoveCoupon','CouponCode',Coupon.object.couponCode)}">${Resource.msg('global.removecode','locale',null)}</a>
+				 
+			</div>
+		</div>
+		 
+	</isloop>
+	

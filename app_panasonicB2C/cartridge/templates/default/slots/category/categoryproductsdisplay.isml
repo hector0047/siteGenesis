@@ -1,0 +1,27 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isinclude template="util/modules"/>
+<iscomment>
+	This template renders the slot content of the bottom category landing slot
+	in case the slot content is of type Category.
+	At maximum three small banners are displayed with the name of the category
+	below.
+</iscomment>
+
+<isif condition="${slotcontent != null}">
+	<div class="bottom-banner-container search-match-product-container">
+		<div class="message search-match-product-text"><h1>Didn't find what you were looking for?</h1>check out our top-searched categories:</div>
+		<isloop items="${slotcontent.content}" var="category" status="loopstate" end = "4">
+			<div class="bottom-banner-cell banner-cell-${loopstate.count} search-match-product">
+				<isif condition="${!empty(category.thumbnail.URL) && category.thumbnail.URL != 'null'}">
+					<a href="${URLUtils.http('Search-Show', 'cgid', category.ID)}" title="${category.displayName}"><img src="${category.thumbnail.URL}" height="200" width="200" alt="${category.displayName}"/><isprint value="${category.displayName}" /> </a>
+				<iselse/>
+					<a href="${URLUtils.http('Search-Show', 'cgid', category.ID)}" title="${category.displayName}"><img src="${URLUtils.staticURL('/images/noimagesmall.png')}" height="200" width="200" alt="${category.displayName}"/><isprint value="${category.displayName}" /> </a>
+				</isif>
+			</div>
+			<isif condition="${loopstate.count == 5}">
+				<isbreak/>
+			</isif>
+		</isloop>
+	</div><!-- END: -->
+</isif>

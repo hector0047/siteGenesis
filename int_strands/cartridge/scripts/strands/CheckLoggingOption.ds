@@ -1,0 +1,99 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	CheckLoggingOption.ds
+ *  
+ *	This script tries to consult Strands Recommender about the current 
+ *	logging option (current level). In case an error occurs, it will 
+ * 	output the corresponding error.
+ *
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ *
+*/
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	if( ! ('StrandsEnabled' in Site.current.preferences.custom) || ! Site.current.preferences.custom.StrandsEnabled) {
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Logging Option) Strands plugin is either not present or not enabled");	
+		return PIPELET_ERROR;
+	}
+	
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Logging Option) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/';
+
+	var getPropString = strandsUrl + 'plugin/config/get.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(dw.system.Site.current.preferences.custom.StrandsApiID)
+						+ '&pluginName=' + 'demandware'
+						+ '&propertyName=' + 'alert_level';
+		
+					
+    var getProperty : HTTPClient = new HTTPClient();
+    try
+	{
+    	getProperty.setTimeout(1000);
+    	getProperty.open("GET", getPropString);
+    	getProperty.send();    		
+    }
+    catch(e) 
+    {
+    	pdict.ErrorCode = '211';
+		pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Get Logging Option) Request to "+getPropString+" failed: {0}", e.message);
+      	return PIPELET_ERROR;
+    }
+
+	
+	if ( ! ('StrandsLogLevel' in Site.current.preferences.custom)) {
+		pdict.ErrorCode = '121';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Logging Option) StrandsLogLevel is not present");
+		return PIPELET_ERROR;
+	}
+	
+	if ( empty(getProperty.getText())) {
+		pdict.ErrorCode = '212';
+		pdict.ErrorLevel = '4';
+		Logger.error("(Strands Get Logging Option) No value returned from the call");
+		return PIPELET_ERROR;
+	}
+	
+	var logLevel : Number;
+	try
+	{
+		logLevel = Number (getProperty.getText());
+	}
+	catch(e)
+	{
+		pdict.ErrorCode = '213';
+		pdict.ErrorLevel = '4';
+		Logger.error("(Strands Get Logging Option) Value returned from the call is not a number");
+		return PIPELET_ERROR;
+	}
+	
+	if (logLevel < 1 || logLevel > 5) {
+		pdict.ErrorCode = '214';
+		pdict.ErrorLevel = '4';
+		Logger.error("(Strands Get Logging Option) Invalid value returned from the call");
+		return PIPELET_ERROR;
+	}
+	
+	Site.current.preferences.custom.StrandsLogLevel = logLevel;
+	
+	return PIPELET_NEXT;
+}

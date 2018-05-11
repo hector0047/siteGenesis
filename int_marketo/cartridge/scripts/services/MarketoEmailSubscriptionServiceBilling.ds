@@ -1,0 +1,76 @@
+var sf = require("bc_serviceframework");
+var MarketoEmailSubscription = require("../objects/MarketoEmailSubscriptionForBilling");
+
+importPackage(dw.system);
+importPackage(dw.net);
+
+
+function getMarketoEmailSubscriptionService() {
+	return MarketoEmailSubscriptionService;
+}
+
+var MarketoEmailSubscriptionService = sf.getService('AbstractHTTPService').extend (
+/** @lends MarketoEmailSubscriptionService.prototype */ 
+{
+	/**
+	 * @constructs MarketoEmailSubscriptionService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("MarketoEmailSubscriptionService", new MarketoEmailSubscription());
+	},
+	
+	createRequest: function (marketoReqObj) {		
+		if(marketoReqObj.isTokenRequest) {
+			return 	marketoReqObj;
+		} else {
+			var jsonRequestObj = new Object();		
+			jsonRequestObj = {
+					"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":
+					[
+					    {
+						     "email": marketoReqObj.email,
+					         "firstName":marketoReqObj.firstName,
+					         "lastName":marketoReqObj.lastName,
+					         "emailable":marketoReqObj.emailable,
+					         "shopPCECmember":marketoReqObj.shopPCECmember,
+					         "unsubscribed":marketoReqObj.unsubscribed
+					        
+					    }
+					]
+				};
+			marketoReqObj.jsonRequestObj = JSON.stringify(jsonRequestObj);
+	        Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+" emailable:"+marketoReqObj.emailable+" shopPCECmember:"+marketoReqObj.shopPCECmember +" unsubscribed:"+marketoReqObj.unsubscribed);
+		   return marketoReqObj;
+		}
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var httpService : HTTPClient = this.serviceClient;
+		httpService.setRequestHeader("Content-Type", "application/json");
+		if(this.request.isTokenRequest){
+			httpService.open("POST", this.request.marketoTokenEndpointUrl+"&client_id="+this.request.marketoClientId+"&client_secret="+this.request.marketoClientSecretKey);
+			httpService.send();
+			return httpService.text;
+		} else {			
+			httpService.open("POST", this.request.marketoEndpointUrl+"?access_token="+this.request.accessToken);
+			httpService.send(this.request.jsonRequestObj);
+			return httpService.text;
+		}
+	},
+	
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+	
+});
+
+sf.registerService("MarketoEmailSubscriptionService", MarketoEmailSubscriptionService);

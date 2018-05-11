@@ -1,0 +1,203 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/orderhistory/pt_orderhistory">
+	<isinclude template="util/modules"/>
+	<div class="orderhistory-list">
+	<h1 id="pnsb2c-myaccount-orders">${Resource.msg('orders.orderhistory','account',null)}</h1>
+	
+		<isif condition="${pdict.OrderPagingModel.empty}">
+			
+			<div class="no_orders">${Resource.msg('orders.noorders','account',null)}</div>
+		
+		<iselse/>
+		<iscomment><a href="${decodeURI(pdict.OrderPagingModel.appendPaging(URLUtils.https('Order-History'),pdict.OrderPagingModel.count))}">view all</a></iscomment>		
+			<form action="${URLUtils.httpsContinue()}" method="post" id="${pdict.CurrentForms.orders.htmlName}">
+			
+			<div class="search-result-options">
+				<ispagingbar pageurl="${URLUtils.https('Order-History')}" pagingmodel="${pdict.OrderPagingModel}"/>
+			</div>
+			
+			<ul class="search-result-items">
+			
+			<isloop items="${pdict.CurrentForms.orders.orderlist}" var="order" status="orderloopstate">				
+				<isset name="orderType" value="${order.object instanceof dw.order.Order ? 'DWOrder' : 'ServiceOrder'}" scope="page" />
+				
+				<li>				
+					<div class="order-history-header ${orderType}">					
+						<input type="hidden" name="grossPrice" value="${order.object.totalGrossPrice}">                 
+						<button type="submit"  value="${Resource.msg('orders.orderdetail','account',null)}" name="${order.show.htmlName}">
+							${Resource.msg('orders.orderdetail','account',null)}
+						</button><br><br><br>
+						<iscomment>PANC-447</iscomment>
+						 <isscript>
+							var creationDate : Date =  new Date(order.object.creationDate);
+							var creationDatecalender = new dw.util.Calendar(creationDate);
+							var newCreationDate = dw.util.StringUtils.formatCalendar(creationDatecalender, "MM/dd/yy");
+							var currentDate : Date = dw.system.Site.current.calendar.time;
+							var currentDateCalender = new dw.util.Calendar(currentDate);
+							var newcurrentDate = dw.util.StringUtils.formatCalendar(currentDateCalender, "MM/dd/yy");
+					
+							var minDate : Date = new Date();
+								minDate.setMonth(dw.system.Site.current.getCustomPreferenceValue('minMonth'));
+								minDate.setDate(dw.system.Site.current.getCustomPreferenceValue('minDate'));
+							var minDatecalender = new dw.util.Calendar(minDate);
+							var newminDate = dw.util.StringUtils.formatCalendar(minDatecalender, "MM/dd/yy"); 
+							var maxDate : Date = new Date();
+								maxDate.setMonth(dw.system.Site.current.getCustomPreferenceValue('maxMonth'));
+								maxDate.setDate(dw.system.Site.current.getCustomPreferenceValue('maxDate'));
+							var maxDatecalender = new dw.util.Calendar(maxDate);
+							var newmaxDate = dw.util.StringUtils.formatCalendar(maxDatecalender, "MM/dd/yy");
+							var limitDate : Date = new Date();
+								limitDate.setMonth(dw.system.Site.current.getCustomPreferenceValue('limitMonth'));
+								limitDate.setDate(dw.system.Site.current.getCustomPreferenceValue('limitDate'));
+							var limitDatecalender = new dw.util.Calendar(limitDate);
+							var newlimitDate = dw.util.StringUtils.formatCalendar(limitDatecalender, "MM/dd/yy");							
+							var isReturn : Boolean = false;
+							
+							//if(newCreationDate <= newmaxDate && newCreationDate >= newminDate){
+							if((creationDatecalender.before(maxDatecalender) || creationDatecalender.equals(maxDatecalender)) && (creationDatecalender.after(minDatecalender) || creationDatecalender.equals(minDatecalender))){	
+								//if(newcurrentDate <= newlimitDate){
+								if(currentDateCalender.before(limitDatecalender) || currentDateCalender.equals(limitDatecalender)){
+									isReturn = true;
+								}
+							}
+							if(order.object.fulfilledDate != null){
+								var closeDate : Date = new dw.util.Calendar(order.object.fulfilledDate);
+								closeDate.add(closeDate.DATE, 40);
+								var visibleDate : Date = dw.util.StringUtils.formatCalendar(closeDate, "MM/dd/yy");
+								 
+								var isVisible : Boolean = false;
+								//if(newcurrentDate <= visibleDate)
+								if(currentDateCalender.before(closeDate) || currentDateCalender.equals(closeDate))
+								{
+									isVisible = true;
+								}
+							}else{
+								isVisible = false;
+							}
+						</isscript>
+						<div class="hide">
+							${creationDatecalender.before(calender2) || creationDatecalender.equals(calender2) && }:: ${newCreationDate <= newmaxDate}:: ${newCreationDate} :: ${newmaxDate}<br/>
+							${(currentDateCalender.before(closeDate) || currentDateCalender.equals(closeDate))}::
+							${newcurrentDate <= visibleDate}:: ${visibleDate} :: ${newcurrentDate}
+						</div>
+					
+						<isif condition="${dw.system.Site.current.preferences.custom.hideOrderReturnButton}"> 
+							<iselseif condition="${(order.object.status == 'Closed' && isReturn) || (order.object.status == 'Closed' && isVisible)}" >
+								<a class="button-blue ord-hstry-page desktopBlock" href="${URLUtils.https('SelfServiceReturn-Show', 'orderNo', order.object.orderNo, 'grossPrice', order.object.totalGrossPrice)}">
+									${Resource.msg('orders.return','account',null)}
+								</a>
+							</iselseif>
+							<iselseif condition="${!empty(order.object.custom.orderStatus) && (order.object.custom.orderStatus) && (isReturn)}" >
+								<a class="button-blue ord-hstry-page desktopBlock" href="${URLUtils.https('SelfServiceReturn-Show', 'orderNo', order.object.orderNo, 'grossPrice', order.object.totalGrossPrice)}">
+									${Resource.msg('orders.return','account',null)}
+							 	</a>
+							</iselseif>
+						</isif>
+						
+						<div class="order-date">
+							<span class="label">${Resource.msg('orders.datelabel','account',null)}</span>
+							<span class="value"><isprint value="${order.object.creationDate}" /></span>
+						</div>
+		
+						<isset name="Order" value="${order.object}" scope="page"/>
+						<isinclude template="account/orderhistory/orderstatusinclude" />
+		
+						<div class="order-number">
+							<span class="label">${Resource.msg('orders.numberlabel','account',null)}</span>
+							<span class="value"><isprint value="${order.object.orderNo}" /></span>
+						</div>
+	
+					</div>
+					
+					<div class="order-history-items">
+					
+						<table class="order-history-table">
+							<iscomment>For each shipment, render shipped to, items and order total </iscomment>
+							<isloop items="${order.object.shipments}" var="Shipment" status="shipmentloopstate">
+								
+								<iscomment>display order total in first row only</iscomment>						
+								<isif condition="${shipmentloopstate.first}">
+									<tr>										
+										<th class="order-shipped-to">${Resource.msg('orders.shippedto','account',null)}</td>
+											
+										<th class="order-items">${Resource.msg('orders.items','account',null)}</td>
+										<th class="order-total-price">${Resource.msg('orders.ordertotal','account',null)}:</td>
+									</tr>
+								<iselse/>
+									<tr>																		
+										<th class="order-shipped-to">${Resource.msg('orders.shippedto','account',null)}</th>
+																
+										<th class="order-items">${Resource.msg('orders.items','account',null)}</th>
+										<th></th>
+									</tr>
+								</isif>
+								
+								<tr>
+									
+									<td class="order-itemsshipto">
+										<iscomment>Gift Certificates are in there own shipment. So if we have a shipment that contains
+											just a Gift Certificate, we want to render the email address of the recipient</iscomment>										
+										<span class="value"><isminishippingaddress p_shipment="${Shipment}" p_editable="${false}" p_showmethod="${false}" p_showpromos="${false}"/></span>
+									</td>
+									<td class="order-items">
+									<span class="order-items">${Resource.msg('orders.items','account',null)}</span>									
+										<ul>								
+											<isloop items="${Shipment.productLineItems}" var="PLI" status="pliloopstate">
+
+												<iscomment>if we have more product line items than the max page size, display view all link and create hidden div</iscomment>
+												<isif condition="${ ( pliloopstate.count - 1 ) >= pdict.OrderPagingModel.pageSize }">														
+													<li class="hidden">
+												<iselse/>
+													<li>
+												</isif>
+													
+													<isprint value="${PLI.productName}"/>
+												
+												</li>
+												
+											</isloop>
+			
+											<isloop items="${Shipment.giftCertificateLineItems}" var="giftCertificateLineItem" status="gcliloopstate">
+												<li>${Resource.msg('global.giftcertificate','locale',null)}</li>
+											</isloop>
+										
+										</ul>						
+									</td>
+									
+									<td class="orderTotalPrice">
+										<isif condition="${shipmentloopstate.first}">
+											<span class="order-total-price">${Resource.msg('orders.ordertotal','account',null)}:</span>
+											<iscomment>Display total price for order</iscomment>
+											<span class="value"><isprint value="${order.object.totalGrossPrice}"/></span>
+										<iselse/>
+											&nbsp;
+										</isif>
+									</td>
+									
+								</tr>
+								
+							</isloop>
+						</table>
+	
+					</div>
+				</li>
+				
+				<iscomment>if we have more than five orders, we use the paging bar</iscomment>
+				<isif condition="${orderloopstate.count >= (pdict.OrderPagingModel.pageSize + 1)}">
+					<isbreak/>
+				</isif>
+				
+			</isloop>
+			
+			</ul>
+			
+			<div class="search-result-options">
+				<ispagingbar pageurl="${URLUtils.https('Order-History')}" pagingmodel="${pdict.OrderPagingModel}"/>
+			</div>
+			
+			</form>
+			
+		</isif>
+
+</div>
+</isdecorate>

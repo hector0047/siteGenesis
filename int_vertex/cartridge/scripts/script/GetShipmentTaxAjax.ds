@@ -1,0 +1,58 @@
+/**
+*	GetTaxAjax.ds
+*
+* 	This script will attempt to update the tax to the basket based on the shipping address selections
+*
+*	@input Basket	: dw.order.Basket
+*	@input ShipmentID :String
+*	@input ShippingAddress : Object
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.util );
+importPackage( dw.net );
+importScript('lib/libVertexRPCQuotation.ds');
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var disableLog : Boolean =  Site.getCurrent().getCustomPreferenceValue("DisableVertexLog");
+	 if(disableLog == null)
+	 		disableLog = false;
+	try{
+		if(!disableLog)
+			Logger.info("GetShipmentTaxAjax Started**************************************************************************************.");
+		var basket 	: Basket		=	args.Basket;
+		if(args.ShippingAddress == null)
+			return PIPELET_NEXT;
+		var shippingAddress: Object =	args.ShippingAddress;
+		var country : String		=	shippingAddress.countryCode;
+		var state 	: String		=	shippingAddress.stateCode;
+		var zip 	: String		=	shippingAddress.postalCode;
+		var shimentId: String		=	args.ShipmentID;
+		var vertexHelper:VertexRPCQuotationHelper = getVertexRPCQuotationHelper();
+		if(vertexHelper == null) {
+			Logger.info("Unable to get VertexHelper." );
+			return  PIPELET_NEXT;
+		}
+		if(!empty(state) && !empty(zip)){
+			var strAddress = "Single shipment," + state + "," +  zip +  "," + country;
+			if(!disableLog)
+				Logger.info("GetShipmentTaxAjax Calculate tax using the address={0}.",strAddress);
+			vertexHelper.calculateTax(basket, strAddress,false);
+		}
+		else {
+			if(!disableLog)
+				Logger.info("GetShipmentTaxAjax Unable to call Gettax. State or Postal code are missing. ");
+		}
+		if(!disableLog)
+				Logger.info("GetShipmentTaxAjax Completed####################################################################################.");
+		return PIPELET_NEXT;
+	}catch(e){
+		Logger.error(" GetShipmentTaxAjax Exception thrown. Error=" + e );
+	}
+	if(!disableLog)
+		Logger.info("GetShipmentTaxAjax Completed after exception.");
+	return PIPELET_NEXT;
+}

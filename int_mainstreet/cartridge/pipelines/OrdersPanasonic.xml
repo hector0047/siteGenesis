@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="OrderHistory">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="OrderHistory" secure="false"/>
+        <node-display x="0" y="0"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="pipelets/OrderHistorySoap.ds"/>
+          <config-property key="Timeout" value="90"/>
+          <key-binding alias="MainStreetLog" key="ScriptLog"/>
+          <key-binding alias="OrdersUnpaged" key="OrderUnpaged"/>
+          <key-binding alias="OrdersUnpagedCount" key="OrderUnpagedCount"/>
+          <key-binding alias="CurrentCustomer.profile.customerNo" key="CustomerNo"/>
+          <key-binding alias="ServiceOrdersCount" key="OrderMixedCount"/>
+          <key-binding alias="ServiceOrders" key="OrderMixedUnpaged"/>
+          <key-binding alias="Response" key="Response"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="error"/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="OrderDetailsMainstreet">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="OrderDetailsMainstreet" secure="false"/>
+        <node-display x="3" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="pipelets/OrderDetailsSoap.ds"/>
+          <config-property key="Timeout" value="90"/>
+          <key-binding alias="errorlog" key="ScriptLog"/>
+          <key-binding alias="Order.orderNo" key="OrderNo"/>
+          <key-binding alias="ServiceOrder" key="Order"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="error"/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

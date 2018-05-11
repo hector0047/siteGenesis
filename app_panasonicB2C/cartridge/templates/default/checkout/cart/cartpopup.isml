@@ -1,0 +1,59 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules.isml"/>
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	var cartProduct : dw.catalog.Product = dw.catalog.ProductMgr.getProduct(pdict.CurrentHttpParameterMap.pid.value);
+	var productList : dw.util.LinkedHashSet =  new dw.util.LinkedHashSet();
+	/*for each (var Obj : Object in pdict.Response){
+		productList.add(dw.catalog.ProductMgr.getProduct(Obj.itemId));
+	}*/
+	for each (var id : String in pdict.CurrentHttpParameterMap.rids.stringValue.split(':')){
+		productList.add(dw.catalog.ProductMgr.getProduct(id.toString().trim()));
+	}
+	
+</isscript>
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	importScript("util/GetAmplienceImageUrl.ds");
+</isscript>
+<isset name="showTieredPrice" value="${true}" scope="page"/>
+<isset name="Product" value="${cartProduct}" scope="pdict"/>
+<div class="accessories-container">
+	<div id="addedToCart">
+		   <h3> Added to Cart</h3>
+		   <div class="addedproductrow">
+		   <isset name="image" value="${new ProductImage('image80X80',cartProduct,0)}" scope="page"/>
+					
+		   <picture>
+				<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Email-Overlay-Desktop$','desktop')}" media="(min-width: 1024px)">
+				<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Email-Overlay-Desktop$','tablet')}" media="(min-width: 768px)">
+				<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Email-Overlay-Desktop$','mobile')}" media="(min-width: 380px)">
+				<img src="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Email-Overlay-Desktop$','desktop')}" class="small-img-acc" />
+			</picture>			
+		   <!-- img src="${getAmplienceImageUrl(image.getURL(),'$Cart-Email-Overlay-Desktop$')}" class="small-img-acc"-->
+		   <div class="addeddesc">
+		   	   <isprint value="${cartProduct.name}"/>
+		       <div>Model: <isprint value="${cartProduct.ID}"/></div>
+		   </div>
+		   <span class="addedprice"><isinclude template="product/components/pricing"/></span>
+		   <button class="proceed-to-cart">PROCEED TO CART</button>
+		   </div>
+	</div>
+
+	<div id="recommendedAcc" class="strandsproducts">
+            <h3>Recommended Accessories</h3>
+            <ul class="pdp-prod-accesories-ul">
+	         	<isloop items="${productList}" var="product" status="loopstate2">
+		         	<isif condition="${!empty(product) && product != 'null' && product.availabilityModel.availabilityStatus != 'null' && product.availabilityModel.availabilityStatus != dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_NOT_AVAILABLE}">
+						<iscomment> FARHANS dev TEAM PANC-988 19 NOV 2015 7:52 EST </iscomment>
+		                <li class="accesories-prod-li <isif condition="${loopstate2.last}">last</isif> <isif condition="${loopstate2.index%5 == 0}">allignment-req-li</isif>"><isproducttilepdp product="${product}" showswatches="${false}" showpricing="${true}" showrating="${true}" specialoffer="${true}" accessorieclass="accessorie-class"/></li>
+		               <iscomment> FARHANS dev TEAM PANC-988 END </iscomment>
+		           </isif>
+	           </isloop>     
+		    </ul>    
+   </div>
+	<div id="additionalItems">
+           <iscomment> <span class="seeOtherAcc" id="seeAllAcc">See All Accessories</span>  </iscomment> 
+            <span class="oSans additionalItems"><strong class="cart-added">0</strong> additional items have been added to your cart</span> <button class="icon proceed-to-cart">PROCEED TO CART</button>
+    </div>
+</div>

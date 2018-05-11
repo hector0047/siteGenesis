@@ -1,0 +1,82 @@
+/**
+* This demandware script file runs tests for the MainSteet Communication Class.
+* 
+* @author Demandware
+* @creationdate 2011-07-23
+* @input productId : String The product id to check for.
+* @input ProductsWanted : Array A list of product ids
+* @output ProductAvailability: dw.util.HashMap A list of product ids with their possible quantities.
+* @output results : Object
+* @output StockLevel : Number The evaluated Stock Level for the product.
+* @output FoundInventory : Boolean Set to true for debug.
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+
+
+importScript("int_mainstreet:library/libMainstreetNew.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var results : Array = [];
+	var prodIds :  Array = new Array();
+	var mainstreet = new MainStreet();
+	results.push({name: "stubCreated", status: "ok", reason: "stub for communication with mainstreet was created."});
+	try {
+		
+		if( !empty(pdict.ProductsWanted) ) {
+			var plist : Iterator = pdict.ProductsWanted.iterator();
+			while(plist.hasNext())
+			{
+				prodIds.push(plist.next());
+			}
+		} else if( !empty(pdict.productId) ) {
+			prodIds.push(pdict.productId);
+		}
+		
+		var inventoryLevels : Object = mainstreet.GetInventoryLevels(prodIds);
+		
+		
+		//Logger.error("--------------- INVENTORY - Got response from mainstreeet");
+		
+		/*if(inventories.length() > 0) {
+			results.push({name: "getInventoryLevels", status: "ok", reason: "Fetched "+inventories.length()+" inventories from mainstreet for customer 1000."});
+		} else {
+			results.push({name: "getInventoryLevels", status: "fail", reason: "Fetched "+inventories.length()+" inventories from mainstreet for customer 1000 expected more then 0."});
+		}*/
+		
+		//var responseChildren : XMLList = inventories.children()
+		
+		var invResults : HashMap = new HashMap();
+		//var invResults : Array = new Array();	
+		pdict.FoundInventory = false;
+		if(!empty(inventoryLevels)){
+			
+		//	Logger.error("--------------- INVENTORY - Not empty response");
+			
+			// return productsAndQuantityAvailable;
+					for each(var inventoryLevel in inventoryLevels) 
+					{
+						
+						//Logger.error("--------------- INVENTORY - inventoryLevel.getItemQuantity()"+inventoryLevel.getItemQuantity());
+						pdict.StockLevel = inventoryLevel.getItemQuantity();
+						if (pdict.StockLevel > 0)
+							pdict.FoundInventory = true;
+						invResults.put(inventoryLevel.getItemCd(), inventoryLevel.getItemQuantity());
+					}
+			
+				pdict.ProductAvailability = invResults;
+				return PIPELET_NEXT;
+		} else {			
+			Logger.error("GetProductAvailability.ds Error = empty inventories");
+			
+			return PIPELET_NEXT;
+		}
+		
+		
+   	} catch(e) {
+		results.push({name: "ErrorThrown", status: "fail", reason: e.message});
+	}
+	pdict.results = results;
+    return PIPELET_NEXT;
+}

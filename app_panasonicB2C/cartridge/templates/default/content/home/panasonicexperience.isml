@@ -1,0 +1,408 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isset name="pageTitle" value="Panasonic Experience" scope="page" />
+<isset name="metaDescription" value="Panasonic Adventure, Beauty, Grooming, Entertainment, Home, Imaging" scope="page" />
+<isdecorate template="content/home/pt_panasonicexperience">
+
+<iscomment>this is the template rendering the adventure page</iscomment>
+
+<div class="adventure-page-wrapper pillar-page experience-page-wrapper">
+
+	<section class="adventure-video">
+		<div class="player-overlay-wrapper">
+			<div class="player-overlay">
+				<div class="player-overlay-content">
+					<div class="player-flag">
+						<h3>Panasonic Experience</h3>
+					</div>
+					<div class="player-text">
+						<h1>Push Play to View Panasonic in Action</h1>
+						<div class="play-button">
+							<img src="${URLUtils.absStatic('../images/adventure/play-static.png')}"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	    <div class="video-player">
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="0">
+					<img src="${URLUtils.absStatic('../images/adventure/hero-video-thumbnail-experience.jpg')}"/>
+				</div>
+				<div id="video1" class="video" data-youtubeid="xbunCcjHntg" data-videoid="0"></div>
+			</div>
+			<iscomment>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="1">
+					<img src="http://img.youtube.com/vi/Js4fP9BpsUc/0.jpg"/>
+				</div>
+				<div id="video2" class="video" data-youtubeid="Js4fP9BpsUc" data-videoid="1"></div>
+				<!-- <iframe width="1250" height="500" data-to="trail-running" id="trail-running" src="https://www.youtube.com/embed/tntOCGkgt98?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> -->
+			</div>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="2">
+					<img src="http://img.youtube.com/vi/EUHcNeg_e9g/0.jpg"/>
+				</div>
+				<div id="video3" class="video" data-youtubeid="EUHcNeg_e9g" data-videoid="2"></div>
+				<!-- <iframe width="1250" height="500" data-to="spartan-race" src="https://www.youtube.com/embed/vsBbE7c2P28?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> -->
+			</div>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="3">
+					<img src="http://img.youtube.com/vi/Js4fP9BpsUc/0.jpg"/>
+				</div>
+				<div id="video4" class="video" data-youtubeid="Js4fP9BpsUc" data-videoid="3"></div>
+			</div>
+			</iscomment>
+	    </div>
+	    <div class="video-carousel row">
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="everyday-adventure" href="#everyday-adventure">
+					<img src="${URLUtils.absStatic('../images/adventure/button-1.png')}"/>
+					<h3>Water</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="trail-running" href="#trail-running">
+					<img src="${URLUtils.absStatic('../images/adventure/button-2.png')}"/>
+					<h3>Spartan</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="spartan-race">
+					<img src="${URLUtils.absStatic('../images/adventure/button-3.png')}"/>
+					<h3>Snow</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="bike-races">
+					<img src="${URLUtils.absStatic('../images/adventure/button-4.png')}"/>
+					<h3>Family</h3>
+				</a>
+			</div>
+	    </div>
+	</section>
+	<section class="adventure-summary row">
+	    <div class="column-4 adventure-logo-block">
+	        <div>
+	        	<img src="${URLUtils.absStatic('../images/adventure/panasonic-logo.png')}"/>
+	        </div>
+	        <ul class="social">
+	        	<li>
+	        		<a href="https://www.facebook.com/Panasonic" class="ico-facebook">facebook</a>
+	        	</li>
+	        	<li>
+	        		<a href="https://twitter.com/PanaAdventure" class="ico-twitter">twitter</a>
+	        	</li>
+	        	<iscomment>
+	        	<li>
+	        		<a href="" class="ico-instagram">instagram</a>
+	        	</li>
+	        	</iscomment>
+	        	<li>
+	        		<a href="https://www.youtube.com/playlist?list=PLJj3demzZ_dRIinyeHYhztagPpCA0EaAy" class="ico-youtube">youtube</a>
+	        	</li>
+	        </ul>
+	    </div>
+        <div class="column-8 partner">
+	        <img src="${URLUtils.absStatic('../images/adventure/partnerlogo-spartan.png')}"/>
+	        <img src="${URLUtils.absStatic('../images/adventure/partnerlogo-show.png')}"/>
+	        <img class="long-logo" src="${URLUtils.absStatic('../images/adventure/partnerlogo-nyctri.png')}"/>
+	        <img class="long-logo" src="${URLUtils.absStatic('../images/adventure/lifetime-logo.png')}"/>
+	        <img class="long-logo" src="${URLUtils.absStatic('../images/adventure/partnerlogo-vidcon.png')}"/>
+        </div>
+	</section>
+	<section class="adventure-products">
+		<h2>Explore Panasonic. See All Featured Products.</h2>
+		<div class="product-carousel row">
+	        <div class="product">
+	            <a href="${URLUtils.url('Product-Show','pid','DMC-G7HK')}">
+		        	<div class="product-image">
+			        	<img src="${URLUtils.absStatic('/images/adventure/product-lumix-1.png')}"/>
+		        	</div>
+		        	<h3>UMIX G7 Interchangeable Lens (DSLM) Camera Kit with 14-140mm Lens – Black</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','HX-A500H')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-a4500.png')}"/>
+		        	</div>
+		        	<h3>Panasonic A500: Point-of-View Wearable 4K Action Camera</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','HX-A1')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/A1_Slant1_K.png')}"/>
+		        	</div>
+		        	<h3>Panasonic A1: Ultra-Light Wearable HD Action Camera</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','DMC-TS6')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-lumix.png')}"/>
+		        	</div>
+		        	<h3>LUMIX WiFi Enabled Tough Adventure Camera DMC-TS6Z</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','DMC-TS30')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-camera.png')}"/>
+		        	</div>
+		        	<h3>Active Lifestyle Tough Camera: DMC-TS30R</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+     		    <a href="${URLUtils.url('Product-Show','pid','RP-HTX7')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-headphones.png')}"/>
+		        	</div>
+		        	<h3>Monitor Stereo Headphones</h3>
+	        	</a>
+	        </div>
+	    </div>
+		<div class="button-wrapper">
+			<iscomment>
+			<a class="button-blue" href="${URLUtils.url('Search-Show','cgid','lifetime')}">See All Products</a>
+			</iscomment>
+			<a class="button-blue" href="http://shop.panasonic.com/lifetime">See All Products</a>
+		</div>
+	</section>
+	<section class="adventure-spartan">
+		<div class="row">
+			<div class="spartan-content"></div>
+				<div class="column-3 spartan-logo">
+					<img src="${URLUtils.absStatic('../images/adventure/360-logo.png')}"/>
+				</div>
+				<div class="column-9 spartan-header">
+					<div class="header-content">
+						<h1>&#35;Panasonic360</h1>
+						<p>A Better Life. A Better World. A Better You. Share Your Panasonic Experience.</p>
+					</div>
+				</div>
+		</div>
+		<div class="spartan-passport row">
+			<div class="spartan-video-player column-4">
+				<div id="spartan-video" data-youtubeid-1="1CDgYyVNKOw" data-youtubeid-2="7YzyC-el25Y"></div>
+			</div>
+			<div class="column-8">
+				<form name="passportform" class="spartan-form" action="${URLUtils.url('Search-PanasonicExperiencePassport')}" method="get">
+					<h1>Log on to your custom gallery to download videos</h1>
+					<p>Enter the uniqe code from your Panasonic 360° card to download and share your social videos.</p>
+					<div class="row form-content">
+						<div class="column-2">
+							<img src="${URLUtils.absStatic('../images/adventure/passport-360.png')}"/>
+						</div>
+						<div class="column-6">
+							<p class="form-description">GET YOUR PANASONIC 360° SOCIAL VIDEOS</p>
+							<input name="passport" type="text" required="required" placeholder="Enter your passport number"></input>
+							<input class="button-blue" type="submit" value="VIEW GALLERY"></input>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+	<section class="adventure-adventurer">
+		<div class="adventurer adventurer-1 row">
+			<div class="adventurer-content">
+				<div class="column-2">
+					<img src="${URLUtils.absStatic('../images/adventure/julian.png')}"/>
+				</div>
+				<div class="column-4">
+					<h2>Julian Wilson</h2>
+					<h3>Professional Surfer</h3>
+					<p>Australian surfing god, Julian Wilson, won many of surfing’s most iconic events by age 25. The Panasonic A500 captures his electrifying moves in 4K.</p>
+					<h3>Here's My Water Adventure Kit</h3>
+					<div class="adventurer-product row">
+						<div class="column-4">
+							<img src="${URLUtils.absStatic('../images/adventure/product-1.png')}"/>
+						</div>
+						<div class="column-8">
+							<ul>
+								<li><a href="">Panasonic A500 Wearable 4K Camcorder</a></li>
+								<li><a href="">Head Mount</a></li>
+								<li><a href="">Armband Case</a></li>
+								<li><a href="">USB Cable</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="column-6">
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/kzoPBj5NKRg?rel=0&amp;showinfo=0&amp;rel=0" frameborder="0" allowfullscreen></iframe>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="adventure-calendar row">
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Jul</h3>
+						<h1 class="date">11</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>Life Time Tri Minneapolis</h2>
+							</div>
+						</div>
+						<p>Minnesota's premier triathlon featuring one of the most scenic urban courses in the United States. <a href="http://www.mplstri.com/">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Jul</h3>
+						<h1 class="date">12</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>Pennsylvania Spartan Super Sprint</h2>						
+							</div>
+						</div>
+						<p>Blue Mountain Ski Area is nestled within the picturesque Little Gap Valley amidst the breathtaking backdrop of the neighboring Pocono Mountains. But don’t let the beautiful views and trails fool you, this course punishing! <a href="http://www.spartan.com/en/race/detail/827/overview">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Jul</h3>
+						<h1 class="date">18</h1>
+					</div>
+					<div class="calendar-description column-10">	
+						<div class="row">
+							<div class="column-12">
+								<h2>AT&T Park Stadium Spartan Sprint</h2>
+							</div>
+						</div>
+						<p>Can you feel the energy, San Fran?  Run around the concourse. Rope climb in the outfield. Do burpees in the dugout. Challenge yourself to 3 miles that will include 20+ signature obstacles all around the stadium. <a href="http://www.spartan.com/en/race/detail/829/overview">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Jul</h3>
+						<h1 class="date">19</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>Panasonic New York City Tri</h2>
+							</div>
+						</div>
+						<p>Each year, thousands of athletes brave the waters of the mighty Hudson River before biking along Manhattan's West Side highway. Finally, athletes put on their running shoes for a run. <a href="http://www.nyctri.com/2014/07/panasonic-new-title-sponsor-of-2014-new-york-city-triathlon/">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Jul</h3>
+						<h1 class="date">23</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>VidCon</h2>
+							</div>
+						</div>
+						<p>VidCon returns to the Anaheim Convention Center in 2015 for its sixth year, running from July 23rd to 25th. More than 300 of the most innovative and influential YouTube creators will perform, discuss, and connect with the more than 20,000 attendees expected at the three-day conference. <a href="http://vidcon.com/">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Aug</h3>
+						<h1 class="date">8</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>PAC West Spartan Sprint</h2>
+							</div>
+						</div>
+						<p>Only one of three natural terrain raceways in America, Washougal MX Park is a perfect spot for a Spartan Race! Thanks to its breathtaking beauty and awe inspiring track design, it’s one of the most pristine and beautiful venues in the Spartan Race line-up. <a href="http://www.spartan.com/en/race/detail/831/overview">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Aug</h3>
+						<h1 class="date">15</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>Leadville Trail 100 MTB</h2>
+							</div>
+						</div>
+						<p>The race where legends are created and limits are tested. One hundred miles of extreme Colorado Rockies terrain — from elevations of 9,200 to 12,600 feet. You will give the mountain respect, and earn respect from all. <a href="http://www.leadvilleraceseries.com/mtb/leadvilletrail100mtb/">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Aug</h3>
+						<h1 class="date">30</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<div class="row">
+							<div class="column-12">
+								<h2>Transamerica Chicago Triathlon</h2>
+							</div>
+						</div>
+						<p>For more than 30 years, triathletes have gathered on the shores of Lake Michigan for one of the largest triathlons in the world. The Transamerica Chicago Triathlon is an action-packed tour through one of America’s signature metropolises. <a href="http://www.chicagotriathlon.com/">Learn more.</a></p>
+					</div>
+				</div>
+			</div>	
+		</div>
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section email-signup">
+					<h2>Stay Up To Date on the Latest News and Events</h2>
+					<form action="#" method="post" id="email-alert-signup">
+						<div class="input-email-home">
+							<input type="text" id="marketo-email-address" class="input-text marketoemail" placeholder="Enter your email address" />
+							<input type="submit"  name="home-email" class="marketoSubscribe" value="SIGN UP"/>
+						</div>
+						<div class="success-fail-msg">
+							<span class="error-msg" style="display:none;">Sorry not able to subscribe your email</span>
+							<span class="success-msg" style="display:none;"><span class="spriteico"></span>You have successfully signed up</span>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="adventure-campaigns row">
+       	<div class="campaign-1 column-6">
+			<a href="${URLUtils.url('Product-Show','pid','DMC-G7HK')}">
+				<img src="${URLUtils.absStatic('../images/adventure/promo-1.jpg')}"/>
+			</a>
+       	</div>
+       	<div class="campaign-2 column-6">
+			<a href="${URLUtils.url('Product-Show','pid','TC-65CX850U')}">
+				<img src="${URLUtils.absStatic('../images/adventure/promo-2.jpg')}"/>
+			</a>
+       	</div>
+	</section>
+</div>
+
+</isdecorate>

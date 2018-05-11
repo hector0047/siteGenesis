@@ -1,0 +1,29 @@
+/** 
+ * An empty implementation of a webservice wrapper object
+ * @module bc_serviceframework/cartridge/scripts/objects/ServiceBase
+ */
+
+/**
+ * Empty implement of webservice wrapper - use this in case of fire and forget services
+ *
+ * @class
+ * @alias module:bc_serviceframework/cartridge/scripts/objects/ServiceBase
+ */
+function ServiceBase() {}
+ServiceBase.prototype = {
+	/**
+	 *	called by actual webservice call: empty implementation
+	 */
+	initFromWebservice : function() {},
+	/**
+	 *	called by dummy call: empty implementation
+	 */
+	getDummyResponse : function() {},
+	/**
+	 *	called by dummy call: empty implementation
+	 */
+	dummy : function() {}
+}
+
+/** An empty implementation of a webservice wrapper object*/
+module.exports = ServiceBase;

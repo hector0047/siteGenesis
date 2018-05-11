@@ -1,0 +1,98 @@
+/**
+ * Class which helps working with page tabs and urls 
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+
+function AmplienceUGCTabsHelper() {
+	
+	var activeTab : String = '',
+		pageDecorator : String = 'bm/ugc_default';
+		
+	var pageTabs : Array = [],
+		pageContext : Object = {
+			ns : 'ugc',
+			activeTab : ''
+		};
+	
+	/**
+	 * Initialize helper properties.
+	 *
+	 * @param {HttpParameterMap} httpParameterMap - Current http parameter map.
+	 */	
+	this.init = function ( httpParameterMap : HttpParameterMap ) {
+		
+		pageTabs.push({
+			id : 'available_streams',
+			displayName : 'Available',
+			url : URLUtils.https('UserGeneratedContent-Start', 'active_tab', 'available_streams')
+		},
+		{
+			id : 'imported_streams',
+			displayName : 'Imported',
+			url : URLUtils.https('UserGeneratedContent-Start', 'active_tab', 'imported_streams')
+		});
+		
+		activeTab = !empty(httpParameterMap['active_tab'].stringValue) ? httpParameterMap['active_tab'].stringValue : 'available_streams';
+		
+		pageContext['activeTab'] = activeTab;
+		
+	};
+	
+	/**
+	 * Return absolute page URL.
+	 *
+	 * @return {URL} - Page URL with current active tab as query parameter.
+	 */
+	this.getAbsPageURL = function () : URL {
+		
+		return URLUtils.https('UserGeneratedContent-Start', 'active_tab', activeTab);
+	
+	};
+	
+	/**
+	 * Return page active tabs.
+	 *
+	 * @return {Array} pageTabs - List with current page tabs.
+	 */
+	this.getPageTabs = function () : Array {
+	
+		return pageTabs;
+		
+	};
+	
+	/**
+	 * Return current active tab.
+	 *
+	 * @return {String} activeTab - Current page active tab.
+	 */
+	this.getActiveTab = function () : String {
+	
+		return activeTab;
+		
+	};
+
+	/**
+	 * Return page context information.
+	 *
+	 * @return {Object} pageContext - Object with page information.
+	 */
+	this.getPageContext = function () : Object {
+	
+		return pageContext;
+		
+	};
+
+	/**
+	 * Return decorator template name.
+	 *
+	 * @return {String} pageDecorator - Current page decorator template.
+	 */
+	this.getPageDecorator = function () : String {
+	
+		return pageDecorator;
+	
+	};
+};

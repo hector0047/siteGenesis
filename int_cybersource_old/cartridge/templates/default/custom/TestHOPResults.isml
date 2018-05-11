@@ -1,0 +1,3 @@
+<!--- TEMPLATENAME: TestHOPResults.isml --->
+Response Signature Valid: ${pdict.Valid}
+${pdict.CurrentHttpParameterMap}

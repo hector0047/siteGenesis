@@ -1,0 +1,11 @@
+<iscomment>This is response from address add and edit </iscomment>
+           <isscript>
+				  var msg = pdict.msg;
+				  var status = pdict.status;
+				  var AddressID = pdict.AddressID;
+				  var EditAddress = pdict.EditAddress;
+				  var Location = pdict.Location;
+				  var DuplicateAddress= pdict.DuplicateAddressFlag;
+				  var responseJson = '{"Location":"'+Location+'","DuplicateAddress":"'+DuplicateAddress+'","AddressID":"'+AddressID+'","EditAddress":"'+( EditAddress == 'true' ? EditAddress : "false" )+'","success" : "'+status+'","message":"'+msg+'"}';
+			</isscript>
+<isprint value="${responseJson}" encoding="off"/>

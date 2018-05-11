@@ -1,0 +1,27 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+
+<iscomment>this is the template rendering the adventure page</iscomment>
+<div class="home-page-wrapper pillar-page">
+	<div class="homeFlashbanner adventure-page">
+		<isslot id="pillar-home-hero-content" description="Adventure Hero slot in adventure page" context="global" />
+	</div>
+
+	<div class="home-bottom-slots">
+		
+		<div class="post-container product-content adventure-page">
+			<isslot id="pillar-home-featured-products" context="global" description="Adventure Featured product content "/> 
+			<div class="ctc-link-holder">
+				<isslot id="pillar-home-see-all" context="global" description="Adventure shop button "/>
+ 			</div>
+		</div>
+		<div class="post-container video-content adventure-page">
+        	<isslot id="pillar-home-video-content" context="global" description="Adventure video content "/> 
+        </div>
+		<div class="post-container hero-content adventure-page">
+		 	<isslot id="pillar-home-proof-content" context="global" description="Adventure proof content"/>
+		</div>
+	</div>
+</div>	
+</isdecorate>

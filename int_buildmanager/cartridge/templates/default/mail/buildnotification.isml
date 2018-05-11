@@ -1,0 +1,29 @@
+<!--- TEMPLATENAME: buildnotification.isml --->
+<iscontent type="text/html" charset="UTF-8"/>
+<isinclude template="util/modules"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+	 <title>New Codeversion on PREVAIL</title>
+	</head>
+	<body>
+		Hi all,<br><br>
+		
+		A new build (version number: ${pdict.CurrentHttpParameterMap.codeversion}) is available on PREVAIL Sand box, and can be viewed at <a href="http://revsolutions01.alliance-prtnr-na01.dw.demandware.net/on/demandware.store/Sites-PREVAIL-Site">PREVAIL</a>
+		<br><br>
+		
+		
+		Thanks,<br>
+		Build Manager,<br>
+		PREVAIL
+		<br><br>
+		PS: This email was sent automatically by the build process
+	</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,69 @@
+/**
+ * Generates import content asset xml file for IM Area
+ * 
+ * Params:
+ *
+ * @output GeneratedContentAssetPath : String
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.web );
+importPackage( dw.util );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var rb = args.CurrentHttpParameterMap.getRequestBodyAsString();
+		var data = JSON.parse(rb);
+		
+		var areas = JSON.parse(data.selectedAreas);
+		if (areas.length == 0) {
+		
+			throw new Error('No Areas provided to import');	
+		}
+		
+		/**
+		 * Get Custom Preferences
+		 */
+		var customPreferences = dw.system.Site.getCurrent().getPreferences().custom;
+		
+		var ampRenderingTemplate : String = customPreferences['ampRenderingTemplate'];
+		
+		var areasArr : Array = new Array();
+		
+		for each (var area in areas) {
+
+			var areaInfo = {
+				contentAssetId : area['areaid'],
+				contentAssetName : area['name'],
+				contentAssetTemplate : ampRenderingTemplate,
+				ampAssetCustomAttrs : {		
+										amplienceId 				  : area['areaid'],
+										amplienceWidth				  : area['width'],
+						        		amplienceHeight				  : area['height'],
+										amplienceAssociatedModuleName : area['associatedmodule'],
+										amplienceColor 	  			  : area['backgroundcolor']
+									}
+			};
+			
+			areasArr.push(areaInfo);
+		}
+		
+		var ampContentAssetsHelper = new AmplienceContentAssetsHelper();
+		
+		var contentAssetPath = ampContentAssetsHelper.generateIMAreasImportXML(areasArr);
+
+		args.GeneratedContentAssetPath = contentAssetPath;
+		
+	} catch(e) {
+
+		var errMsg = 'GenerateIMAreaImportXML.ds : ' + e.message;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

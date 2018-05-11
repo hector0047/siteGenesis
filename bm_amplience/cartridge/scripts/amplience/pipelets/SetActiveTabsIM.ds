@@ -1,0 +1,77 @@
+/**
+* 
+*
+*	@input CurrentHttpParameterMap : Object
+*   @input activeTab : String
+*   @input SelectedAreaIDs : String
+*   @input OrderBy : String
+*
+*   @output PageTabs : Array
+*	@output ActiveTab : String
+*	@output PageContext : Object
+*	@output PageDecorator : String
+*	@output AbsPageURL : dw.web.URL
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var parameterMap : Object = args.CurrentHttpParameterMap,
+		pageTabs : Array = [],
+		pageContext : Object = {};
+		
+	
+	// Page tabs 
+	pageTabs.push({
+		id : 'available_streams',
+		displayName : 'Available',
+		url : URLUtils.https('InteractiveMerchandising-Start', 'active_tab', 'available_streams')
+	});
+	
+	pageTabs.push({
+		id : 'imported_streams',
+		displayName : Resource.msg('im.importedpublishingareas', 'locale', null),
+		url : URLUtils.https('InteractiveMerchandising-Start', 'active_tab', 'imported_streams')
+	});
+	
+	pageTabs.push({
+		id : 'grouped_streams',
+		displayName : Resource.msg('im.itemstable.groupedareas', 'locale', null),
+		url : URLUtils.https('InteractiveMerchandising-Start', 'active_tab', 'grouped_streams', 'orderby', 'creationdatedesc')
+	});
+	
+	/**
+	 * When the activeTab paramater is set, we use its value instead of the query string parameters
+	 */
+	var activeTab = '';
+	if ( !empty(args.activeTab) ) {
+		
+		activeTab = args.activeTab;
+		
+	} else {
+		
+		activeTab = !empty(parameterMap.active_tab.stringValue) ? parameterMap.active_tab.stringValue : 'available_streams';
+	}
+	
+	// Page context
+	pageContext.ns = 'im';
+	pageContext.activeTab = activeTab;
+	
+	// Page decorator
+	var pageDecorator = 'bm/im_default';
+	
+	// Page URL
+	var absPageURL = URLUtils.https('InteractiveMerchandising-Start', 'active_tab', activeTab, 'selectedAreaIDs', args.SelectedAreaIDs, 'orderby', args.OrderBy);
+	
+	// Output params
+	args.PageTabs = pageTabs;
+	args.ActiveTab = activeTab;
+	args.PageContext = pageContext;
+	args.PageDecorator = pageDecorator;
+	args.AbsPageURL = absPageURL;
+
+   return PIPELET_NEXT;
+}

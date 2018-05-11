@@ -1,0 +1,55 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isset name="DecoratorTemplate" value="checkout/pt_sbcheckout" scope="page"/>
+<isdecorate template="${DecoratorTemplate}">
+<isinclude template="util/modules"/>
+
+	<div class="SB-repair-estimation-page-wrapper">
+	<h1 class="sb-repair-estimate-head">Confirmation</h1>
+	<div class="estimate-topic-block block-1">
+	
+		<span class="block-head column-header">
+			${Resource.msg('servicebench.estimate.prodinfo','account',null)}
+		</span>
+		<div class="info-block">
+			<span class="block-head">Model Number</span>
+			<span class="block-info">DMP-BDT01</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Serial Number</span>
+			<span class="block-info">1111111111</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Purchase Date</span>
+			<span class="block-info">01/01/2013</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Parts Warranty Status</span>
+			<span class="block-info">In Warranty</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Labor Warranty Status</span>
+			<span class="block-info">In Warranty</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">parts Warranty expiration Date</span>
+			<span class="block-info">01/01/2016</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Labor Warranty Expiration Date</span>
+			<span class="block-info">01/01/2016</span>
+		</div>
+		
+	</div>
+	<div class="estimate-description-block block-2">
+		<div class="info-block">
+			<span class="block-head">Product Exchange Notice</span>
+			<span class="block-info">In accordance of your model warranty coverage. In accordance of your model warranty coverage. In accordance of your model warranty coverage. </span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">Service Information</span>
+			<span class="block-info">Your product appears to be in warranty based on information you supplied. Your product appears to be in warranty based on information you supplied. Your product appears to be in warranty based on information you supplied.</span>
+		</div>
+	</div> 
+</div>
+	   	
+</isdecorate>

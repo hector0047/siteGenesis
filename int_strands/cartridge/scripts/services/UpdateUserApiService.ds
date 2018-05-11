@@ -1,0 +1,59 @@
+var sf = require("bc_serviceframework");
+var UpdateUserApi = require("../objects/UpdateUserApi");
+
+importPackage(dw.system);
+importPackage(dw.net);
+importPackage(dw.rpc);
+
+function getUpdateUserApiService() {
+	return UpdateUserApiService;
+}
+
+
+var UpdateUserApiService = sf.getService('AbstractHTTPService').extend (
+/** @lends UpdateUserApiService.prototype */ 
+{
+	/**
+	 * @constructs UpdateUserApiService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("UpdateUserApiService", new UpdateUserApi()); 	
+		
+	},
+	
+	createRequest: function (user) {		
+				
+	var OldUser : String =	user.OldUser; 
+	var NewUser : String = user.NewUser; 
+		
+		var strandsUrl = 'http://bizsolutions.strands.com/api2/event/';
+		var loggingString : String = strandsUrl + 'userlogged.sbs?'
+			+ 'apid=' + dw.crypto.Encoding.toURI(Site.current.preferences.custom.StrandsApiID)
+			+ '&olduser=' + OldUser
+			+ '&user=' + NewUser
+			+ '&perror=DWuserlogged';
+		
+		return loggingString;					
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var eventLogging : HTTPClient = new HTTPClient();
+	   	eventLogging.setTimeout(1000);
+   		eventLogging.open("GET", this.request);
+   		eventLogging.send();   		
+	   	return eventLogging;
+	},
+	
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+	
+});
+
+sf.registerService("UpdateUserApiService", UpdateUserApiService);

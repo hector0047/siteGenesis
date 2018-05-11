@@ -1,0 +1,77 @@
+/*
+* StoreSaleCycleSourceCodeInCookie.ds
+*
+*
+*
+*	@input  SourceCode 		: String
+*	
+*	@input  CurrentDomain 	: String
+*   
+*   
+*	
+*	
+*
+*/ 
+importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.web);
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var srcStatus  : Boolean = storeCookie("src",args.SourceCode,args.CurrentDomain);
+	//Delete the site ID
+	var siteStatus : Boolean = deleteCookie("siteID",'',args.CurrentDomain);
+	
+	return PIPELET_NEXT;
+}
+function storeCookie(cname:String,cvalue:String,cdomain:String)
+{
+	var status : Boolean = false;
+	try{
+		//Storing source code in cookies
+			var f_user : Cookie = new Cookie(cname,StringUtils.trim(cvalue.toString())); 
+				f_user.setPath("/");
+				
+				if(StringUtils.trim(cvalue.toString()) == "salecycle"){
+					//setting cookie for 2 years
+					f_user.setMaxAge("63072000");
+				}
+				if(StringUtils.trim(cvalue.toString()) == "salecycleosr"){
+					//setting cookie for 8 days
+					f_user.setMaxAge("691200");
+				}	
+				f_user.setSecure(false);
+				f_user.setDomain(cdomain);
+				f_user.setVersion(0);
+				response.addHttpCookie(f_user);
+		    	status =  true;
+     
+	}catch(e){
+		Logger.error("Error while executing the script StoreSaleCycleSourceCodeInCookie.ds  Error : "+e.message);
+		status =  false;
+	}
+  return status;
+}
+
+function deleteCookie(cname:String,cvalue:String,cdomain:String)
+{
+	var status : Boolean = false;
+	try{
+		//Storing source code in cookies
+			var f_user : Cookie = new Cookie(cname,StringUtils.trim(cvalue.toString())); 
+				f_user.setPath("/");
+				//Delete cookie
+				f_user.setMaxAge("0");
+				f_user.setSecure(false);
+				f_user.setDomain(cdomain);
+				f_user.setVersion(0);
+				response.addHttpCookie(f_user);
+		    	status =  true;
+     
+	}catch(e){
+		Logger.error("Error while executing the script StoreSaleCycleSourceCodeInCookie.ds  Error : "+e.message);
+		status =  false;
+	}
+  return status;
+}

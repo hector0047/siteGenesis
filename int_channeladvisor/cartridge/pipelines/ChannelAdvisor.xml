@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline group="Catalog" type="view">
+  <description>ChannelAdvisor Pipeline v2.0
+
+Created By: Precision Design Studios
+Last Modified On: 9/20/2013
+Last Modified By: Mike Wolff, ChannelAdvisor</description>
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Start Node for the Full Catalog Export Process.  Creates an XML file with product data and sends it via FTP to ChannelAdvisor.</description>
+        </text-node>
+        <node-display width="2" x="0" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_2">
+    <segment>
+      <node>
+        <text-node>
+          <description>Start Node for the Quantity/Price Data Export Process.  Creates an XML file with quantity/price data and sends it via FTP to ChannelAdvisor.</description>
+        </text-node>
+        <node-display width="2" x="3" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ExportCatalog">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ExportCatalog" secure="false">
+          <description>Start Node for the Full Catalog Export Process.  Creates an XML file with product data and sends it via FTP to ChannelAdvisor.</description>
+        </start-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="Exception"/>
+          <config-property key="ScriptFile" value="ChannelAdvisor/ExtractCatalog.ds"/>
+          <config-property key="Timeout" value="54000"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="''" key="context"/>
+          <key-binding alias="''" key="exitemid"/>
+          <key-binding alias="'10'" key="MaxNoRecommendations"/>
+          <key-binding alias="'product_rr.product_rr'" key="scheme"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="ERROR"/>
+              <node-display x="1" y="2"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="2"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ExportCatalogInventory">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ExportCatalogInventory" secure="false">
+          <description>Start Node for the Quantity/Price Data Export Process.  Creates an XML file with quantity/price data and sends it via FTP to ChannelAdvisor.</description>
+        </start-node>
+        <node-display x="3" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="Exception"/>
+          <config-property key="ScriptFile" value="ChannelAdvisor/CatalogInventory.ds"/>
+          <config-property key="Timeout" value="54000"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="''" key="context"/>
+          <key-binding alias="''" key="exitemid"/>
+          <key-binding alias="'10'" key="MaxNoRecommendations"/>
+          <key-binding alias="'product_rr.product_rr'" key="scheme"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="ERROR"/>
+              <node-display x="1" y="2"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="2"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_5">
+    <segment>
+      <node>
+        <text-node>
+          <description>Update theProduct attrubutes for CA export</description>
+        </text-node>
+        <node-display x="6" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="UpdateCAattributes">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="UpdateCAattributes" secure="false"/>
+        <node-display x="6" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="UpdateProductAttributes.ds"/>
+          <config-property key="Timeout" value="54000"/>
+          <key-binding alias="Log" key="ScriptLog"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="ERROR"/>
+              <node-display x="1" y="2"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="2"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

@@ -1,0 +1,104 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendUserLoggedApi.ds
+ *  
+ *	This script tries to send the tracking event of a userlog (when an
+ *	anonymous user gets logged) to Strands Recommender. In case an error 
+ *	occurs, it will output the corresponding error.
+ *
+ * @output ErrorCode : String
+ * @output ErrorLevel : String
+ */
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	if( ! ('StrandsEnabled' in Site.current.preferences.custom) || ! Site.current.preferences.custom.StrandsEnabled) {/* TODO ! Site.current.preferences missing */
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Logged User) Strands plugin is either not present or not enabled");		
+		return PIPELET_ERROR;
+	}
+	
+	if ( ! session.isCustomerAuthenticated()) {
+		pdict.ErrorCode = '850';
+		pdict.ErrorLevel = '5';
+		return PIPELET_ERROR;
+	}
+	
+	var loggedUser : String = "";
+	if ('EmailId' in Site.current.preferences.custom && Site.current.preferences.custom.EmailId) {
+		loggedUser = session.getCustomer().getProfile().getEmail();
+	} else if ('EmailId' in Site.current.preferences.custom) {
+		loggedUser = session.getCustomer().getProfile().getCustomerNo();
+	}
+	var oldUser : String = "";
+	var sendMsg : boolean = false;
+	
+	if (request.httpCookies.StrandsSBS_User) {
+		oldUser = request.httpCookies.StrandsSBS_User.getValue();
+		if (oldUser.equals(loggedUser)) {
+			set_cookie("strandsSBS_P_UserId", loggedUser);	
+		} else {
+			set_cookie("strandsSBS_P_UserId", loggedUser);
+			set_cookie("StrandsSBS_User", loggedUser);
+			if (request.httpCookies.strandsSBS_P_UserId) {
+				sendMsg = false; 
+			} else {
+				sendMsg = true;
+			}
+		}
+	} else {
+		set_cookie("strandsSBS_P_UserId", loggedUser);
+		set_cookie("StrandsSBS_User", loggedUser);	
+	}
+		
+	if (sendMsg) {
+			
+		var strandsUrl = 'http://bizsolutions.strands.com/api2/event/';
+	
+		var loggingString = strandsUrl + 'userlogged.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(Site.current.preferences.custom.StrandsApiID)
+						+ '&olduser=' + oldUser
+						+ '&user=' + loggedUser;
+					
+    	var eventLogging : HTTPClient = new HTTPClient();
+    	try
+		{
+    		eventLogging.setTimeout(1000);
+    		eventLogging.open("GET", loggingString);
+    		eventLogging.send();    		
+    	}
+    	catch(e) 
+    	{
+			pdict.ErrorCode = '851';
+			pdict.ErrorLevel = '4';
+			Logger.error("(Strands Send UserLogged) Request to "+loggingString+" failed: {0}", e.message);
+			return PIPELET_ERROR;
+    	}
+	}
+	
+	return PIPELET_NEXT;
+}
+
+
+function set_cookie(name : String, value : String) {
+	var cookie : Cookie = new Cookie(name,value);
+	cookie.setPath("/");
+	cookie.setMaxAge("31536000");
+	cookie.setSecure(false);
+	cookie.setVersion(0);
+	response.addHttpCookie(cookie);
+	
+	return;
+}
+
+

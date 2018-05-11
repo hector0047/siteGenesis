@@ -1,0 +1,23 @@
+<!--- TEMPLATENAME: productlaunch.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+<div class="panc-product-lauch-page-wrapper">
+	<div class="product-launch-cont-slot-1 slot10">
+		<isslot id="richcontentpage-slot10" description="Product launch page" context="global" />
+	</div>
+	<div class="product-launch-cont-slot-2 slot20">
+		<isslot id="richcontentpage-slot20" description="Product launch page" context="global" />
+	</div>
+	<div class="product-launch-cont-slot-3 slot30">
+		<isslot id="richcontentpage-slot30" description="Product launch page" context="global" />
+	</div>
+	<div class="product-launch-cont-slot-4 slot40">
+		<isslot id="richcontentpage-slot40" description="Product launch page" context="global" />
+	</div>
+	<div class="product-launch-cont-slot-5 slot50">
+		<isslot id="richcontentpage-slot50" description="Product launch page" context="global" />
+	</div>
+</div>	
+
+</isdecorate>

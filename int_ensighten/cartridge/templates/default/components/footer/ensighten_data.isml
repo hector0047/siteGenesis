@@ -1,0 +1,185 @@
+<!--- TEMPLATENAME: ensighten_data.isml --->
+<iscache status="off" />
+<isscript>
+	<iscomment>
+		Basic setup for the output data object
+	</iscomment>
+	var data = new Object();
+	data.pageInfo = {
+			type : "Content",
+			name:pdict.CurrentHttpParameterMap.source.stringValue || pdict.CurrentSession.clickStream.last.pipelineName
+		};
+	
+	<iscomment>
+		USER INFO: Information about the currrent user is parsed in "ensightenUser.ds", retrieve from pdict.ens_user
+	</iscomment>
+		data.user = {};
+		if(pdict.ens_user != null){
+			data.user = pdict.ens_user;
+		}
+		
+	<iscomment>
+		PRODUCT PAGES: Information about the currently viewed product is retrieved from pdict.ens_products
+			Individual Products: parsed in "ensightenProduct.ds"
+			Set Products: parsed in "ensightenProductSet.ds"
+	</iscomment>
+		if(pdict.ens_products != null){
+			data.product = pdict.ens_products;
+			if( pdict.CurrentHttpParameterMap.supportpage.value == 'true' || data.product.supportvalue){
+				data.product = pdict.ens_products;
+				data.pageInfo.name = "Consumer: Support: Product Detail: "+data.product.sku;
+				data.pageInfo.type = "Product";
+			}else{
+				data.product = pdict.ens_products;
+				data.pageInfo.name = "Consumer:"+data.product.sku;
+				data.pageInfo.type = "Product";
+			}
+		}
+	<iscomment>
+		CATEGORY PAGES: Parse information about the category in "ensightenCategory.ds", retrieved from pdict.ens_category
+	</iscomment>
+		if(pdict.ens_category != null){
+			if(pdict.CurrentHttpParameterMap.supportpage.value == 'true'){
+				data.category = pdict.ens_category.category
+				data.pageInfo.name = "Consumer: Support: "+data.category.id;
+				data.pageInfo.type = pdict.ens_category.type;
+			}else{
+				data.category = pdict.ens_category.category
+				data.pageInfo.name = "Consumer:"+data.category.id;
+				data.pageInfo.type = pdict.ens_category.type;
+			}
+		}
+	
+	<iscomment>
+		CONTENT SEARCH: Basic info for content searches
+	</iscomment>
+	//pdict.pagingmodel.pageElements
+    if (pdict.CurrentHttpParameterMap.contentsearchresultscount.value != null && pdict.product == null && pdict.CurrentHttpParameterMap.pagecgid == '') {
+		data.pageInfo.type = "Content Search";
+		data.search = {
+			results: "" + pdict.CurrentHttpParameterMap.contentsearchresultscount.value
+		}
+	}	
+	
+	<iscomment>
+		SEARCH RESULTS: Parse the search results information in "ensightenSearch.ds", retrieved from pdict.ens_search
+	</iscomment>
+		if(pdict.ens_search != null){
+			if(pdict.CurrentHttpParameterMap.supportpage.value == 'true'){
+				data.pageInfo.type = "Search";
+				data.pageInfo.name = "Consumer: Support: "+"Successful Search Results";
+				data.search = pdict.ens_search;
+			}else{
+				data.pageInfo.type = "Search";
+				data.pageInfo.name = "Consumer:"+"Search";
+				data.search = pdict.ens_search;
+			}
+		}
+	
+	<iscomment>
+		BASKET: Check if a basket exists and parse it in "ensightenBasket.ds", retrieved from pdict.ens_basket
+	</iscomment>
+		if(pdict.ens_basket != null){
+			data.basket = pdict.ens_basket;
+		}
+		
+	<iscomment>
+		CONTENT: Content page information
+	</iscomment>
+	var content_names = {
+		"Default-Start" : "Home",
+		"Home-Show" : "Home",
+		"Home-MyRegistryLandingPage" : "MyRegistry",
+		"Account-EditProfile" : "Profile",
+		"Account-PasswordReset" : "Password Reset",
+		"Account-SetNewPassword" : "Set New Password",
+		"Account-SetNewPasswordConfirm" : "Confirmed New Password",
+		"Account-Show" : "Account",
+		"Account-StartRegister" : "Register",
+		"Account-Support" : "Account Support",
+		"Address-List" : "My Account Addresses",
+		"Address-AddAddress"  : "My Account Addresses",
+		"Address-Edit" : "Edit Address",
+		"Address-Add" : "Add Address",
+		"Address-Delete" : "Delete Address",
+		"Page-Show" : "Content",
+		"Account-PasswordResetDialog" : "Reset Password",
+		"PaymentInstruments-List" : "My Account Credit Card",
+		"PaymentInstruments-Add" : "Add New Credit Card",
+		"PaymentInstruments-Edit" : "Edit Credit Card",
+		"PaymentInstruments-Delete" : "Delete Credit Card",
+		"Order-History" : "Order History",
+		"Order-CancelOrder" : "Cancel Order",
+		"Compare-Show" : "Compare",
+		"Search-ShowContent" : "About Us",
+		"Search-PanasonicAdventure" : "panasonicadventure",
+		"Search-PanasonicAdventurePassport" : "panasonicadventurepassport"
+	}
+	if(pdict.Content != null){
+		data.pageInfo.type = "Content";
+		data.pageInfo.name = "Consumer:"+ pdict.Content.name;
+	}else if(pdict.CurrentSession.clickStream.last.pipelineName in content_names){
+		data.pageInfo.type = "Content";
+		data.pageInfo.name = "Consumer:"+content_names[pdict.CurrentSession.clickStream.last.pipelineName];
+	}
+	<iscomment>
+		CHECKOUT: Check if we're on a cart/checkout page and update page info
+	</iscomment>
+	var checkout_names = {
+		"Cart-Show": "Checkout:Cart",
+		"shoppingCart": "Checkout:Cart",
+		"shipping": "Checkout:Shipping",
+		"COShipping-Start": "Checkout:Shipping",
+		"billing": "Checkout:Payment",
+		"COBilling-Start": "Checkout:Payment",
+		"orderconfirmation": "Confirmation",
+		"COSummary-Submit": "Confirmation",
+		"revieworder": "Checkout:Order Review",
+		"Cart-AddProduct": "Checkout:Cart Overlay",
+	}
+	if (pdict.CurrentHttpParameterMap.page_id.value != null){
+		if (pdict.CurrentHttpParameterMap.page_id.value == "ShippingPage"){
+			data.pageInfo.type = "Checkout";
+			data.pageInfo.name = "Consumer:"+"Checkout:Shipping";
+		}else if (pdict.CurrentHttpParameterMap.page_id.value == "BillingPage"){
+			data.pageInfo.type = "Checkout";
+			data.pageInfo.name = "Consumer:"+"Checkout:Payment";
+		}else if (pdict.CurrentHttpParameterMap.page_id.value == "SummaryPage"){
+			data.pageInfo.type = "Checkout";
+			data.pageInfo.name = "Consumer:"+"Checkout:Order Review";
+		}
+	}else if(pdict.CurrentSession.clickStream.last.pipelineName in checkout_names){
+		data.pageInfo.type = "Checkout";
+		data.pageInfo.name = "Consumer:"+checkout_names[pdict.CurrentSession.clickStream.last.pipelineName];
+	}
+	
+	<iscomment>
+		ORDER CONFIRM: Check if order ID exists, if so parse it in "ensightenOrder.ds", retrieved from pdict.ens_order
+	</iscomment>
+	if(pdict.ens_order != null){
+		data.order = pdict.ens_order;
+	}
+	
+	<iscomment>
+		Convert data into a string for output to the page
+			- Since we don't want to accidentally overwrite the page object we have to dynamically build an output string
+	</iscomment>
+	
+	var HTML = "<" + "script type=\"text/javascript\">\n";
+		HTML += "\tvar ensightenData = ensightenData || {\n";
+			//HTML += "\t\tlistener: function(){}\n";
+		HTML += "\t};\n";
+		for(var k in data){
+			HTML += "\tensightenData[\"" + k + "\"] = " + JSON.stringify(data[k]) + ";\n";
+		}
+
+	HTML += "<" + "/sc" + "ript>";
+</isscript>
+	<isif condition="${pdict.ens_ajax}">
+		<isscript>
+			HTML += "\n<" + "script type=\"text/javascript\">\n";
+			HTML += "(ensightenData.listener || function(){}).call(window, \"" + pdict.CurrentHttpParameterMap.ens_ajax_id + "\", ensightenData);\n"
+			HTML += "<" + "/sc" + "ript>";
+		</isscript>
+	</isif>
+<isprint value="${HTML}" encoding="off"/>

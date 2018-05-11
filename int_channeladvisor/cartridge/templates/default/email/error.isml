@@ -1,0 +1,18 @@
+<iscontent type="text/plain" session="false" charset="UTF-8"><isprint value="${pdict.ErrorMsg}">
+
+	
+	<isscript>
+function getServerInfo()
+{
+	var envUrl = URLUtils.httpStatic(URLUtils.CONTEXT_CATALOG, null, "");
+	var envUrlStr = envUrl.toString();
+	envUrlParts = envUrlStr.split("/");	  
+	var envUrl2 = envUrlParts[0] + "//" + envUrlParts[1] + envUrlParts[2];	 
+	return envUrl2;
+}
+</isscript>
+<b>Server:</b><br/> 
+${getServerInfo()}
+<br/><br/>
+<b>Error Log:</b>
+<pre>${pdict.ScriptLog}</pre>

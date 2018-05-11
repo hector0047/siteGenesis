@@ -1,0 +1,85 @@
+/*
+* GetProductXmlData.ds
+*
+*
+*
+*	@input  XmlStringContent : String
+*	
+*   
+*   
+*	
+*	@output ContentUrlList : dw.util.LinkedHashSet
+*
+*/ 
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.util );
+function execute( args : PipelineDictionary ) : Number
+{
+	try{	
+		
+		if(!empty(args.XmlStringContent)){
+			
+			var str  : String = "";
+			for each(var s : String in args.XmlStringContent.toString().trim().split('\n')){
+				str = str+s.replace("&","&amp;");
+			}
+			args.ContentUrlList = returnVideoUrls(str);
+    		return PIPELET_NEXT;
+		}else{
+			args.ContentUrlList = null;
+			return PIPELET_NEXT;
+		}
+	}
+	catch(e)
+	{
+		Logger.error("Error while executing the script GetProductXmlData.ds  Error : "+e.message);
+		args.ContentUrlList = null;
+		return PIPELET_NEXT;
+	}
+}
+
+function returnVideoUrls(fileString : String) {
+		var inputXmlFile : String = '<?xml version="1.0" encoding="UTF-8"?>'+fileString.trim().toString();
+		var xmlReader : XMLStreamReader = new XMLStreamReader(new Reader(inputXmlFile));
+		var urlList : LinkedHashSet = new LinkedHashSet();
+		var myObject : XML = null;
+			while (xmlReader.hasNext())
+			{
+			  if (xmlReader.next() == XMLStreamConstants.START_ELEMENT)
+			  {
+			     var localName : String = xmlReader.getLocalName();
+			     if (localName == "resourceList")
+			     {			       
+			       myObject = xmlReader.getXMLObject();
+			       					      
+			     }
+			  }
+			}
+		
+		var childElements : XMLList = myObject.children();			
+		var localeName : String = myObject.localName();
+		xmlReader.close();				
+		return iterateVideoXml(childElements, localeName);
+	
+}
+function iterateVideoXml(myObjects : XMLList , localeName : String) {
+	
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	    for each ( var xmlObject : XML in myObjects) {
+	    	var title = xmlObject.@["title"].toString().trim().replace('"',"'");
+	    	var currentTitle = title.replace("&quot;","'");
+	    	var currentImageUrl = xmlObject.@["thumbnail"].toString().trim();
+	    	var urlSize : Number = xmlObject.@["externalURL"].toString().trim().split('/').length;
+			var currentVideoUrl = 'http://www.youtube.com/embed/'+xmlObject.@["externalURL"].toString().trim().split('/')[urlSize-1]; 
+			var ThumVideourlPiped : String = currentTitle+"$"+currentImageUrl+"$"+currentVideoUrl.toString().trim();
+				if(!empty(ThumVideourlPiped) && ThumVideourlPiped != 'null' && (ThumVideourlPiped.trim() != '$' && ThumVideourlPiped.trim() != '$$' && ThumVideourlPiped.trim() != '$$http://www.youtube.com/embed/'))
+				{
+				 	urlList.add(ThumVideourlPiped);
+				}
+				
+		
+		    }
+	 return urlList;
+}

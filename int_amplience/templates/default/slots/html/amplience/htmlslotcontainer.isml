@@ -1,0 +1,13 @@
+<iscache type="relative" hour="24"/>
+
+<isscript>
+	importScript("amplience/libAmplienceContent.ds");
+	var ampImHeadContent = new AmplienceContent( slotcontent );
+	var markup = ampImHeadContent.getContent();
+</isscript>
+
+<div class="html-slot-container">
+	<isif condition="${markup != null}">
+		<isprint value="${markup}" encoding="off"/>	
+	</isif>
+</div>

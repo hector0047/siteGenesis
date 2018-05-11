@@ -1,0 +1,81 @@
+/**
+*	@input email					:	String
+*	@input lpdopt					:	String
+*	@input marketoEndpointUrl		:	String
+*	@input marketoTokenEndpointUrl	:	String
+*	@input marketoClientId			:	String
+*	@input marketoClientSecretKey	:	String
+*   @input shopPCEmember		    :	Boolean
+*   @input ZS100BrandPage	        :	Boolean
+* 	@input dynamicvalue	        :	String
+*/
+
+importPackage(dw.system);
+importPackage(dw.util);
+var sf = require("bc_serviceframework");
+var MarketoEmailSubscriptionSerive = require("../services/MarketoEmailSubscriptionService");
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+	
+	Logger.info("Entering MarketoEmailSubs..ds");
+	
+	//First request we are making to get the tokenId from the marketo
+	var MarketoEmailSubscriptionService = sf.getService('MarketoEmailSubscriptionService');
+	var service = new MarketoEmailSubscriptionService();
+	
+	var marketoTokenRequestObj : Object 			= new Object();
+	marketoTokenRequestObj.marketoTokenEndpointUrl	= pdict.marketoTokenEndpointUrl;
+	marketoTokenRequestObj.marketoClientId			= pdict.marketoClientId;
+	marketoTokenRequestObj.marketoClientSecretKey	= pdict.marketoClientSecretKey;
+	marketoTokenRequestObj.isTokenRequest			= true;
+	
+	service.call(marketoTokenRequestObj);
+	var tokenResponse  : Object = service.response;				
+   	var accessToken = JSON.parse(tokenResponse).access_token;
+	//Logger.debug("Marketo access token :"+ accessToken);
+	
+	if(accessToken ==null){
+		return PIPELET_ERROR;
+	}
+	
+	//Second request we are making to subscribe the email.	
+	var marketoRequestObj : Object 			= new Object();
+	marketoRequestObj.email   				= pdict.email.toLowerCase();
+	marketoRequestObj.shopPCECmember   		= pdict.shopPCEmember;
+	/*FArhan's Dev team PANC-1575 17/12/2015 4:50pm*/
+	if(!empty(pdict.lpdopt) && pdict.lpdopt!= null ){
+		marketoRequestObj.LPDMember   		= pdict.lpdopt;
+	}
+	/*ZS100 Landing Page*/
+	if(!empty(pdict.ZS100BrandPage) && pdict.ZS100BrandPage!= null ){
+		marketoRequestObj.ZS100BrandPage   		= pdict.ZS100BrandPage;
+	}
+	/* PANC-1575 END*/
+	/* PANC-1964 */
+	if(!empty(pdict.dynamicvalue) && pdict.dynamicvalue!= null )
+	{
+		marketoRequestObj.dynamiclandingpagevalue  = pdict.dynamicvalue;  
+	}
+	/* PANC-1964 END */
+	
+	marketoRequestObj.accessToken			= accessToken;
+	marketoRequestObj.marketoEndpointUrl 	= pdict.marketoEndpointUrl;
+	marketoTokenRequestObj.isTokenRequest	= false;
+				
+	service.call(marketoRequestObj);
+
+	var response  : Object = JSON.parse(service.response);
+	
+	Logger.info("Marketo Request Object Footer : " + marketoRequestObj.jsonRequestObj);
+	Logger.info("Marketo Email :"+ marketoRequestObj.email+"  : subscription response response"+ service.response);
+	
+   	if(response.success) {
+   		Logger.info("Exiting with Success");
+   		return PIPELET_NEXT;
+   	} else {
+   		Logger.info("Exiting with Failure");
+   		return PIPELET_ERROR;
+   		
+   	}
+}

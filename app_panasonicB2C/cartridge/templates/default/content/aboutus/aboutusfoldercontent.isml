@@ -1,0 +1,63 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<isset name="AboutUsPage" value="${true}" scope="page"/>
+<isset name="currentFolder" value="${pdict.ContentSearchResult.folder}" scope="page" />
+<isscript>	
+	importScript( "util/ViewHelpers.ds" );
+</isscript>
+
+	<isif condition="${!empty(currentFolder.pageTitle)}">
+	  <isset name="pageTitle" value="${currentFolder.pageTitle}" scope="page"/>
+	<iselse>
+	  <isset name="pageTitle" value="${currentFolder.displayName}" scope="page"/>
+	</iselse>
+	</isif>
+
+
+<isdecorate template="content/aboutus/pt_aboutuscontentsearchresult">
+  <isinclude template="util/modules"/>
+	<div class="content-slot">
+		<isslot id="about-header" context="folder" description="About Page Header Image" context-object="${currentFolder}"/>
+	</div>	
+	<div id="primary" class="primary-content">
+		<isinclude template="components/browsertoolscheck"/>		
+		<ol class="breadcrumb">
+		<iscomment>HOME BREADCRUMB</iscomment>
+		<li><a href="${URLUtils.httpHome()}" class="home">${Resource.msg('global.home','locale',null)}</a></li>	
+		<li>${currentFolder.displayName}</li>
+		</ol>
+	
+		<isinclude template="util/modules"/>
+
+		<isif condition="${currentFolder.description != null}">
+			<h1 class="page-title">${currentFolder.description}</h1>
+		<iselse>
+			<h1 class="page-title">${currentFolder.displayName}</h1>
+		</iselse>
+		</isif>
+
+
+			
+		<div class="content-slot">
+			<isslot id="about-slot-a" context="folder" description="About Content Slot A" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-b" context="folder" description="About Content Slot B" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-c" context="folder" description="About Content Slot C" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-d" context="folder" description="About Content Slot D" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-e" context="folder" description="About Content Slot E" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-f" context="folder" description="About Content Slot F" context-object="${currentFolder}"/>
+		</div>
+		<div class="content-slot">
+			<isslot id="about-slot-g" context="folder" description="About Content Slot G" context-object="${currentFolder}"/>
+		</div>
+	</div>
+</isdecorate>

@@ -1,0 +1,179 @@
+/**
+* This script handles the SOAP introspection of the SOAP explorer.
+*
+*
+* @input RequestedElement : String The requested element to analyze (path separated by //)
+* @output ResponseObject : Object The JS object returned to the client to render the tree
+*
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+    var response : Array = [];
+    var i ,wr = webreferences;
+    if(args.RequestedElement == 'root'){
+		// ideally it would return all WSDLs, but for now there is no meaningful way to do that
+		
+//		response.push({
+//			ID      : 'SpellChecker',
+//			name    : 'SpellChecker',
+//			type    : 'WSDL',
+//			leaf    : false,
+//			iconCls : 'folder_explore'
+//		});
+//		response.push({
+//			ID      : 'LuhnChecker',
+//			name    : 'LuhnChecker',
+//			type    : 'WSDL',
+//			leaf    : false,
+//			iconCls : 'folder_explore'
+//		});
+    }else{
+    	var path : Array = args.RequestedElement.split('//');
+    	if(path.length > 0){
+    		var wr : WebReference = webreferences[path[0]];
+    		Analyzer.typeExpression = new RegExp('webreferences\\.'+path[0]+'\\.[^. )]+','g');
+    		// get the default service or the requested method
+    		var requestedObject = Analyzer.getRequestedObject(wr, path);
+    		
+    		if(path.length == 1){
+	    		for(i in requestedObject){
+	    			if(Analyzer.isInternal(i)) continue;
+	    			try{
+	    				if(Analyzer.referencesTypes(path[0], requestedObject[i])){
+							response.push({
+								ID : path[0]+'//'+i,
+								name : Analyzer.createDisplayName(i, requestedObject[i]),
+								type : 'Operation',
+								leaf : false,
+								iconCls : 'application_go',
+								qtip : requestedObject[i]+'',
+								sample: Analyzer.createCodeSnippet(path,i)
+							});
+	    				}
+		  			}catch(e){
+	    					Logger.debug('Error occurred on {0} : {1}',i,e);
+		    		}
+	    		}
+	    	// handling of types parsed from method signature
+    		}else if(path.length >= 2){
+   				var rawMethod : String = "";
+   				if(path.length % 2 == 0){
+	    			Analyzer.parseTypes(requestedObject[path[path.length-1]]).forEach(function(type : String){
+	    				let isArray = type.indexOf('[]') > -1;
+	    				type = type.replace('webreferences.'+path[0]+'.','').replace('[]','');
+	    				response.push({
+							ID : path.join('//')+'//'+type,
+							name : type+(isArray?' []':''), //+' - '+wr[type],
+							type : isArray?'Array of Type':'Type',
+							leaf : false,
+							iconCls : 'script',
+							sample: Analyzer.createCodeSnippet(path,type)
+						});
+	    			});
+   				}else{
+   					var type = new wr[path[path.length-1]]();
+		    		for(i in type){
+	   	 				if(Analyzer.isInternal(i)) continue;
+		    			try{
+							response.push({
+								ID : path.join('//')+'//'+i,
+								name : Analyzer.createDisplayName(i, type[i]),
+								type : 'Method',
+								leaf : !Analyzer.referencesTypes(path[0], type[i]),
+								iconCls : 'script_go',
+								qtip : (type[i] || '')+'',
+								sample: Analyzer.createCodeSnippet(path,i)
+							});
+			  			}catch(e){
+		    					Logger.debug('Error occurred on {0} : {1}',i,e);
+			    		}
+		    		}
+   				}
+    			
+    		}
+    	}
+    }
+    
+    args.ResponseObject = { info : response };
+
+    return PIPELET_NEXT;
+}
+
+/** Namespace with helper functionality */
+var Analyzer = function(){};
+/** This is initialized globally at the beginning of the above code */
+Analyzer.typeExpression = null;
+Analyzer.internalNames = ['class','getClass','notifyAll','wait','notify','hashCode'];
+
+/**
+ * Parse the referenced types into an Array
+ *
+ * @ returns {Array} Array of type names
+ */
+Analyzer.parseTypes = function(method){
+	return (method+'').match(Analyzer.typeExpression);
+}
+
+/**
+ * Checks if method references types
+ *
+ * @returns {boolean} true if types are references
+ */
+Analyzer.referencesTypes = function(wsdlName, obj){
+	return (obj+'').indexOf('webreferences.'+wsdlName) > -1;
+}
+
+/**
+ * Determines the requested type to explore from the given path
+ */
+Analyzer.getRequestedObject = function(webReference, path : Array){
+	var ro = webReference.getDefaultService();
+	for(var j = 3; j < path.length; j+=2){
+		ro = new webReference[path[j-1]]();
+	}
+	return ro;
+}
+/**
+ * Checks if a given name is internal and should not be exposed
+ */
+Analyzer.isInternal = function(name){
+	return Analyzer.internalNames.indexOf(name) > -1;
+}
+
+/**
+ * Creates the display name for a method
+ */
+Analyzer.createDisplayName = function(name, obj){
+	//var sig : String = ''+obj;
+	//sig = sig.replace(/.*\{\/\*'/,'').replace('*/}','');
+	//return name +' - ' + sig;
+	return name+' ('+typeof(obj)+')';//+' - '+obj;
+}
+/**
+ * Generate a sample code snippet to illustrate how to access the given method
+ */
+Analyzer.createCodeSnippet = function(pathPrefix : Array, elem){
+	var path : Array = pathPrefix.slice(0,pathPrefix.length);
+	path.push(elem);
+	var result = "";
+	result +="var webreference = webreferences."+path[0]+";\n";
+	result +="var service      = webreference.getDefaultService();\n\n";
+	function createVarStatement(pathElement, type){
+		return 'var ' + pathElement.toLowerCase() + ' = new webreference.'+pathElement+'();\n';
+	}
+	for(var j = path.length -1 ; j > 2 ; j--){
+		if( j % 2 == 0 && j == path.length-1){
+			result += createVarStatement(path[j], elem);
+		}else{
+			result += createVarStatement(path[j-1], elem);
+			result += path[j-1].toLowerCase() + '.'+path[j]+'('+(j < path.length-1 ? path[j+1].toLowerCase():'someValue')+');\n';
+			j--;
+		}
+	}
+	result +="\nvar response = service."+path[1]+"("+(path.length > 2 ? path[2].toLowerCase():"")+");\n";
+	return result;
+}

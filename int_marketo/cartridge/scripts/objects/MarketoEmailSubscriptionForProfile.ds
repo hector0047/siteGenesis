@@ -1,0 +1,23 @@
+function MarketoEmailSubscription() { 
+// providing constructor
+}
+
+var Site = require("dw/system").Site;
+
+MarketoEmailSubscription.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};
+	},	
+	
+	getDummyResponse: function(text) {
+		
+	},
+	
+	dummy: function() {
+		
+	}	
+}
+
+module.exports = MarketoEmailSubscription;

@@ -1,0 +1,44 @@
+<!--- TEMPLATENAME: pressreleaseasset.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+  Content Asset for Press Releases
+</iscomment>
+
+<iscomment>make sure we have an asset at all</iscomment>
+<isif condition="${pdict.Content != null}">
+	<isif condition="${'body' in pdict.Content.custom && pdict.Content.custom.body != null}">
+		<iscomment>don't remove or rename DIV and Marker, necessary for mark and editing, no css attributes defined</iscomment>
+		<div class="content-asset"><!-- dwMarker="content" dwContentID="${pdict.Content.UUID}" -->
+			<isif condition="${'name' in pdict.Content && pdict.Content.name != null}">
+				<h1 class="page-title page-title--pressrelease"><isprint value="${pdict.Content.name}" encoding="off"/></h1>
+			</isif>
+			
+			<isif condition="${'subtitle' in pdict.Content.custom && pdict.Content.custom.subtitle != null}">
+				<h2 class="page-subtitle page-subtitle--pressrelease"><isprint value="${pdict.Content.custom.subtitle}" encoding="off"/></h2>
+			</isif>
+			
+			<div class="pressrelease-metadata-container">
+				<isif condition="${'location' in pdict.Content.custom && pdict.Content.custom.location != null}">
+					<span class="pressrelease-metadata pressrelease-metadata--location"><isprint value="${pdict.Content.custom.location}" encoding="off"/></span>
+				</isif>
+				<isif condition="${'displayDate' in pdict.Content.custom && pdict.Content.custom.displayDate != null}">
+					<span class="pressrelease-metadata pressrelease-metadata--pubdate"><isprint value="${pdict.Content.custom.displayDate}" formatter="MM/dd/yyyy" timezone="SITE" encoding="off"/></span>
+				</isif>
+
+				<div class="top-alligned-pdp share-linkbox">
+					<a href="javascript:void(0)" class="print-link print-page">
+						<span class="spriteico"></span>PRINT
+					</a>
+					<a href="javascript:void(0)" class="share-link">
+						<span class="spriteico"></span>SHARE
+					</a>
+					<div class="clearfix:after"></div>
+					<div class="addthis_toolbox addthis_default_style hide"></div>
+				</div>
+			</div>
+			<isprint value="${pdict.Content.custom.body}" encoding="off"/>
+		</div> <!-- End content-asset -->
+	<iselse/>
+		${Resource.msg('global.nocontent','locale',null)}
+	</isif>
+</isif>

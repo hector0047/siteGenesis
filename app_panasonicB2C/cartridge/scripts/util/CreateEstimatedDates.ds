@@ -1,0 +1,748 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*-  @input ExampleIn : String This is a sample comment.
+*   @output stdDate1 : Date
+*   @output stdDate2 : Date
+*	@output whiteGloveDate1 : Date
+*   @output whiteGloveDate2 : Date
+*   @output updatedDate1 : Date
+*   @output updatedDate2 : Date
+*   @output expressDate1 : Date
+*   @output expressDate2 : Date
+*   @output secondDay : Date
+*   @output overnight : Date
+*	@output hourdiff : Number
+*	@output minutesdiff : Number
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.object );
+importScript("util/DateUtils.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	//Get all Holydays from Custom Objects
+	 var datesofshipping : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     var calender : Date;   
+     var calenderdate; 
+     var std : Date;
+   	 var stdCalendarone : Calendar = System.getCalendar();
+   	 var stdCalendartwo : Calendar = System.getCalendar();
+   	 var day : String;
+   	 var holidaydate : String;
+   	 var i;
+   	 var j;
+   
+   for(i=0; i<3; i++)
+   {	 
+     //checking for Holyday with current date
+       for each(testi in datesofshipping)
+       {
+   	      holidaydate = testi.getCustom().HolidayDate;
+   	      calenderdate = holidaydate.split('/');
+   	      //calender = testi.getCustom().DateofShipping;
+   	      std = stdCalendarone.time;
+   	      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+   	      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+   	      //var datetwo2:String=calender[0]+" "+getMonthName(calender[1])+" "+calender[2];
+	      if(dateone.equals(datetwo))
+	      {
+	  	    stdCalendarone.add(Calendar.DATE,1);
+	  	    stdCalendartwo.add(Calendar.DATE,1);
+	      }
+       }
+      day = getDayName(stdCalendarone.time.getDay());
+      if(day=="Saturday")
+      {
+        stdCalendarone.add(Calendar.DATE,2);
+        stdCalendartwo.add(Calendar.DATE,2);
+      }
+      if(day == "Sunday")
+      {
+        stdCalendarone.add(Calendar.DATE,1);
+        stdCalendartwo.add(Calendar.DATE,1);
+      }
+   
+      //Checking for after Saturday and Sunday  Holyday or not
+      var datesofshippingone : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+      for each(testone in datesofshippingone)
+      {
+   	    //calender = testone.getCustom().DateofShipping;
+   	    holidaydate = testone.getCustom().HolidayDate;
+   	    calenderdate = holidaydate.split('/');
+   	    std = stdCalendarone.time;
+   	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+   	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	    if(dateone.equals(datetwo))
+	    {
+	  	  stdCalendarone.add(Calendar.DATE,1);
+          stdCalendartwo.add(Calendar.DATE,1);
+	    }
+      }
+      
+     stdCalendarone.add(Calendar.DATE,1);
+     stdCalendartwo.add(Calendar.DATE,1);
+     var datesofshippingtwo : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testtwo in datesofshippingtwo)
+     {
+   	  // calender = testtwo.getCustom().DateofShipping;
+   	   holidaydate = testtwo.getCustom().HolidayDate;
+   	    calenderdate = holidaydate.split('/');
+   	    std = stdCalendarone.time;
+   	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+   	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	    if(dateone.equals(datetwo))
+	    {
+	  	  stdCalendarone.add(Calendar.DATE,1);
+          stdCalendartwo.add(Calendar.DATE,1);
+	    }
+      }
+      day = getDayName(stdCalendarone.time.getDay());
+	  if(day == "Saturday")
+	  {
+	    stdCalendarone.add(Calendar.DATE,2);
+        stdCalendartwo.add(Calendar.DATE,2);
+	  }
+	  if(day == "Sunday")
+	  {
+	   stdCalendarone.add(Calendar.DATE,1);
+       stdCalendartwo.add(Calendar.DATE,1);
+	  }
+  
+   //Checking for after Saturday and Sunday  Holyday or not
+     var datesofshippingthree : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testthree in datesofshippingthree)
+     {
+   	   //calender = testthree.getCustom().DateofShipping;
+   	  	holidaydate = testthree.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = stdCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	   if(dateone.equals(datetwo))
+	   {
+	  	stdCalendarone.add(Calendar.DATE,1);
+        stdCalendartwo.add(Calendar.DATE,1);
+	   }
+     }   
+  }
+  
+ for(j=0;j<2;j++)
+ {
+    stdCalendartwo.add(Calendar.DATE,1);
+    var datesofshippingfour : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+    for each(testfour in datesofshippingfour)
+    {
+   	 //calender = testfour.getCustom().DateofShipping;
+   	  	holidaydate = testfour.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = stdCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  		stdCalendartwo.add(Calendar.DATE,1);
+	 }
+   }   
+   day = getDayName(stdCalendartwo.time.getDay());
+   if(day=="Saturday")
+   {
+   		stdCalendartwo.add(Calendar.DATE,2);
+   }
+   if(day=="Sunday")
+   {
+     	stdCalendartwo.add(Calendar.DATE,1);
+   }
+   var datesofshippingfive : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testfive in datesofshippingfive)
+   {
+   	 //calender = testfive.getCustom().DateofShipping;
+   	 	holidaydate = testfive.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = stdCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  		stdCalendartwo.add(Calendar.DATE,1);
+	 }
+   }   
+ }
+   
+   
+	//updatedCalendar dates 
+   var updatedCalendarone : Calendar = System.getCalendar();
+   var updatedCalendartwo : Calendar = System.getCalendar();
+  
+   for(i=0;i<2;i++)
+   {
+     var datesofshippingtsix : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testsix in datesofshippingtsix)
+     {
+   	   //calender = testsix.getCustom().DateofShipping;
+   	    holidaydate = testsix.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	   if(dateone.equals(datetwo))
+	   {
+	  	 updatedCalendarone.add(Calendar.DATE,1);
+	  	 updatedCalendartwo.add(Calendar.DATE,1);
+	   }
+     }
+     day = getDayName(updatedCalendarone.time.getDay());
+     if(day=="Saturday")
+     {
+        updatedCalendarone.add(Calendar.DATE,2);
+	  	updatedCalendartwo.add(Calendar.DATE,2);
+     }
+     if(day == "Sunday")
+     {
+       updatedCalendarone.add(Calendar.DATE,1);
+       updatedCalendartwo.add(Calendar.DATE,1);
+     }
+     var datesofshippingseven : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testseven in datesofshippingseven)
+     {
+   	   //calender = testseven.getCustom().DateofShipping;
+   	   holidaydate = testseven.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	   if(dateone.equals(datetwo))
+	   if(dateone.equals(datetwo))
+	   {
+	  	 updatedCalendarone.add(Calendar.DATE,1);
+	  	 updatedCalendartwo.add(Calendar.DATE,1);
+	   }
+     }
+     updatedCalendarone.add(Calendar.DATE,1);
+     updatedCalendartwo.add(Calendar.DATE,1);
+     var datesofshippingeight : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testeight in datesofshippingeight)
+     {
+   	   //calender = testeight.getCustom().DateofShipping;
+   	    holidaydate = testeight.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	   if(dateone.equals(datetwo))
+	   {
+	  	 updatedCalendarone.add(Calendar.DATE,1);
+	  	 updatedCalendartwo.add(Calendar.DATE,1);
+	   }
+     }
+	 day = getDayName(updatedCalendarone.time.getDay());
+	 if(day == "Saturday")
+	 {
+	   updatedCalendarone.add(Calendar.DATE,2);
+	   updatedCalendartwo.add(Calendar.DATE,2);
+	 }
+	 if(day == "Sunday")
+	 {
+	   updatedCalendarone.add(Calendar.DATE,1);
+	   updatedCalendartwo.add(Calendar.DATE,1);
+	 }
+   //Checking for after Saturday and Sunday  Holyday or not
+    var datesofshippingnine : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+    for each(testnine in datesofshippingnine)
+    {
+   	  //calender = testnine.getCustom().DateofShipping;
+   	    holidaydate = testnine.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	  if(dateone.equals(datetwo))
+	  {
+	  	updatedCalendarone.add(Calendar.DATE,1);
+	  	updatedCalendartwo.add(Calendar.DATE,1);
+	  }
+    }  
+ }
+ 
+    updatedCalendartwo.add(Calendar.DATE,1);
+    var datesofshippingten : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+    for each(testten in datesofshippingten)
+    {
+   	  //calender = testten.getCustom().DateofShipping;
+   	 	 holidaydate = testten.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	  if(dateone.equals(datetwo))
+	  {
+	  	updatedCalendartwo.add(Calendar.DATE,1);
+	  }
+    }
+	day = getDayName(updatedCalendartwo.time.getDay());
+	if(day == "Saturday")
+	{
+	  updatedCalendartwo.add(Calendar.DATE,2);
+	}
+	if(day == "Sunday")
+	{
+	  updatedCalendartwo.add(Calendar.DATE,1);
+	}
+   //Checking for after Saturday and Sunday  Holyday or not
+    var datesofshippingeleven : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+    for each(testeleven in datesofshippingeleven)
+    {
+   	 // calender = testeleven.getCustom().DateofShipping;
+   	    holidaydate = testten.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	  if(dateone.equals(datetwo))
+	  {
+	  	updatedCalendartwo.add(Calendar.DATE,1);
+	  }
+    }  
+ 
+  	
+	//expressCalendar dates 
+   var expressCalendarone : Calendar = System.getCalendar();
+   var expressCalendartwo : Calendar = System.getCalendar();
+   var datesofshippingfourteen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testfourteen in datesofshippingfourteen)
+   {
+   	 //calender = testfourteen.getCustom().DateofShipping;
+   	 holidaydate = testfourteen.getCustom().HolidayDate;
+	    calenderdate = holidaydate.split('/');
+	    std = updatedCalendarone.time;
+	    var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	    var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  	expressCalendarone.add(Calendar.DATE,1);
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+   day = getDayName(expressCalendarone.time.getDay());
+   if(day=="Saturday")
+   {
+    expressCalendarone.add(Calendar.DATE,2);
+    expressCalendartwo.add(Calendar.DATE,2);
+   }
+   if(day == "Sunday")
+   {
+     expressCalendarone.add(Calendar.DATE,1);
+     expressCalendartwo.add(Calendar.DATE,1);
+   }
+   var datesofshippingfifteen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testfifteen in datesofshippingfifteen)
+   {
+   	// calender = testfifteen.getCustom().DateofShipping;
+   	  holidaydate = testfifteen.getCustom().HolidayDate;
+      calenderdate = holidaydate.split('/');
+      std = updatedCalendarone.time;
+      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  	expressCalendarone.add(Calendar.DATE,1);
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+   expressCalendarone.add(Calendar.DATE,1);
+   expressCalendartwo.add(Calendar.DATE,1);
+   var datesofshippingsixteen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testsixteen in datesofshippingsixteen)
+   {
+   	 //calender = testsixteen.getCustom().DateofShipping;
+      holidaydate = testsixteen.getCustom().HolidayDate;
+      calenderdate = holidaydate.split('/');
+      std = updatedCalendarone.time;
+      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+    if(dateone.equals(datetwo))
+	 {
+	  	expressCalendarone.add(Calendar.DATE,1);
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+   day = getDayName(expressCalendarone.time.getDay());
+   if(day=="Saturday")
+   {
+    expressCalendarone.add(Calendar.DATE,2);
+    expressCalendartwo.add(Calendar.DATE,2);
+   }
+   if(day == "Sunday")
+   {
+     expressCalendarone.add(Calendar.DATE,1);
+     expressCalendartwo.add(Calendar.DATE,1);
+   }
+   var datesofshippingseventeen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testseventeen in datesofshippingseventeen)
+   {
+   	 //calender = testseventeen.getCustom().DateofShipping;
+   	  holidaydate = testseventeen.getCustom().HolidayDate;
+      calenderdate = holidaydate.split('/');
+      std = updatedCalendarone.time;
+      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  	expressCalendarone.add(Calendar.DATE,1);
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+   expressCalendartwo.add(Calendar.DATE,1);
+   var datesofshippingeighteen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testeighteen in datesofshippingeighteen)
+   {
+   	// calender = testeighteen.getCustom().DateofShipping;
+   	 holidaydate = testeighteen.getCustom().HolidayDate;
+      calenderdate = holidaydate.split('/');
+      std = updatedCalendarone.time;
+      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(datetwo.equals(dateone))
+	 {
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+	day = getDayName(expressCalendartwo.time.getDay());
+	if(day == "Saturday")
+	{
+	  expressCalendartwo.add(Calendar.DATE,2);
+	}
+	if(day == "Sunday")
+	{
+	  expressCalendartwo.add(Calendar.DATE,1);
+	}
+   //Checking for after Saturday and Sunday  Holyday or not
+   var datesofshippingnineteen : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testnineteen in datesofshippingnineteen)
+   {
+   	 //calender = testnineteen.getCustom().DateofShipping;
+   	  holidaydate = testnineteen.getCustom().HolidayDate;
+      calenderdate = holidaydate.split('/');
+      std = updatedCalendarone.time;
+      var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+      var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  	expressCalendartwo.add(Calendar.DATE,1);
+	 }
+   }
+   	
+   	//Changes for second day and overnight shipping 
+	//second day shipping 
+	var currentcalendar = new dw.util.Calendar().getTimeZone();
+	var today : Calendar =System.getCalendar();
+	var overnight : Calendar = System.getCalendar();
+	var todayholiday = false;
+	//GMT-5 Standard NEW YORK TIME
+for(i=0; i<2; i++)
+  	{
+		today = holidaycalculator(today);
+		if(today.time.getDate() != System.getCalendar().time.getDate() && i==0){
+			todayholiday = true;
+		}
+		today.add(Calendar.DATE,1);
+		today = holidaycalculator(today);
+  	}   
+for(i=0; i<1; i++)
+  	{
+  		overnight = holidaycalculator(overnight);
+		
+		overnight.add(Calendar.DATE,1);
+		
+		overnight = holidaycalculator(overnight);
+   	}
+	//checking in custom object
+	overnight = holidaycalculator(overnight);
+	
+	var todaystime : Calendar =System.getCalendar();
+	var hours : Number = todaystime.time.getHours()-3; 
+	var minutes : Number = 60-(todaystime.time.getMinutes()); 
+	if(minutes == 60){ 
+		minutes = minutes - minutes;  
+		var currenttimediff :Number = hours -12 ;
+	}else{
+		var currenttimediff :Number = hours -11 ;
+	}
+	var seconddaydate  : Number  =  today.time.getDate();
+	var todaydate : Number = todaystime.time.getDate();
+	var datesdiff = seconddaydate - todaydate;
+		if(datesdiff > 2 && todayholiday){
+			today.add(Calendar.DATE,1);
+			overnight.add(Calendar.DATE,1);
+			datesdiff = (today.time.getDate()) - todaydate;
+		}
+		else if((currenttimediff < 0) ||( currenttimediff == 0 && minutes > 0)){
+			if(currenttimediff!=0){
+				hours = -(currenttimediff);
+			}else{
+				hours = 0;
+			} 
+			minutes = minutes;
+		}else if( currenttimediff  > 0 ){
+			hours = 24 - currenttimediff;
+			today.add(Calendar.DATE,1);
+			overnight.add(Calendar.DATE,1); 
+			//checking in custom object
+		}else{
+			hours = 11;
+		}
+		if(datesdiff>2 && todayholiday){
+			hours = hours + ((datesdiff-3)*24); 
+		}
+		for each(var secondDayDate in datesofshipping){
+					//calender = secondDayDate.getCustom().DateofShipping;
+			std = today.time;
+			 holidaydate = secondDayDate.getCustom().HolidayDate;
+		      calenderdate = holidaydate.split('/');
+	     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+	     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+			
+			if(dateone.equals(datetwo))
+			{
+				today.add(Calendar.DATE,1);
+				overnight.add(Calendar.DATE,1);
+			}
+		}
+		if(getDayName(today.time.getDay()) == "Saturday"){
+			 today.add(Calendar.DATE,2);
+			 overnight.add(Calendar.DATE,2);
+		}
+		if(getDayName(today.time.getDay()) == "Sunday"){
+			 today.add(Calendar.DATE,1);
+			 overnight.add(Calendar.DATE,1);
+		}
+		
+	//white glove shipping method with 5-7 days of estimated delivery dates.
+	
+	var whiteGloveOne : Calendar = System.getCalendar();
+   	var whiteGloveTwo : Calendar = System.getCalendar();
+	for(i=0; i<5; i++)
+   	{	 
+     //checking for Holiday with current date
+       for each(testi in datesofshipping)
+       {
+   	    //  calender = testi.getCustom().DateofShipping;
+   	      std = whiteGloveOne.time;
+   	      holidaydate = testi.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+   	      
+	      if(dateone.equals(datetwo))
+	      {
+	  	    whiteGloveOne.add(Calendar.DATE,1);
+	  	    whiteGloveTwo.add(Calendar.DATE,1);
+	      }
+       }
+      day = getDayName(whiteGloveOne.time.getDay());
+      if(day=="Saturday")
+      {
+        whiteGloveOne.add(Calendar.DATE,2);
+        whiteGloveTwo.add(Calendar.DATE,2);
+      }
+      if(day == "Sunday")
+      {
+        whiteGloveOne.add(Calendar.DATE,1);
+        whiteGloveTwo.add(Calendar.DATE,1);
+      }
+   
+      //Checking for after Saturday and Sunday  Holiday or not
+      var datesofshippingone : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+      for each(testone in datesofshippingone)
+      {
+   	   // calender = testone.getCustom().DateofShipping;
+   	    std = whiteGloveOne.time;
+ 		holidaydate = testone.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	    if(dateone.equals(datetwo))
+	    {
+	  	  whiteGloveOne.add(Calendar.DATE,1);
+          whiteGloveTwo.add(Calendar.DATE,1);
+	    }
+      }
+     whiteGloveOne.add(Calendar.DATE,1);
+     whiteGloveTwo.add(Calendar.DATE,1);
+     var datesofshippingtwo : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testtwo in datesofshippingtwo)
+     {
+   	   //calender = testtwo.getCustom().DateofShipping;
+   	   std = whiteGloveOne.time;
+   	  holidaydate = testtwo.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	    if(dateone.equals(datetwo))
+	    {
+	  	  whiteGloveOne.add(Calendar.DATE,1);
+          whiteGloveTwo.add(Calendar.DATE,1);
+	    }
+      }
+      day = getDayName(stdCalendarone.time.getDay());
+	  if(day == "Saturday")
+	  {
+	    whiteGloveOne.add(Calendar.DATE,2);
+        stdCalendartwo.add(Calendar.DATE,2);
+	  }
+	  if(day == "Sunday")
+	  {
+	   whiteGloveOne.add(Calendar.DATE,1);
+       whiteGloveTwo.add(Calendar.DATE,1);
+	  }
+  
+   //Checking for after Saturday and Sunday  Holyday or not
+     var datesofshippingthree : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+     for each(testthree in datesofshippingthree)
+     {
+   	   //calender = testthree.getCustom().DateofShipping;
+   	   std = whiteGloveOne.time;
+   	   holidaydate = testthree.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	   if(dateone.equals(datetwo))
+	   {
+	  	whiteGloveOne.add(Calendar.DATE,1);
+        whiteGloveTwo.add(Calendar.DATE,1);
+	   }
+     }   
+  }
+  
+    day = getDayName(whiteGloveOne.time.getDay());
+   if(day=="Saturday")
+   {
+   		whiteGloveOne.add(Calendar.DATE,2);
+   }
+   if(day=="Sunday")
+   {
+     	whiteGloveOne.add(Calendar.DATE,1);
+   }
+    day = getDayName(whiteGloveTwo.time.getDay());
+   if(day=="Saturday")
+   {
+   		whiteGloveTwo.add(Calendar.DATE,2);
+   }
+   if(day=="Sunday")
+   {
+     	whiteGloveTwo.add(Calendar.DATE,1);
+   }
+ //Code changes for 7 days adding up
+ for(j=0;j<2;j++)
+ {
+    whiteGloveTwo.add(Calendar.DATE,1);
+    var datesofshippingfour : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+    for each(testfour in datesofshippingfour)
+    {
+   	 //calender = testfour.getCustom().DateofShipping;
+   	 std = whiteGloveTwo.time;
+   	  holidaydate = testfour.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  	whiteGloveTwo.add(Calendar.DATE,1);
+	 }
+   }   
+   day = getDayName(whiteGloveTwo.time.getDay());
+   if(day=="Saturday")
+   {
+   		whiteGloveTwo.add(Calendar.DATE,2);
+   }
+   if(day=="Sunday")
+   {
+     	whiteGloveTwo.add(Calendar.DATE,1);
+   }
+   var datesofshippingfive : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');
+   for each(testfive in datesofshippingfive)
+   {
+   	 //calender = testfive.getCustom().DateofShipping;
+   	 std = whiteGloveTwo.time;
+   	  holidaydate = testfive.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+	 if(dateone.equals(datetwo))
+	 {
+	  		whiteGloveTwo.add(Calendar.DATE,1);
+	 }
+   }   
+ }
+	
+	
+	var stdDate1 :    Date = stdCalendarone.getTime();
+	var stdDate2 :    Date = stdCalendartwo.getTime();
+	var updatedDate1 : Date = updatedCalendarone.getTime();
+	var updatedDate2 : Date = updatedCalendartwo.getTime();
+	var expressDate1 : Date = expressCalendarone.getTime();
+	var expressDate2 : Date = expressCalendartwo.getTime();
+	var secondDayShippingDate : Date = today.getTime();
+	var overnightShippingDate : Date = overnight.getTime();
+	var whiteGloveDate1 : Date = whiteGloveOne.getTime();
+	var whiteGloveDate2 : Date = whiteGloveTwo.getTime();
+	 
+	pdict.expressDate1 = expressDate1;
+	pdict.expressDate2 = expressDate2;
+	pdict.stdDate1 = stdDate1;
+	pdict.stdDate2 = stdDate2;
+	pdict.updatedDate1 = updatedDate1;
+	pdict.updatedDate2 = updatedDate2;
+	pdict.secondDay = secondDayShippingDate;
+	pdict.overnight = overnightShippingDate;
+	pdict.whiteGloveDate1 = whiteGloveDate1;
+	pdict.whiteGloveDate2 = whiteGloveDate2;
+	var hourdiff : Number = hours;
+	var minutediff : Number = minutes;
+	pdict.hourdiff = hourdiff;
+	pdict.minutesdiff = minutediff ;
+	
+	
+	return PIPELET_NEXT;
+}
+
+function holidaycalculator(datetobeupdated){
+	var datestobeupdated = datetobeupdated;
+	var datesofshipping : SeekableIterator = CustomObjectMgr.getAllCustomObjects('HolidayCalendar');	
+	for each(var overnightDate in datesofshipping){
+		//calender = overnightDate.getCustom().DateofShipping;
+		 std = datestobeupdated.time;
+		 holidaydate = overnightDate.getCustom().HolidayDate;
+	     calenderdate = holidaydate.split('/');
+     	 var dateone:String=std.getDate()+" "+getMonthName(std.getMonth())+" "+std.getFullYear();
+     	 var datetwo:String=calenderdate[1]+" "+getMonthName(Number(calenderdate[0])-1)+" "+calenderdate[2];
+     	 
+		if(dateone.equals(datetwo))
+		{
+			datestobeupdated.add(Calendar.DATE,1);
+		}
+	}
+	
+	if(getDayName(datetobeupdated.time.getDay()) == "Saturday"){
+		 datestobeupdated.add(Calendar.DATE,2);
+	}
+	if(getDayName(datetobeupdated.time.getDay()) == "Sunday"){
+		 datestobeupdated.add(Calendar.DATE,1);
+	}
+	return datestobeupdated;
+	
+}

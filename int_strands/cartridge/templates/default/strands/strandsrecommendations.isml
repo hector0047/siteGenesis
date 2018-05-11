@@ -1,0 +1,15 @@
+<!--- TEMPLATENAME: recommentations.isml --->
+<isinclude template="util/modules" />
+
+<div class="strandsrecproducts">
+	<isloop items="${pdict.Response}" var="res" status="status" >
+		<iscomment><isset name="product" value="${res}" scope="page"/>
+		<isset name="pro" value="${dw.catalog.ProductMgr.getProduct(product)}" scope="page"/>
+		<img source="${pro.getImage('medium',0)}"/>
+		<isset name="image" value="${new ProductImage('image150X150',pro,0)}" scope="page"/>
+		<a class="confimage" href="${URLUtils.http('Product-Show','pid', product)}"><img src="${pro.getImage('small',0).getURL()}" alt="${pro.getImage('small',0).alt}" title="${pro.getImage('small',0).title}"/></a></br>
+	</iscomment>
+	<isprint value="${res.itemId}"/>
+	</isloop>
+</div>
+

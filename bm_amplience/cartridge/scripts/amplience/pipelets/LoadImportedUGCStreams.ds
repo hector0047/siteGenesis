@@ -1,0 +1,78 @@
+/**
+* Load imported UGC streams from Amplience API
+*
+* Params:
+*
+* @input ImportedStreams : dw.util.Collection
+*
+* @output LoadedStreamsMap : dw.util.HashMap
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.content );
+importPackage( dw.util );
+
+importScript( 'bc_amplience:/ugc/libAmplienceUgcClient.ds' );
+importScript( 'amplience/AmplienceUGCHelper.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		/**
+		 * Get Custom Preferences.
+		 */
+		var customPreferences = dw.system.Site.getCurrent().getPreferences().custom;
+		
+		/**
+		 * Set authentication parameters object.
+		 */
+		var authParams : Object = {
+			username : customPreferences['ampAPIUser'],
+			password : customPreferences['ampAPIPassword'],
+			ampApiURL : customPreferences['ampAPI']
+		};
+		
+		var importedStreams : Collection = args.ImportedStreams;
+		
+		/**
+		 * Initialize helper object.
+		 */
+		var amplienceUGCHelper = new AmplienceUGCHelper();
+		
+		/**
+		 * Get stream ids.
+		 */
+		var streamsIds : Array = amplienceUGCHelper.getStreamsIds( importedStreams );
+		if ( streamsIds.length == 0 ) {
+			args.LoadedStreamsMap = new HashMap();
+			return PIPELET_NEXT;
+		};
+		
+		/**
+		 * Load streams from server.
+		 */
+		var ugcClient : Object = new UgcClient( authParams );
+		var assets : Object = ugcClient.getAssets( streamsIds );
+		
+		if ( !('content' in assets && 'data' in assets['content']) ) {
+			args.LoadedStreamsMap = new HashMap();
+			return PIPELET_NEXT;
+		};
+		
+		var loadedStreamsMap : Object = amplienceUGCHelper.getLoadedStreamsMap(assets.content.data);
+		
+		args.LoadedStreamsMap = loadedStreamsMap;
+
+	}
+	catch(e) {
+		var errMsg = 'LoadImportedUGCStreams.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

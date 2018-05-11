@@ -1,0 +1,73 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isif condition="${pdict.Product != null && !empty(pdict.Product)}">
+	<isset name="disabledAttrRemote" value="${((('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)) || !(pdict.Product.availabilityModel.availability>0 &&!pdict.Product.master)) ? true : false }" scope="page"/>	
+	<isset name="enabledStorePickup" value="${('enableStorelocator' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableStorelocator) ? true : false }" scope="page"/>	
+	<isset name="priceCheckRemote" value="${pdict.Product.getPriceModel().getPrice().value > 0}" scope="page"/>
+		<iscomment>Fix for PANC-606 : AB test</iscomment>
+		<isif condition="${dw.campaign.ABTestMgr.isParticipant('pdp-addToCart','Control')==true}">
+	        <isif condition="${!disabledAttrRemote && priceCheckRemote}">
+				<iscomment>Farhan's Dev team : 21-11-2015 8:00pm PANC-930</iscomment>
+				<isif condition="${(pdict.CurrentHttpParameterMap.buttonTitle.value).indexOf('Buythisproduct') < 0}">	
+					<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+				<iselse/>
+					<a class="buythisproduct-link" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${Resource.msg('product.buythisproduct','product',null)}">
+						${Resource.msg('product.buythisproduct','product',null)}
+					</a>
+				</isif>
+			<iselse>
+			    <isif condition="${enabledStorePickup}">
+					<button id="add-to-cart"  title="${Resource.msg('storelocator.findstore','storelocator',null)}" value="${Resource.msg('storelocator.findstore','storelocator',null)}" class="find-store-pdp" store-url="${URLUtils.https('Stores-ShowForm')}">${Resource.msg('storelocator.findstore','storelocator',null)}</button>
+			    </isif>
+			</isif>
+	    <iselseif condition="${dw.campaign.ABTestMgr.isParticipant('pdp-addToCart','green-addToCart')==true}">
+	    	 <isif condition="${!disabledAttrRemote && priceCheckRemote}">
+	    	 	<isif condition="${(pdict.CurrentHttpParameterMap.buttonTitle.value).indexOf('Buythisproduct') < 0}">
+					<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart greenbutton <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+				<iselse/>
+					<a class="buythisproduct-link" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${Resource.msg('product.buythisproduct','product',null)}">
+						${Resource.msg('product.buythisproduct','product',null)}
+					</a>
+				</isif>
+			<iselse>
+				<isif condition="${enabledStorePickup}">
+					<button id="add-to-cart"  title="${Resource.msg('storelocator.findstore','storelocator',null)}" value="${Resource.msg('storelocator.findstore','storelocator',null)}" class="find-store-pdp" store-url="${URLUtils.https('Stores-ShowForm')}">${Resource.msg('storelocator.findstore','storelocator',null)}</button>
+				</isif>
+			</isif>
+	    <iselseif condition="${dw.campaign.ABTestMgr.isParticipant('pdp-addToCart','orange-addToCart')==true}">
+	    	<isif condition="${!disabledAttrRemote && priceCheckRemote}">
+				<isif condition="${(pdict.CurrentHttpParameterMap.buttonTitle.value).indexOf('Buythisproduct') < 0}">
+					<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart orangebutton <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+				<iselse/>
+					<a class="buythisproduct-link" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${Resource.msg('product.buythisproduct','product',null)}">
+						${Resource.msg('product.buythisproduct','product',null)}
+					</a>
+				</isif>
+			<iselse>
+				<isif condition="${enabledStorePickup}">
+					<button id="add-to-cart"  title="${Resource.msg('storelocator.findstore','storelocator',null)}" value="${Resource.msg('storelocator.findstore','storelocator',null)}" class="find-store-pdp" store-url="${URLUtils.https('Stores-ShowForm')}">${Resource.msg('storelocator.findstore','storelocator',null)}</button>
+				</isif>
+			</isif>
+		<iselse>
+			<isif condition="${!disabledAttrRemote && priceCheckRemote}">
+				<isif condition="${(pdict.CurrentHttpParameterMap.buttonTitle.value).indexOf('Buythisproduct') < 0}">
+					<isif condition="${pdict.Product.custom.soldOnEncompass==true}"> 
+						<isset name="VisitDelearURL" value="${('https://panasonic.encompass.com/search/?part.search.term=').concat(pdict.Product.ID)}" scope="page" />
+					   <a href="${VisitDelearURL}" target="_blank" title="Visit Dealer" class="button-fancy-medium button-blue visit-dealer" value="Visit Dealer" >VISIT DEALER <span class="visit-icon"> &nbsp;</span></a>
+					<iselse/>	
+						<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+					</isif>
+				<iselse/>
+					<a class="buythisproduct-link" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${Resource.msg('product.buythisproduct','product',null)}"> 
+						${Resource.msg('product.buythisproduct','product',null)}
+					</a>
+					
+				</isif>
+				<iscomment> PANC-930 END</iscomment>
+			<iselse>
+				<isif condition="${enabledStorePickup}">
+					<button id="add-to-cart"  title="${Resource.msg('storelocator.findstore','storelocator',null)}" value="${Resource.msg('storelocator.findstore','storelocator',null)}" class="find-store-pdp" store-url="${URLUtils.https('Stores-ShowForm')}">${Resource.msg('storelocator.findstore','storelocator',null)}</button>
+				</isif>
+			</isif>
+	    </isif>
+</isif>
+

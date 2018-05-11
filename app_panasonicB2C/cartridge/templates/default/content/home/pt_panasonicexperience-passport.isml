@@ -1,0 +1,64 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+	<meta property="og:title" content="Panasonic Adventure" /> 
+	<meta property="og:image" content="${URLUtils.absStatic('images/adventure/panasonic-experience-logo.png')}" /> 
+	  
+	<meta property="og:description" content="Check out my Panasonic 360&deg; videos! #Panasonic360" />
+	<isif condition="${!empty(pdict.CurrentHttpParameterMap.passport.value)}">
+	  <meta property="og:url" content="${URLUtils.http('Search-PanasonicExperiencePassport', 'passport', pdict.CurrentHttpParameterMap.passport.value)}" />
+	<iselse>
+	  <meta property="og:url" content="${URLUtils.http('Search-PanasonicExperiencePassport')}" />
+	</iselse>
+</isif>
+   
+
+
+	<isscript>var pageContext={title:'Storefront',type:'storefront',ns:'storefront'};</isscript>
+	<isinclude template="util/modules"/>
+
+	<iscomment>This page must be cachable. It inherits the caching attributes by the decorated template.</iscomment>
+
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="content/home/pt_storefront_UI"/>
+
+	<iscomment>Add page specific header information here.</iscomment>
+<isif condition="${!empty(pdict.CurrentHttpParameterMap.passport.value)}">
+  <link rel="canonical" href="${URLUtils.http('Search-PanasonicAdventurePassport', 'passport', pdict.CurrentHttpParameterMap.passport.value)}">
+<iselse>
+  <link rel="canonical" href="${URLUtils.http('Search-PanasonicAdventurePassport')}">
+</iselse>
+</isif>
+	<iscomment>Adventure page includes</iscomment>
+
+	<link href="${URLUtils.absStatic('../css/shelves.css')}" type="text/css" rel="stylesheet"/>
+	<link href="${URLUtils.absStatic('../slick/slick.css')}" type="text/css" rel="stylesheet"/>
+	<link href="${URLUtils.absStatic('../slick/slick-theme.css')}" type="text/css" rel="stylesheet"/>
+	<link href="${URLUtils.absStatic('../css/litebox.css')}" type="text/css" rel="stylesheet"/>
+	<link href="${URLUtils.absStatic('../css/adventure.css')}" type="text/css" rel="stylesheet"/>
+	
+	<script type="text/javascript" src="${URLUtils.staticURL('../js/images-loaded-min.js')}"></script>
+	<script type="text/javascript" src="${URLUtils.staticURL('../js/litebox.js')}"></script>
+	<script type="text/javascript" src="${URLUtils.staticURL('../slick/slick.min.js')}"></script>
+</head>
+<body>
+
+	<div id="wrapper" class="pt_storefront">
+				<isinclude url="${URLUtils.url('Home-IncludeHeader')}"/>
+
+		<div id="main" role="main">
+			<isreplace/>
+			<isinclude template="components/browsertoolscheck"/>
+		</div>
+
+	    <isinclude template="components/footer/footer"/>
+		<isinclude template="content/home/pt_storefront_VARS"/>
+
+	</div><!--  /wrapper -->
+	
+	<script type="text/javascript" src="${URLUtils.staticURL('../js/adventure-passport.js')}"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+var sf = require("bc_serviceframework");
+var MarketoEmailSubscription = require("../objects/MarketoEmailSubscription");
+
+importPackage(dw.system);
+importPackage(dw.net);
+
+
+function getMarketoEmailSubscriptionService() {
+	return MarketoEmailSubscriptionService;
+}
+
+var MarketoEmailSubscriptionService = sf.getService('AbstractHTTPService').extend (
+/** @lends MarketoEmailSubscriptionService.prototype */ 
+{
+	/**
+	 * @constructs MarketoEmailSubscriptionService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("MarketoEmailSubscriptionService", new MarketoEmailSubscription());
+	},
+	
+	createRequest: function (marketoReqObj) {		
+		if(marketoReqObj.isTokenRequest) {
+			return 	marketoReqObj;
+		} else {
+			var jsonRequestObj = new Object();	
+			if(!empty(marketoReqObj.LPDMember)&& marketoReqObj.LPDMember!=null)	{
+				jsonRequestObj = {
+						"input":[
+							{
+						         "email": marketoReqObj.email,
+						         "LPDMember": marketoReqObj.LPDMember
+						    }
+						]
+					};
+			}
+			else if(!empty(marketoReqObj.ZS100BrandPage)&& marketoReqObj.ZS100BrandPage!=null)	{
+				
+				jsonRequestObj = {
+						"input":[
+							{
+						         "email": marketoReqObj.email,
+						         "ZS100BrandPage":marketoReqObj.ZS100BrandPage
+						    }
+						]
+					};
+			}
+			
+			
+			else if(!empty(marketoReqObj.dynamiclandingpagevalue)&& marketoReqObj.dynamiclandingpagevalue!=null)	{
+				
+				var jsonRequestObjString :String = '{"input":[{"email":"' + marketoReqObj.email + '","' + marketoReqObj.dynamiclandingpagevalue + '":true}]}';
+				jsonRequestObj = JSON.parse(jsonRequestObjString);
+					
+			}
+			/* PANC-1964 END */
+			else {
+					jsonRequestObj = {
+						"input":[
+							{
+						         "email": marketoReqObj.email,
+						         "shopPCECmember":marketoReqObj.shopPCECmember
+						    }
+						]
+					};
+			}
+			marketoReqObj.jsonRequestObj = JSON.stringify(jsonRequestObj);
+    		return marketoReqObj;
+		}
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var httpService : HTTPClient = this.serviceClient;
+		httpService.setRequestHeader("Content-Type", "application/json");
+		if(this.request.isTokenRequest){
+			httpService.open("POST", this.request.marketoTokenEndpointUrl+"&client_id="+this.request.marketoClientId+"&client_secret="+this.request.marketoClientSecretKey);
+			httpService.send();
+			return httpService.text;
+		} else {			
+			httpService.open("POST", this.request.marketoEndpointUrl+"?access_token="+this.request.accessToken);
+			httpService.send(this.request.jsonRequestObj);
+			return httpService.text;
+		}
+	},
+	
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+	
+});
+
+sf.registerService("MarketoEmailSubscriptionService", MarketoEmailSubscriptionService);

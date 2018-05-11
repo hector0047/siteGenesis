@@ -1,0 +1,57 @@
+/*********************************************************************************
+*	AdjustShippingPriceForMultipleShipment.ds
+*	Description: This script is used to adjust shipping price in case of multiple shipment
+				 Only highest shipping method price is added to shipping cost
+***********************************************************************************
+* @input Basket : Object
+* @output shippingadjustedprice : Money
+**********************************************************************************/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.campaign );
+importPackage( dw.value );
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+   var basket : Basket = pdict.Basket;
+   var totalShippingCost = 0;
+   var maximumShipingCost = 0;
+   var multipleShipmentPriceAdjustmentValue = 0;
+   try{
+   
+ 		var shipmentLineItem : Iterator = basket.getDefaultShipment().getStandardShippingLineItem();
+		var shippingPriceAdjustments : Iterator = shipmentLineItem.getShippingPriceAdjustments().iterator();
+		//Remove Existing Price Adjustment
+		while( shippingPriceAdjustments.hasNext() ) {
+			var shippingPriceAdjustment : ShippingPriceAdjustment = shippingPriceAdjustments.next();
+			if(shippingPriceAdjustment.promotionID.equals('MultipleShipmentPriceAdjustment')){
+				shipmentLineItem.removeShippingPriceAdjustment( shippingPriceAdjustment );
+				break;
+			}
+		}
+   		//Create New Price Adjustment to have only one Maximum Price Shipping Method Cost to Customer
+   	if( basket.shipments.size() >= 1 ){
+   		var shipments : Iterator =  basket.shipments.iterator();
+   		while(shipments.hasNext()){
+   			var shipment : Shipment = shipments.next();
+   			var shippingMethod : ShippingMethod = shipment.shippingMethod;
+   			// Update Required Here Code Change is Needed for Shipping Cost[Adjusted Shipping Cost we have to take].
+   			var shippingCost = ShippingMgr.getShipmentShippingModel( shipment ).getShippingCost(shippingMethod).amount;
+   			totalShippingCost = totalShippingCost + shippingCost.value;
+   			if( shippingCost > maximumShipingCost ){
+   				maximumShipingCost = shippingCost ;
+   			}
+   		}
+		multipleShipmentPriceAdjustmentValue = totalShippingCost - maximumShipingCost;
+   		if( multipleShipmentPriceAdjustmentValue>0 ){
+   			var multipleShipmentPriceAdjustment : PriceAdjustment = shipmentLineItem.createShippingPriceAdjustment('MultipleShipmentPriceAdjustment');
+   			var priceAdjustment : Money = new Money( -multipleShipmentPriceAdjustmentValue , Site.getCurrent().getDefaultCurrency() );
+   			multipleShipmentPriceAdjustment.setPriceValue( priceAdjustment.valueOrNull );
+   			pdict.shippingadjustedprice = priceAdjustment;
+   		}
+   	}
+   }catch(ex){
+	   var x= ex.toString();
+   }
+   return PIPELET_NEXT;
+}

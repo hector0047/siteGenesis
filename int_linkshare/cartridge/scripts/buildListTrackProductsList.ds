@@ -1,0 +1,582 @@
+/**
+* buildListTrackProductsList.ds
+* Demandware Script File
+* Will build a product feed for Linkshare
+*HDR|36726|Panasonic|2013-10-21/01:02:13
+*Product ID|Product Name|Sku Number|
+*Primary Category|Secondary Category|Product URL|
+*Product Image URL|Buy URL|Short Product Description|
+*Long Product Description|Discount|Discount Type|
+*Sale Price|Retail Price|Begin Date|
+*End Date|Brand|Shipping|
+*Is Deleted Flag|Keywords|Is All Flag|
+*Manufacturer Part Number|Manufacturer Name|Shipping Information|
+*Availability|Universal Product Code|Class ID|
+*Is Product Link Flag|Is Storefront Flag|Is Merchandiser Flag|
+*Currency|M1
+*Total fields: 32
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.customer );
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.campaign );
+importPackage( dw.web );
+importPackage( dw.content );
+importPackage( dw.value );
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+	//invoke a new StringWriter
+	var lsSW : StringWriter = new StringWriter();
+	
+	(new dw.io.File(dw.io.File.IMPEX +'/src/linkshare/')).mkdirs();
+	//Create header line
+	//need to get time
+	var calendar : Calendar = new Calendar();
+	calendar.setTimeZone('US/Pacific');
+	lsSW.write('HDR|36726|Panasonic|'+dw.util.StringUtils.formatCalendar( calendar,'yyyy-MM-dd/HH:mm:ss' )+'\r\n');
+	lsSW.write('Product ID|Product Name|Sku Number|Primary Category|Secondary Category|Product URL|Product Image URL|Buy URL|Short Product Description|Long Product Description|Discount|Discount Type|Sale Price|Retail Price|Begin Date|End Date|Brand|Shipping|Is Deleted Flag|Keywords|Is All Flag|Manufacturer Part Number|Manufacturer Name|Shipping Information|Availability|Universal Product Code|Class ID|Is Product Link Flag|Is Storefront Flag|Is Merchandiser Flag|Currency|M1\r\n');
+	if (!writeFile(lsSW.toString(), false))
+	{
+		return PIPELET_ERROR;
+	}
+	lsSW.close();
+	//Use a new writer for each product line.  At the end, writeNext this value.
+	var productStringWriter : StringWriter = new StringWriter();
+	//begin looping through products
+	var prods : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	var counter : Number = 0;
+	var prodCount : Number = 0;
+	//The first time I run this, I want to limit to make sure I'm constructing the file correctly.
+	while(prods.hasNext()){
+		productStringWriter.flush();
+		var product : Product = prods.next();
+		//if(!product.isMaster() && product.isVariant()){
+			//var vm : ProductVariationModel = product.getVariationModel(); 
+			//var mp : Product = vm.getMaster(); && mp.isCategorized()
+			if(product.isOnline() && product.isSearchable() ){
+				//intialize/clear vars used for products
+				var pid : String = '';
+				var pName : String = '';
+				var pSku : String = '';
+				var pPrimaryCat : String = '';
+				var pSecCat : String = '';
+				var pLink : String = '';
+				var pImg : String = '';
+				var pBuy : String = '';
+				var pShortDesc : String = '';
+				var pLongDesc : String = '';
+				var pDisc : String = '';
+				var pDiscType : String = '';
+				var pSale : String = '';
+				var pPrice : String = '';
+				var pBDate : String = '';
+				var pEDate : String = '';
+				var pBrand : String = '';
+				var pShip : String = '';
+				var pIsDel : String = 'N';
+				var pKeywords : String = '';
+				var pIsAll : String = 'Y';
+				var pMSku : String = '';
+				var pMname : String = '';
+				var pShipInfo : String = '';
+				var pAvail : String = '';
+				var pUniv : String = '';
+				var pClassId : String = '60';
+				var pLinkFlag : String = 'Y';
+				var pStoreFlag : String = 'Y';
+				var pMerchFlag : String = 'Y';
+				var pCurrency : String = 'CAD';
+				var pMone : String = '';
+				
+				counter++;
+				prodCount++;
+				//handle Product ID
+				pid = product.getID();		
+				writeEntryToWriter(productStringWriter,pid);
+				
+				//handle Product Name
+				if(!empty(product.name)){
+					pName = product.getName();
+					if(pName != ''){
+						//add the brand
+						if(!empty(product.brand)){
+							var pBrand = product.brand;
+						}else{
+							if(product.master && product.getVariationModel().getVariants().size() > 0){
+								var tempProd : Product = product.variationModel.variants[0];
+								if(!empty(tempProd.brand)){
+									var pBrand = tempProd.brand;
+								}else{
+									var pBrand = '';
+								}
+							}else{
+								var pBrand = '';
+							}
+						}
+						if(pBrand != ''){
+							pName += " "+pBrand;
+						}
+					}
+				}
+				writeEntryToWriter(productStringWriter,pName);
+				
+				//handle Sku Number
+				pSku = product.getID();
+				writeEntryToWriter(productStringWriter,pSku);
+				
+				//handle primary category
+				var cat : Category = null;
+				/*if(mp.isCategorized()){
+					cat = mp.getPrimaryCategory();
+				}
+				if(cat == null && !empty(mp.onlineCategories)){
+					cat = mp.onlineCategories[0];
+				}*/
+				if(cat != null && cat.getDisplayName() != "Unassigned"){
+					pPrimaryCat = cat.getDisplayName();
+				}else{
+					pPrimaryCat = '';
+				}
+				writeEntryToWriter(productStringWriter,pPrimaryCat);
+				
+				//handle Secondary Category(ies)
+				var secCat : Category = null;
+				/*if(mp.isCategorized() &&  !empty(mp.onlineCategories) && mp.onlineCategories.getLength() > 1){
+					if(!empty(mp.getPrimaryCategory()) &&  (mp.getPrimaryCategory().ID == mp.onlineCategories[1].ID)){
+						secCat = mp.onlineCategories[0];
+					}
+					else{
+						secCat = mp.onlineCategories[1];
+					}
+				}*/
+					
+				if(secCat != null && secCat.getDisplayName() != "Unassigned"){
+					pSecCat = secCat.getDisplayName();
+				}else{
+					pSecCat = '';
+				}
+					
+				 
+				writeEntryToWriter(productStringWriter,pSecCat);
+				
+				//handle Product URL
+				if(!empty(product.ID)){
+					pLink = URLUtils.http('Product-Show', 'pid', product.ID).toString();
+				}else{
+					pLink = '';
+				}
+				
+				writeEntryToWriter(productStringWriter,pLink);
+				
+				//handle Product Image URL,Considering pdp image size 492*492
+				var imageURL = getImageUrl(product, 'Quickview');
+				if(!empty(product)){
+					pImg = imageURL;
+				}else{
+					pImg = '';
+				}
+				writeEntryToWriter(productStringWriter,pImg);
+				
+				//handle buyURL
+				writeEntryToWriter(productStringWriter,pBuy);
+				
+				//handle Short Product Description
+				if(!empty(product.longDescription)){
+					pShortDesc = product.getLongDescription().toString().replace("\n", "", "g");
+					pShortDesc = stripHTML(pShortDesc);
+				}
+				if(pShortDesc == ""){
+					pShortDesc = "N/A";
+				}
+				writeEntryToWriter(productStringWriter,pShortDesc);
+				
+				//handle Long Product Description
+				if(!empty(product.shortDescription)){
+					pLongDesc = product.getShortDescription().toString().replace("\n", "", "g");
+					pLongDesc = stripHTML(pLongDesc);
+				}
+				writeEntryToWriter(productStringWriter,pLongDesc); 
+				
+				//handle discount
+				writeEntryToWriter(productStringWriter,pDisc);
+				
+				//handle discount type?
+				writeEntryToWriter(productStringWriter,pDiscType);
+				
+				//handle sale price
+				pPrice = getPrice(product);
+				writeEntryToWriter(productStringWriter,pPrice);
+				
+				//handle retail price
+				pSale = getProductSalePrice(product);
+				writeEntryToWriter(productStringWriter,pSale);
+				
+				//handle beg date?
+				writeEntryToWriter(productStringWriter,pBDate);
+				
+				//handle end date?
+				//blank
+				writeEntryToWriter(productStringWriter,pEDate);
+				
+				//handle brand
+				if(product != null && !empty(product.brand)){
+					pBrand = product.brand;
+				}
+				writeEntryToWriter(productStringWriter,pBrand);
+				
+				//handle shipping
+				writeEntryToWriter(productStringWriter, pShip);
+				
+				//handle is deleted?
+				//Default value is "N"
+				writeEntryToWriter(productStringWriter, pIsDel);
+				
+				//handle Keyword(s)
+				if (product.pageKeywords != null){
+					pKeywords = product.pageKeywords;
+				}
+				writeEntryToWriter(productStringWriter, pKeywords);
+				
+				//handle Is All Flag
+				//Default value is "Y"
+				writeEntryToWriter(productStringWriter, pIsAll);
+				
+				//handle Manufacturer Part #
+				if(product.manufacturerSKU != '' && product.manufacturerSKU != null){
+					pMSku = product.getManufacturerSKU();
+				}
+				else{
+					if(product.master && product.getVariationModel().getVariants().size() > 0){
+						var tempProd : Product = product.variationModel.variants[0];
+						if(tempProd.manufacturerSKU != '' || tempProd.manufacturerSKU != null){
+							pMSku = tempProd.manufacturerSKU;
+						}
+					}
+				}
+				if(pMSku == null){
+					pMSku = '';
+				}
+				writeEntryToWriter(productStringWriter, pMSku);
+				
+				//handle Manufacturer Name
+				if(product.manufacturerName != '' && product.manufacturerName != null){
+					pMname = product.getManufacturerName();
+				}else{
+					if(product.master && product.getVariationModel().getVariants().size() > 0){
+						var tempProd : Product = product.variationModel.variants[0];
+						if(tempProd.getManufacturerName() != '' || tempProd.manufacturerName != null){
+							pMname = tempProd.getManufacturerName();
+						}
+					}
+				}
+				if(pMname == null){
+					pMname = '';
+				}
+				writeEntryToWriter(productStringWriter, pMname);
+				
+				//handle ship info
+				writeEntryToWriter(productStringWriter, pShipInfo);
+				
+				//handle Availability
+				writeEntryToWriter(productStringWriter, pAvail);
+				
+				//handle Universal Product Code(UPC)
+				if(!empty(product.UPC)){
+					pUniv = product.getUPC();
+				}
+				writeEntryToWriter(productStringWriter, pUniv);
+				
+				//handle Class ID
+				writeEntryToWriter(productStringWriter,pClassId);
+				
+				//handle Is Product Link Flag
+				//Default value is Y
+				writeEntryToWriter(productStringWriter,pLinkFlag);
+				
+				//handle Is Storefront Flag
+				//Default value is Y
+				writeEntryToWriter(productStringWriter,pStoreFlag);
+				
+				//handle Is Merchandiser Flag
+				//Default value is Y
+				writeEntryToWriter(productStringWriter,pMerchFlag);
+				
+				//handle Currency
+				//CAD
+				if(product.master && product.getVariationModel().getVariants().size() > 0){
+					var tempProd : Product = product.variationModel.variants[0];
+					var pm : ProductPriceModel  = tempProd.getPriceModel();
+					if(pm.getPrice().getCurrencyCode() != 'CAD'){
+						pCurrency = pm.getPrice().getCurrencyCode();
+					}
+				}
+				writeEntryToWriter(productStringWriter,pCurrency);
+				
+				//handle M1
+				writeEntryToWriter(productStringWriter,pMone);
+				
+				productStringWriter.write("\r\n");
+				if (counter >= 2000)
+				{	
+					productStringWriter.flush();
+					if (!writeFile(productStringWriter.toString(), true))
+					{
+						return PIPELET_ERROR;
+					}
+					productStringWriter.close();
+					
+					//Need to renew the string writer
+					var productStringWriter : StringWriter = new StringWriter();
+					counter = 0;
+				}
+			}//end online check
+		//}end master check
+	}//end while
+	//last line of file is a count of products: TRL|15703
+	var totalItems : String = prods.getCount();
+	productStringWriter.write("TRL|"+prodCount+"\r\n");
+	productStringWriter.flush();
+	if(!writeFile(productStringWriter.toString(), true)){
+		return PIPELET_ERROR;
+	}
+	productStringWriter.close();
+	
+	/*
+		Need to build FTP.  Do not have the creds.  Variabilize it with custom attrs.
+		Will copy Matt's Channel Advisor implementation here.
+	*/
+	var ftp : FTPClient = new FTPClient(); 
+	
+	
+	if(ftp.connect(dw.system.Site.getCurrent().preferences.custom.Linkshare_FTP_Hostname , dw.system.Site.getCurrent().preferences.custom.Linkshare_FTP_Username, dw.system.Site.getCurrent().preferences.custom.Linkshare_FTP_Password)) 
+	{
+		Logger.info('Connected to Linkshare FTP');
+		
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/linkshare/36726_nmerchandis'+dw.util.StringUtils.formatCalendar( new Calendar(), 'yyyyMMdd' )+'.txt');
+	
+		if(!file.exists()) 
+		{
+			return PIPELET_ERROR;
+		} 
+		else
+			ftp.putBinary(file.name, file);
+			
+		ftp.disconnect();
+	}else{
+		Logger.info('failed to connect  to Linkshare FTP');
+	}
+	
+	
+    return PIPELET_NEXT;
+}
+
+function writeEntryToWriter(writer : StringWriter, value : String){
+	writer.write(value+"|");
+}
+function writeFile(content:String, isAppend : Boolean) : Boolean
+{
+	try
+	{
+		
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/linkshare/36726_nmerchandis'+dw.util.StringUtils.formatCalendar( new Calendar(), 'yyyyMMdd' )+'.txt');
+		
+		if(!file.exists()) 
+		{
+			if(!file.createNewFile())
+			{
+				Logger.error("File "+file.name+" could not be created!");
+				return false;
+			}
+		} 
+		
+		var out : FileWriter = new FileWriter(file, isAppend);
+		out.write(content);
+		out.flush();
+		out.close();
+	}
+	catch(e)
+	{
+		Logger.error("An error occured while exporting Linkshare products {0}.", e);
+		return false;
+	}	
+	
+	return true;
+}
+
+var CATALOG_MASTER : String = "master";
+
+function getImageUrl(product:Product, role : String) : String
+{
+	if ((product != null) || (role != null))
+	{
+		var image : MediaFile;
+
+		//var useITS : Boolean = dw.system.Site.getCurrent().preferences.custom.useImageTransformationServer;
+		//var userITS : Boolean = false;
+		//if (useITS == null || useITS == false)
+		//{
+			image = product.getImage('large',0);
+			if ( image != null)
+			{
+				return image.URL;
+			} 
+		/*} else {
+			
+			image = product.getImage('large',0);
+			
+			if ( image == null && (product.isVariant() || product.isMaster())) {
+				image = product.variationModel.getVariants()[0].getImage('large',0);
+			}
+			
+			if ( image != null)
+			{
+				var resourceString : String = 'productImage.' + role + '.';
+				var transform : Object = {'scaleWidth': parseInt('492'),
+					'scaleHeight': parseInt('492')};
+				var url:URL = image.getImageURL(transform);		
+				
+				return url;
+			} 
+		}*/
+	} 
+	var nullFile:String = '/images/noimagelarge.png';
+	if (role != null)
+	{
+		nullFile = '/images/noimage'+ 'large' +'.png';
+	}
+	var file : File = new File(File.CATALOGS + File.SEPARATOR + CATALOG_MASTER + File.SEPARATOR + "default"  + File.SEPARATOR + nullFile);
+  	if( file.exists() ) {
+  		var resourceString : String = 'productImage.' + role + '.';
+		var transform : Object = {'scaleWidth': parseInt('492'),
+					'scaleHeight': parseInt('492')};
+		var NoImageURL : String = URLUtils.imageURL("/images/" + file.name, transform).toString().replace("/-/", "/Sites-" + CATALOG_MASTER + "/");
+  		return NoImageURL;
+  	}
+	return URLUtils.httpStatic(nullFile);
+}
+
+function getPrice(inProduct: Product) : String
+{
+	var price = "0.00";
+	var price2= 0;
+	if (!inProduct.master)
+  	{
+  		var PriceModel:ProductPriceModel = inProduct.getPriceModel();
+  		price = PriceModel.getPrice().toNumberString();
+  		//price = PriceModel.getPriceBookPrice("list-prices");
+  	}
+  	var promos:Collection= dw.campaign.PromotionMgr.getActivePromotions().getProductPromotions(inProduct);
+ 	var promoRank: Number = 1000;
+	if (!empty(promos))
+  	{
+  		 
+  		for each(var promo: Promotion in promos)
+  		{
+  			if (promo.getPromotionClass() != null && promo.getPromotionClass().equals(dw.campaign.Promotion.PROMOTION_CLASS_PRODUCT) && !promo.basedOnCoupons)
+  			{
+  				
+  				if(promo.isActive() )
+  					{
+  						price2 = promo.getPromotionalPrice(inProduct);
+  						
+  					}
+  				
+  				//promoprice += promo.ID + "|";
+  				if (price2.available)
+  				{
+  					price=price2;
+  					break;
+  				}
+  			}
+  		}
+  		
+  	//	if(price3 != dw.value.Money.NOT_AVAILABLE)
+  	//		price=price3
+  		if (price2.available)
+  			price=price2;
+  	}
+  	if(price == "N/A" || price == "0.00"){
+  		price = "0.00"; 
+  	}
+  	return price;
+}
+
+function getProductSalePrice(inProduct: Product) : String
+{
+	var price = "0.00";
+	var price2 = "";
+	var price3 = ""; //Price override price
+	var PriceModel:ProductPriceModel = inProduct.getPriceModel();
+	
+	if (inProduct.master)
+  	{
+  		
+  		var variants = inProduct.variationModel.getVariants();
+
+		var highestPrice = 0;
+		var lowestPrice = 0;
+		
+		var variantsIterator : Iterator = variants.iterator();
+		while (variantsIterator.hasNext())
+		{
+			var thisVariant : Variant = variantsIterator.next();
+			var PriceModel:ProductPriceModel = thisVariant.getPriceModel();
+			var thisPrice = PriceModel.getPrice();
+			
+			if ((lowestPrice == 0) || (thisPrice < lowestPrice))
+			{
+				lowestPrice = thisPrice;
+				inProduct = thisVariant;
+			}
+		
+			if ((highestPrice == 0) || (thisPrice > highestPrice))
+				highestPrice = thisPrice;
+		}
+		price = lowestPrice;
+  	}
+  	
+  	else
+  	{
+  		var salePrice = PriceModel.getPriceBookPrice(dw.system.Site.getCurrent().preferences.custom.listPriceDefault);
+  		if(salePrice != dw.value.Money.NOT_AVAILABLE)
+  			price = salePrice;
+  	}
+  /** change end **/
+ 	
+	  if(price == "N/A" || price == "0.00"){
+	  	price = PriceModel.getPrice().toNumberString();
+	  }
+	  if(price == null || price == "N/A"){
+	  	price = "0.00"; 
+	  }
+  	return price;
+}
+function stripHTML(oldString:String) : String
+{
+   var newString:String = "";
+   var inTag:Boolean = false;
+   for(var i = 0; i < oldString.length; i++) {
+   
+        if(oldString.charAt(i) == '\n' || oldString.charAt(i) == '\r' || oldString.charAt(i) == '<' && (oldString.charAt(i+1) == 'b' || oldString.charAt(i+1) == 'B') && (oldString.charAt(i+2) == 'r' || oldString.charAt(i+2) == 'R')) inTag = true;
+        if(oldString.charAt(i) == '>') {
+              if(oldString.charAt(i+1)=="<" || (oldString.charAt(i-1) != 'r' || oldString.charAt(i-1) != 'R') && (oldString.charAt(i-2) != 'b' || oldString.charAt(i-2) != 'B'))
+              {
+              		//dont do anything
+				}
+				else
+				{
+					inTag = false;
+					i++;
+				}
+        }
+	 if(!inTag) newString += oldString.charAt(i);
+   }
+  
+   return newString;
+}

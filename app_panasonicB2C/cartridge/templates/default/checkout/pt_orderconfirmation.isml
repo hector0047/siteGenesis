@@ -1,0 +1,76 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isinclude template="util/modules"/>
+	
+	<iscomment>Include all important information globally , e.g. meta-data, link information, and javascript.</iscomment>
+	<isscript>var pageContext={title:'Order Confirmation', type:'orderconfirmation', ns:'orderconfirmation'};</isscript>
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="checkout/pt_orderconfirmation_UI"/>
+	
+	<iscomment>Add template-specific header information here.</iscomment>	
+</head>
+
+<body>
+<div id="wrapper" class="pt_order-confirmation">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',false)}"/>
+		
+		<div id="main" role="main" class="clearfix primary-focus">
+		
+			<div id="primary" class="primary-content ">
+				<isreplace/>
+			</div>
+			<div class="desktopBlock">
+				<div id="secondary" class="nav summary">
+					<div class="top-alligned-confirmation">
+						<a href="javascript:void(0)" class="print-link print-page">
+							<span class="spriteico"></span>PRINT
+						</a>
+					</div>
+					<isinclude template="checkout/confirmation/confirmationregister"/>
+				</div>
+			</div> 
+			<div class="mobileBlock mobileHelp">
+					<div class="help-nav-asset">
+						<iscontentasset aid="account-nav-text-prechat"/>
+					</div>	
+			</div>
+		</div>
+	
+		<isinclude template="components/footer/footer"/>		
+		<isinclude template="checkout/pt_orderconfirmation_VARS"/>
+		<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<script type="text/javascript"> 
+ 			pageTypeCode = "checkout-confirmation";  	
+ 			pageData = { 
+ 	 			products: [ 
+ 	 			<isif condition="${pdict.Order != null && (!empty(pdict.Order.productLineItems) || !empty(pdict.Order.giftCertificateLineItems))}"> 
+ 	 			<isloop items="${pdict.Order.productLineItems}" var="productLineItem" status="loopstate"> 
+ 	 	 			{ 
+    					id:   '<isprint value="${productLineItem.productID}" />',     
+    					quantity:  '<isprint value="${productLineItem.quantity}"/>' 
+ 	 	 			}, 
+ 	 			</isloop> 
+ 	 			<isloop items="${pdict.Order.giftCertificateLineItems}" var="productLineItem" status="loopstate"> 
+ 	 	 			{ 
+   					 id:   '<isprint value="${productLineItem.productID}" />',     
+   					 quantity:  '<isprint value="${productLineItem.quantity}"/>' 
+ 	 	 			}, 
+ 	 			</isloop> 
+ 	 			</isif> 
+ 	 			], 
+				orderNumber: '<isprint value="${pdict.Order.orderNo}"/>' 
+					}; 
+		</script>
+		<iscomment>End of PANC-1672</iscomment>
+		
+	</div></div>
+</body>
+</html>

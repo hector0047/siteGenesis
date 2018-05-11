@@ -1,0 +1,74 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendCartUpdateApi.ds
+ *  
+ *	This script tries to send the tracking event of changing the contents of 
+ *	shopping cart to Strands Recommender. In case an error occurs, it will 
+ * 	output the corresponding error.
+ *
+ * @input Basket : Object The current basket
+ * @input User : String The final user
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ */
+
+importPackage( dw.net );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Send Cart) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+	
+	
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/event/';
+	
+	var cartString = strandsUrl + 'updateshoppingcart.sbs?' 
+						+ 'apid=' + dw.crypto.Encoding.toURI(dw.system.Site.current.preferences.custom.StrandsApiID);
+						    
+	for each(var basketItem : ProductLineItem in pdict.Basket.allProductLineItems) { 
+		if (basketItem.product) {
+			cartString += '&item=';
+			if (!basketItem.product.variant)
+				cartString += dw.crypto.Encoding.toURI(basketItem.product.ID);
+			else if ("masterProduct" in basketItem.product)
+				cartString += dw.crypto.Encoding.toURI(basketItem.product.masterProduct.ID);
+		}
+	}
+	
+	cartString += '&user=' +  dw.crypto.Encoding.toURI(pdict.User);
+							
+
+					
+    var eventCart : HTTPClient = new HTTPClient();
+    try
+	{
+    	eventCart.setTimeout(1000);
+    	eventCart.open("GET", cartString);
+    	eventCart.send();    		
+    }
+    catch(e) 
+    {    	
+    	pdict.ErrorCode = '801';
+		pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Send Cart Error) Request to "+cartString+" failed: {0}", e.message);
+    	return PIPELET_ERROR;
+    }
+
+      return PIPELET_NEXT;
+}   

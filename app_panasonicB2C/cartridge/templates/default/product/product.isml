@@ -1,0 +1,86 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Renders product detail page both quickview and normal view.
+	If the product is a product set or bundle, then it also includes subproduct template to
+	render sub product details.
+	PANC-809 : Phones - set up masters and variants+ use swatches for handset qty
+</iscomment>
+
+<isscript>
+	//two attirbutes needed to pass along the selected color to the pdp/quickview
+	var queryString, queryStringArray = [],
+		colorAttributeID = 'dwvar_' + pdict.Product.ID + '_color',
+		sizeAttributeID = 'dwvar_' + pdict.Product.ID + '_handsets',
+		productColorValue = '',
+		productSizeValue = '';
+
+	//helper variables
+	queryString = pdict.CurrentRequest.getHttpHeaders().get('x-is-query_string');
+	if (queryString) {
+		queryStringArray = queryString.split('&');
+	}
+	var PMapValue = '';
+
+	for (var x = 0; x < queryStringArray.length ;x++) {
+		PMapValue = queryStringArray[x];
+		if (PMapValue.indexOf('color') != -1) {
+			productColorValue = PMapValue.split('=')[1];
+		}
+		if (PMapValue.indexOf('handsets') != -1) {
+			productSizeValue = PMapValue.split('=')[1];
+		}
+	}
+	// look into the PVM
+	var PVM : dw.catalog.ProductVariationModel,
+		variant : dw.catalog.Variant,
+		variantSelected = false;
+	if (pdict.CurrentVariationModel && pdict.CurrentVariationModel.selectedVariant) {
+		PVM = pdict.CurrentVariationModel;
+		variant = PVM.selectedVariant;
+		variantSelected = true;
+	} else {
+		PVM = pdict.Product.variationModel;
+	}
+	if (!variantSelected) {
+		if (PVM.defaultVariant) {
+			variant = PVM.defaultVariant;
+		} else {
+			if (!PVM.variants.isEmpty()) {
+				variant = PVM.variants[0];
+			}
+		}
+	}
+</isscript>
+
+<isif condition="${variant != null}">
+	<isloop items="${PVM.productVariationAttributes}" var="VA" status="loopstatus0">
+		<isset name="valength" value="${PVM.getAllValues(VA).length}" scope="PAGE"/>
+		<isset name="vaId" value="${VA.getAttributeID()}" scope="page"/>
+		<isif condition="${vaId == 'handsets'}">
+			<isif condition="${variantSelected || productSizeValue === ''}">
+				<isset name="productSizeValue" value="${PVM.getVariationValue(variant, PVM.getProductVariationAttribute(vaId)).value}" scope="PAGE" />
+			</isif>
+		<iselseif condition="${vaId == 'color'}">
+			<isif condition="${variantSelected || (productColorValue === '')}">
+				<isset name="productColorValue" value="${PVM.getVariationValue(variant, PVM.getProductVariationAttribute(vaId)).value}" scope="PAGE" />
+			</isif>
+		</isif>
+	</isloop>
+</isif>
+
+<isset name="DecoratorTemplate" value="product/pt_productdetails" scope="PAGE"/>
+<iscomment>pwr = power review write</iscomment>
+<isif condition="${pdict.CurrentHttpParameterMap.format.stringValue == 'ajax' || pdict.CurrentHttpParameterMap.pwr.stringValue == 'true' || pdict.CurrentHttpParameterMap.source.stringValue == 'search' || pdict.CurrentHttpParameterMap.source.stringValue == 'quickview' || pdict.CurrentHttpParameterMap.source.stringValue == 'giftregistry' || pdict.CurrentHttpParameterMap.source.stringValue == 'wishlist' }">
+	<isset name="DecoratorTemplate" value="util/pt_empty" scope="page"/>
+</isif>
+<isdecorate template="${DecoratorTemplate}">
+	<isinclude url="${URLUtils.url('Product-Detail', 'pid', pdict.Product.ID,'supportpage',pdict.CurrentHttpParameterMap.supportpage.stringValue,'source', pdict.CurrentHttpParameterMap.source.stringValue, 'uuid', pdict.CurrentHttpParameterMap.uuid.stringValue, 'Quantity',pdict.CurrentHttpParameterMap.Quantity.stringValue, colorAttributeID, productColorValue, sizeAttributeID, productSizeValue)}"/>
+	<isif condition="${!('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)}">
+		<div class="lazyload-placeholder" data-placeholder="${URLUtils.abs('Product-Detail', 'pid', pdict.Product.ID, 'source', pdict.CurrentHttpParameterMap.source.stringValue, 'uuid', pdict.CurrentHttpParameterMap.uuid.stringValue, 'Quantity',pdict.CurrentHttpParameterMap.Quantity.stringValue, colorAttributeID, productColorValue, sizeAttributeID, productSizeValue,'lazyload','true')}"></div>
+	</isif>
+	<isset name="isQuickView" value="${pdict.CurrentHttpParameterMap.source.stringValue == 'quickview' || pdict.CurrentHttpParameterMap.source.stringValue == 'cart' || pdict.CurrentHttpParameterMap.source.stringValue == 'giftregistry' || pdict.CurrentHttpParameterMap.source.stringValue == 'wishlist'}" scope="page"/>	 
+	
+	<iscomment>Include the ChannelAdvisor Custom Pixel</iscomment>
+	<isset name="EventTypeID" value="product" scope="pdict">
+	<isinclude template="ChannelAdvisor/Custom">
+</isdecorate>

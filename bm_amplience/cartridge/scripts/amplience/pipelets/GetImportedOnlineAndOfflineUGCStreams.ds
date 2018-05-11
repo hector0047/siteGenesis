@@ -1,0 +1,51 @@
+/**
+* Get Imported Online and Offline UGC Streams
+*
+* Params:
+*
+* @input ImportedStreams : dw.util.Collection
+*
+* @output OnlineStreams : dw.util.Collection
+* @output OfflineStreams : dw.util.Collection
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.content );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var onlineStreams : ArrayList = new ArrayList(),
+			offlineStreams : ArrayList = new ArrayList();
+			
+		var importedStreams : Collection = args.ImportedStreams;
+		
+		var assetsIterator : Iterator = importedStreams.iterator();
+		
+		while ( assetsIterator.hasNext() ) {
+			var asset : Content = assetsIterator.next();
+			
+			if ( asset.isOnline() ) {
+				onlineStreams.push(asset);
+			} else {
+				offlineStreams.push(asset);
+			}
+		}
+		
+		args.OnlineStreams = onlineStreams;
+		args.OfflineStreams = offlineStreams;
+
+	}
+	catch(e) {
+		var errMsg = 'GetImportedOnlineAndOfflineUGCStreams.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

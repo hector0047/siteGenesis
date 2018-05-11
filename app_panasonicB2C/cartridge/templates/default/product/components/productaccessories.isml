@@ -1,0 +1,65 @@
+<iscomment>Fix for : PANC-676</iscomment>
+<isinclude template="util/modules"/>
+<iscomment>Fix for : PANC-997 - Shop/Support PDP, Accessories, Summary Review Value & # of Reviews</iscomment>
+<isset name="ShowReviews" value="${true}" scope="page"/>
+<isset name="set" value="${pdict.set}" scope="page"/>
+<isset name="productset" value="${pdict.productset}" scope="page"/>
+<isif condition="${('StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled && !empty(pdict.Response) && pdict.Response != 'null') || ('enableDWRecommendations' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableDWRecommendations && !empty(productset) && productset != 'null')}">
+<isset name="responsearray" value="${pdict.Response}" scope="page" />
+<isif condition="${(!empty(productset) && productset != 'null') || (!empty(pdict.Response))}">
+	<div class="accessories-content-holder">
+	<h2 class="block-headline">${Resource.msg('product.lefttab4','product',null)}</h2>
+	<div class="PDPFeaturecontent">
+		<ul class="accesories-holder">
+		<isif condition="${'StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled}">
+			<li class="accessories-block-li featured-block">
+			<isif condition="${responsearray != null && !empty(responsearray)}">
+				<span class="block-head">${Resource.msg('product.strandsaccessories','product',null)}<i></i></span>
+				<div class="block-content strandsproducts">
+					<ul class="pdp-prod-accesories-ul">
+						<isloop items="${responsearray}" var="res" status="status" end="4">
+							<isset name="product" value="${res.itemId}" scope="page"/>
+							<isset name="recommendedpro" value="${dw.catalog.ProductMgr.getProduct(product)}" scope="page"/>
+							<isif condition="${!empty(recommendedpro) && recommendedpro != 'null'}">
+								<isset name="showPricing" value="${!('supportOnly' in product.custom && product.custom.supportOnly)}" scope="page" />
+								<li class="accesories-prod-li"><isproducttilepdp product="${recommendedpro}" showswatches="${false}" showpricing="${showPricing}" showrating="${true}" transformationtemplate="$PDP-Accessories-Desktop$" /></li>
+							</isif>
+						</isloop>
+					</ul>
+				</div>
+			</isif>
+			</li>
+		</isif>
+		
+		<isif condition="${'enableDWRecommendations' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableDWRecommendations}">
+			<isloop items="${set}" var="category" status="loopstate">
+				<li class="accessories-block-li featured-block">
+					<span class="block-head"><isprint value="${category}"/><i></i></span>
+					<div class="block-content">
+						<isinclude template="util/modules"/>
+						<ul class="pdp-prod-accesories-ul">
+						<isset name="count" value="${0}" scope="page">
+							<isloop items="${productset}" var="recObj" status="loopstate2">
+								<isset name="cat" value="${(!empty(recObj.getPrimaryCategory())) ? recObj.getPrimaryCategory() : ((!empty(recObj.masterProduct) && !empty(recObj.masterProduct.getPrimaryCategory())) ? recObj.masterProduct.getPrimaryCategory() : recObj.getClassificationCategory())}" scope="page"/>
+								<isif condition="${category.equals(cat.displayName.toString())}">
+									<isif condition="${!empty(recObj) && recObj != 'null' && recObj.availabilityModel.availabilityStatus != 'null' && recObj.availabilityModel.availabilityStatus != dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_NOT_AVAILABLE && recObj.availabilityModel.availability>0}">
+										<isset name="count" value="${count+1}" scope="page"/>
+										<isset name="showPricing" value="${!('supportOnly' in recObj.custom && recObj.custom.supportOnly)}" scope="page" />
+										<li class="accesories-prod-li <isif condition="${count%5 == 0}">allignment-req-li</isif>"><isproducttilepdp product="${recObj}" showswatches="${false}" showpricing="${showPricing}" showrating="${true}" transformationtemplate="$PDP-Accessories-Desktop$"/></li>
+									</isif>
+								</isif>
+							</isloop>
+						</ul>
+					</div>
+				</li>
+			</isloop>
+		</isif>
+		</ul>
+		<span class="more-accessories-link-holder see-all-link">
+			<a href="javascript:void(0)" class="more-accessories-link new-lead-more-button">${Resource.msg('product.seeallacc','product',null)}</a>
+		</span>
+	</div>
+		</div>
+</isif>
+
+</isif>

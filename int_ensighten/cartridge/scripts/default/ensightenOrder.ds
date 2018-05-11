@@ -1,0 +1,107 @@
+/**
+ * Retrieve data related to the client's order
+ * @input order : Object The order object
+ * @output ens_order : Object An object containing information about the current order
+ *
+ */
+ 
+importPackage( dw.system );
+importScript( "default/ensightenDataHelper.ds" );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	
+		/**
+			Build order meta data
+		**/	
+		var data = {
+			discount: (pdict.order.merchandizeTotalNetPrice.value - pdict.order.adjustedMerchandizeTotalNetPrice.value).toFixed(2),
+			subtotal: pdict.order.merchandizeTotalNetPrice.value.toFixed(2),
+			tax:((pdict.order.totalTax)?pdict.order.totalTax.value.toFixed(2):""),
+			shipping: pdict.order.adjustedShippingTotalNetPrice.value.toFixed(2),
+			total: (pdict.order.adjustedMerchandizeTotalGrossPrice.value + pdict.order.adjustedShippingTotalNetPrice.value + pdict.order.shippingTotalTax.value).toFixed(2),
+			currency: pdict.order.currencyCode,
+			payment: pdict.order.paymentInstrument.paymentMethod,
+			orderID: pdict.order.currentOrderNo,
+			productQuantity: pdict.order.productQuantityTotal
+		};
+		
+		/**
+			Build order product list
+		**/
+		data.items = parseProductLine(pdict.order.productLineItems);
+		
+		/**
+			Check for gift cards and adjust
+		**/
+		data.certificates = {
+			quantity: "" + pdict.order.getGiftCertificateLineItems().length,
+			total: "" + pdict.order.giftCertificateTotalNetPrice.value.toFixed(2),
+			items: new Array()
+		}
+		
+		/* Parse gift cert data that's available */
+		var gc = pdict.order.getGiftCertificateLineItems();
+		for each(var item : GiftCertificateLineItem in gc){
+			var obj = {};
+			//This would output the actual unique redemption id
+			//obj.certificate = item.giftCertificateID;
+			obj.to = item.recipientEmail;
+			obj.from = item.senderName;
+			obj.priceValue = item.priceValue;
+			obj.quantity = "1";
+			data.certificates.items.push(obj);
+		}
+		
+		/* Add value to total as it's not included */
+		if(data.certificates.quantity){
+			data.subtotal = "" + (parseFloat(data.subtotal) + parseFloat(data.certificates.total)).toFixed(2);
+			data.total = "" + (parseFloat(data.total) + parseFloat(data.certificates.total)).toFixed(2);
+			data.productQuantity = parseInt(data.productQuantity) + data.certificates.items.length;
+		}
+		
+
+
+		/**
+			Build order coupon array
+		**/
+		data.coupons = new Array();
+		if (pdict.order.couponLineItems != null && pdict.order.couponLineItems.length != null) {
+			for each(var item : CouponLineItem in pdict.order.couponLineItems){
+				data.coupons.push(item.couponCode);
+			}
+		}
+		
+		/**
+			Build price adjustment array
+		**/
+		data.adjustments = new Array();
+		if (pdict.order.priceAdjustments != null && pdict.order.priceAdjustments.length != null){
+			for each(var item : PriceAdjustment in pdict.order.priceAdjustments){
+		    	if (item.promotion != null && item.promotion.promotionClass == "ORDER") {
+		    		data.adjustments.push({
+		    			id: "" + (item.promotionID || ""),
+		    			amount: "" + (item.priceValue || "")
+		    		});
+		    	}
+		    }				
+		}
+		
+		/**
+			Build billing user information
+		**/
+		data.billing = {
+			customerId: pdict.order.customer.ID,
+			customerCity: pdict.order.billingAddress.city.replace(/"/g, '\\"'),
+			customerState: pdict.order.billingAddress.stateCode,
+			customerCountry: pdict.order.billingAddress.countryCode.displayValue.replace(/"/g, '\\"'),
+			customPostal: pdict.order.billingAddress.postalCode,
+			customerBillFirstName: pdict.order.billingAddress.firstName.replace(/"/g, '\\"'),
+			customerBillLastName: pdict.order.billingAddress.lastName.replace(/"/g, '\\"'),
+			customerBillingEmail: pdict.order.customerEmail					
+		}
+	
+	pdict.ens_order = data;
+	
+    return PIPELET_NEXT;
+}

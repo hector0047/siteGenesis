@@ -1,0 +1,102 @@
+/**
+ * Utility class for logging product info while processing Amplience images
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+
+function ProcessingLogger() {
+	
+	/**
+	 * Map with all messages for the processing logger
+	 *
+	 */
+	var messagesMap : Map = new SortedMap();
+	
+	/**
+	 * Gets an instance of Product Logger
+	 *
+	 * @param {String} productID - Product Identifier
+	 *
+	 * @return {ProductLogger} an instance of Product Logger
+	 *
+	 */
+	this.getProductLogger = function(productID: String) : ProductLogger {
+		
+		if ( messagesMap.containsKey(productID) ) {
+			
+			return new ProductLogger( productID, messagesMap.get(productID) );
+			
+		} else {
+			
+			return new ProductLogger(productID);
+		}
+	};
+
+	/**
+	 * Gets the message map
+	 *
+	 * @return {Map} an instance of the message map
+	 *
+	 */
+	this.getMessagesMap = function() : Map {
+		
+		return messagesMap;
+	};
+	
+	/**
+	 * Product Logger object
+	 *
+	 * @param {String} productID - Product Identifier
+	 * @param {ArrayList} productMessages - product messages
+	 *
+	 */
+	function ProductLogger(productID : String, productMessages : ArrayList) {
+
+		/**
+		 * adds a message to the product messages
+		 *
+		 * @param {String} productID - Product Identifier
+		 *
+		 */
+		function addMessage(message: String) {
+			
+			if ( empty(productMessages) ) {
+				
+				productMessages = new ArrayList();
+				messagesMap.put(productID, productMessages);
+			}
+			
+			productMessages.add1(message);
+		}
+
+		/**
+		 * adds an error message to the product messages
+		 *
+		 * @param {String} productID - Product Identifier
+		 *
+		 */
+		this.error = function(message : String) {
+			addMessage('ERROR: ' + message);
+		};
+		
+		/**
+		 * adds an info message to the product messages
+		 *
+		 * @param {String} productID - Product Identifier
+		 *
+		 */
+		this.info = function(message : String) {
+			addMessage('INFO: ' + message);
+		};
+		
+		/**
+		 * adds a warning message to the product messages
+		 *
+		 * @param {String} productID - Product Identifier
+		 *
+		 */
+		this.warning = function(message : String) {
+			addMessage('WARNING: ' + message);
+		};
+	}
+}

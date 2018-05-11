@@ -1,0 +1,170 @@
+importPackage(dw.rpc);
+importPackage(dw.order);
+importPackage(dw.util);
+
+importScript("int_paypal:cart/Credentials.ds");
+importScript("int_paypal:cart/WsUtil.ds");
+
+var sf = require("bc_serviceframework");
+var PayPalDirectPayment = require("../objects/PayPalDirectPayment");
+ 
+function getPayPalDirectPaymentService() {
+	return PayPalDirectPaymentService;
+}
+
+
+var PayPalDirectPaymentService = sf.getService('AbstractSoapService').extend(
+/** @lends CreditCardCheckerService.prototype */ 
+{
+	
+	init: function() {
+		this._super("PayPalExpress" , new PayPalDirectPayment());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		
+		this.webReference = webreferences.PayPalSvcDev;	
+		if (dw.system.System.getInstanceType() == dw.system.System.PRODUCTION_SYSTEM) {
+			this.webReference = webreferences.PayPalSvc;
+		}
+				
+		this.serviceClient = this.webReference.getService("PayPalAPIInterfaceService", "PayPalAPIAA");
+	},
+
+	createRequest: function (directPaymentInfo) {
+			
+		var basket : Basket 							= directPaymentInfo.basket;				
+		var paymentProcessor : PaymentProcessor 		= directPaymentInfo.paymentProcessor;		
+		var paymentInstrument : PaymentInstrument  		= directPaymentInfo.cCPaymentInstrument;	
+		var orderNo : String 							= directPaymentInfo.orderNo;		
+		var creditCardCVN : String 						= directPaymentInfo. creditCardCVN;	
+		var iPAddress : String 							= directPaymentInfo.iPAddress;
+		var buttonSource : String 						= directPaymentInfo.buttonSource; 
+		var currentCustomerAuthenticated : Boolean 		= directPaymentInfo.currentCustomerAuthenticated; 
+		var creditCardNumberGuest : String  			= directPaymentInfo.creditCardNumberGuest;  
+		var setFraudAlert  : Boolean 					= directPaymentInfo.setFraudAlert;  
+		
+		var paypalDirectPayment : WebReference = this.webReference;
+		var ppxService : Stub =  this.serviceClient;
+		
+		//List of all the methods provided by the web service;
+		//pdict.AvailFuncs = getAvailableFunctions(ppxService);    :output variable
+		
+		// security header
+		SetCredentials( paymentProcessor, ppxService );
+
+		var directPaymentDetails = new paypalDirectPayment.DoDirectPaymentRequestDetailsType();
+		//Payment Action Authorization/Sale
+		directPaymentDetails.setPaymentAction(paypalDirectPayment.PaymentActionCodeType.Sale);
+		
+		//Set IP Address
+		directPaymentDetails.setIPAddress(iPAddress);
+		
+		//Get Fraud Alert Results
+		directPaymentDetails.setReturnFMFDetails(setFraudAlert);
+
+		//CreditCard - setting up credit card information;
+		var creditcard = new paypalDirectPayment.CreditCardDetailsType();
+		var creditcardOwner = new paypalDirectPayment.PayerInfoType();
+		var creditcardOwnerName = new paypalDirectPayment.PersonNameType();
+		
+		//Splitting the credit card holder's name
+		var strArray : Array = paymentInstrument.creditCardHolder.split(" ");
+		if (strArray.length == 2)
+		{
+			creditcardOwnerName.setFirstName( strArray[0] );
+			creditcardOwnerName.setLastName( strArray[1] );
+		} 
+		else if (strArray.length == 3)
+		{
+			creditcardOwnerName.setFirstName( strArray[0] );
+			creditcardOwnerName.setMiddleName( strArray[1] );
+			creditcardOwnerName.setLastName( strArray[2] );
+		} 
+		else 
+		{
+			creditcardOwnerName.setFirstName( paymentInstrument.creditCardHolder );
+			creditcardOwnerName.setLastName( paymentInstrument.creditCardHolder );
+		}
+		
+		creditcardOwner.setPayerName(creditcardOwnerName);
+		creditcardOwner.setPayerBusiness( paymentInstrument.creditCardHolder ); //Payer's Business Name
+		
+		var address = new paypalDirectPayment.AddressType();
+		var billingAddress : OrderAddress = basket.getBillingAddress();
+		address.setStreet1( billingAddress.getAddress1() );
+		address.setStreet2( billingAddress.getAddress2() );
+		address.setCityName( billingAddress.getCity() );
+		address.setStateOrProvince( billingAddress.getStateCode() );
+		address.setCountry(paypalDirectPayment.CountryCodeType.fromString( billingAddress.getCountryCode() ));
+		address.setPostalCode( billingAddress.getPostalCode() );
+		address.setPhone( billingAddress.phone);
+		creditcardOwner.setAddress(address);
+		
+		creditcard.setCardOwner(creditcardOwner);
+
+		//CreditCard type - AMEX, Discover, Mastercard, Visa, Maestro, Solo
+		//CreditCard type - For canada only Mastercard, Visa is allowed
+		//CreditCard type - For Mastero and Solo curreny id must be GBP. In addition either StartMonth and StartYear or Issue number must be specified
+		
+		creditcard.setCreditCardType( paypalDirectPayment.CreditCardTypeType.fromString(paymentInstrument.creditCardType) );
+		creditcard.setCreditCardNumber( paymentInstrument.creditCardNumber );
+		
+		if (!currentCustomerAuthenticated)
+		{
+			creditcard.setCreditCardNumber( creditCardNumberGuest );
+		}
+		
+		creditcard.setExpMonth( paymentInstrument.creditCardExpirationMonth );
+		creditcard.setExpYear( paymentInstrument.creditCardExpirationYear );
+		creditcard.setCVV2( creditCardCVN );
+		directPaymentDetails.setCreditCard(creditcard);
+		
+
+		//Payment Details
+		var paymentDetails = new paypalDirectPayment.PaymentDetailsType();
+		var amount = new paypalDirectPayment.BasicAmountType( basket.totalGrossPrice );
+		amount.currencyID = paypalDirectPayment.CurrencyCodeType.fromString( basket.getCurrencyCode() );
+		paymentDetails.setOrderTotal(amount);
+		paymentDetails.setOrderDescription(orderNo);
+		//Order total cannot be more than 10,000 USD in any curreny
+		
+       	//Button Source ButtonSource
+ 		paymentDetails.setButtonSource( buttonSource ); 
+		
+		//set details to main call
+		directPaymentDetails.setPaymentDetails(paymentDetails); //** main message
+
+		//set all the values for direct payment values to the request object
+		var directPaymentRequest = new paypalDirectPayment.DoDirectPaymentRequestType();
+		directPaymentRequest.setVersion("56.0");
+		directPaymentRequest.setDoDirectPaymentRequestDetails(directPaymentDetails);
+		
+		var req = new paypalDirectPayment.DoDirectPaymentReq(directPaymentRequest);
+	
+		return req;
+	
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.doDirectPayment( this.request );
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('PayPalExpress',PayPalDirectPaymentService);

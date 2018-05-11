@@ -1,0 +1,492 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/orderhistory/pt_ReturnSummary">
+	<isinclude template="util/modules"/>
+	<div class="pnsb2c-Myacc-Return-Summary">
+		<h1 class="return ord-returnpolicy" id="summary">
+			<span class="ord-returnsummary" id="pnsb2c-myaccount-orders"><isprint value="${Resource.msg('orders.returnsummary','account',null)}" /></span>	
+		</h1>
+	</div>	
+	<isscript>
+		importScript("int_dis:product/ProductImageSO.ds");
+		importScript("app_panasonicB2C:util/GetAmplienceImageUrl.ds");
+	</isscript>
+	<isset name="FinalRestockFee" value="${new Number(0)}" scope="page"/>
+	<isset name="returnedProducts" value="${new dw.util.ArrayList()}" scope="page" />
+	<isset name="totalQuant" value="${new Number(0)}" scope="page" />
+	<isset name="productInfo" value="${JSON.parse(pdict.CurrentSession.privacy.OrderInfo)}" scope="page" />
+	<isloop items="${productInfo.iterator()}" var="product" > 
+		<isset name="quant" value="${new Number(product.Rqty)}" scope="page" /> 
+		<isscript>
+			totalQuant = totalQuant+quant;
+		 </isscript>
+	</isloop>
+	
+	<div class="return-summary-wrapper">
+		<form id="confirm" name="confirmPage" action="${URLUtils.https('SelfServiceReturn-OMSCall','editAddress', pdict.EditAddressFlow)}" method="post" class="returnconfirm">	
+		<fieldset>
+		
+			<isif condition="${pdict.Order.getBillingAddress() != null}">
+				<input type="hidden" name="sfname" value="${pdict.Order.getBillingAddress().firstName}"/>
+				<input type="hidden" name="slname" value="${pdict.Order.getBillingAddress().lastName}"/>
+				<input type="hidden" name="saddress1" value="${pdict.Order.getBillingAddress().address1}"/>
+				<isif condition="${pdict.Order.getBillingAddress().address2 != null}" >
+					<input type="hidden" name="saddress2" value="${pdict.Order.getBillingAddress().address2}"/>
+				</isif>
+				<input type="hidden" name="scity" value="${pdict.Order.getBillingAddress().city}"/>
+				<input type="hidden" name="sstate" value="${pdict.Order.getBillingAddress().stateCode}"/>
+				<input type="hidden" name="spostal" value="${pdict.Order.getBillingAddress().postalCode}"/>
+				<input type="hidden" name="sphoneno" value="${pdict.Order.getBillingAddress().phone}"/>
+			</isif>
+			<isset name="OrderNo" value="${pdict.CurrentHttpParameterMap.orderID.value}" scope="page"/>
+			<isset name="Order" value="${dw.order.OrderMgr.getOrder(OrderNo)}" scope="page"/>
+			<div class="Returning-From-Shipping-Address"><span class="returning">Returning</span>: ${totalQuant.toFixed()} items from 
+			<div class="dtls-aft-chng-addrs">
+				<isif condition="${pdict.EditAddressFlow == true}" >	
+								<div class="fn-ln-aft-chng-addrs">
+										${pdict.CurrentSession.privacy.FirstName}
+										${pdict.CurrentSession.privacy.LastName}
+								</div>
+								<div class="addrs-aft-chng-addrs">
+										${pdict.CurrentSession.privacy.Address1}
+										${pdict.CurrentSession.privacy.Address2}
+								</div>
+								<div class="city-state-zipcode-confirmation-page">
+										${pdict.CurrentSession.privacy.City}
+										${pdict.CurrentSession.privacy.State}
+										${pdict.CurrentSession.privacy.PostalPIN}
+								</div>
+								<div class="phn-num-chng-addrs">
+										${pdict.CurrentSession.privacy.PhoneNo}
+								</div>
+				<iselse/>
+				<isloop items="${Order.shipments}" var="shipment" status="shipmentloopstate" begin="0" end="0">		
+					<isset name="rowSpan" value="${shipment.productLineItems.size()}" scope="page"/>
+				    <div rowspan="${rowSpan.toFixed()}" class="order-shipment-details">
+				    	<div class="order-shipment-address">
+				    		<isminishippingaddress p_shipment="${shipment}" p_editable="${false}" p_showmethod="${false}" p_showpromos="${false}"/>			    		
+				    	</div>			    	
+				    </div>			 
+				</isloop>
+				</isif>
+				<isif condition="${pdict.EditAddressFlow == true}" >
+					<a href="${URLUtils.https('SelfServiceReturn-Address', 'firstName', pdict.CurrentSession.privacy.FirstName, 'lastName', pdict.CurrentSession.privacy.LastName, 'address1', pdict.CurrentSession.privacy.Address1, 'address2', pdict.CurrentSession.privacy.Address2, 'city', pdict.CurrentSession.privacy.City, 'stateCode', pdict.CurrentSession.privacy.State, 'postalCode', pdict.CurrentSession.privacy.PostalPIN, 'phoneNo', pdict.CurrentSession.privacy.PhoneNo)}">Change address</a>
+				<iselse/>		
+			 		<a href="${URLUtils.https('SelfServiceReturn-Address', 'firstName', pdict.Order.getBillingAddress().firstName, 'lastName', pdict.Order.getBillingAddress().lastName, 'address1', pdict.Order.getBillingAddress().address1, 'address2', pdict.Order.getBillingAddress().address2, 'city', pdict.Order.getBillingAddress().city, 'stateCode', pdict.Order.getBillingAddress().stateCode, 'postalCode', pdict.Order.getBillingAddress().postalCode, 'phoneNo', pdict.Order.getBillingAddress().phone)}">Change address</a>
+				</isif>
+			</div>		
+
+			<isscript>
+				var eligibleForOMS : Object = {};
+				var eligibleForOMSItems =  [];
+				var eligibleProductIDs =  [];
+				var restockFeeProducts =[];
+			 </isscript>
+			
+			<isloop items="${pdict.Order.shipments}" var="shipment" status="shipmentloopstate">
+				<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">	
+					<isloop items="${productInfo.iterator()}" var="product" >
+					
+						<isset name="shippingmethodID" value="${productLineItem.shipment.shippingMethodID}" scope="page"/>
+						<isif condition="${product.Reason == 'Ordered+wrong+product' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW4" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Ordered+wrong+product' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW3" scope="page" />
+						</isif>
+						<isif condition="${product.Reason == 'Ordered+wrong+product' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Ordered+wrong+product' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Better+price+available' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW4" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Better+price+available' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW3" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Better+price+available' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Better+price+available' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Item+is+damaged' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW2" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Item+is+damaged' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW2" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Item+is+damaged' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Item+is+damaged' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'No+longer+needed+or+wanted' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW4" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'No+longer+needed+or+wanted' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW3" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'No+longer+needed+or+wanted' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'No+longer+needed+or+wanted' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Not+satisfied+with+product+quality' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW4" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Not+satisfied+with+product+quality' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW3" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Not+satisfied+with+product+quality' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Not+satisfied+with+product+quality' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Product+is+defective' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW2" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Product+is+defective' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Product+is+defective' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Product+is+defective' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Wrong+item+was+sent' && product.Rbox == 'no' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="43" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Wrong+item+was+sent' && product.Rbox == 'yes' && product.Rparts == 'yes' }">
+							<isset name="ReasonCode" value="DW9" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Wrong+item+was+sent' && product.Rbox == 'yes' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isif condition="${product.Reason == 'Wrong+item+was+sent' && product.Rbox == 'no' && product.Rparts == 'no' }">
+							<isset name="ReasonCode" value="" scope="page" />		
+						</isif>
+						<isset name="orderID" value="${pdict.CurrentHttpParameterMap.orderID.value}" scope="page" /> 		
+						<isset name="pid" value="${product.ProductId}" scope="page" /> 
+						<isset name="shippingmethodID" value="${productLineItem.shipment.shippingMethodID}" scope="page"/>	
+						
+						<iscomment>Checking for the Quantity credited    </iscomment>
+						<isloop items="${pdict.CurrentSession.custom.OMSResponse}" var="orderItem" status="orderItemLoopStatus"> 
+							<isif condition="${orderItem.orderNo.equals(OrderNo)}" >
+								<isloop items="${orderItem.shipments}" var="OMSshipment" status="shipmentLoopStatus" > 
+									<isloop items="${OMSshipment.productLineItems}" var="OMSproductLineItem" status="omsloopStatus" >
+										<isif condition="${OMSproductLineItem.productID.equals(pid)}" >
+											<isif condition="${OMSproductLineItem.quantityCredited != null}" >
+												<isset name="quantityCredited" value="${OMSproductLineItem.quantityCredited}" scope="page" />
+											<iselse>
+												<isset name="quantityCredited" value="${0}" scope="page" />
+											</iselse>
+											</isif>
+											<isset name="quantityOrdered" value="${OMSproductLineItem.quantityOrdered}" scope="page" />
+											<isset name="quantityFulfilled" value="${OMSproductLineItem.quantityFulfilled}" scope="page" />
+											<isset name="quantityRemaining" value="${quantityFulfilled - quantityCredited}" scope="page" />
+											<isif condition="${quantityRemaining > 0}" >
+												<isif condition="${quantityRemaining >= product.Rqty}" >
+													<isset name="returnelgibility" value="${true}" scope="page" />
+												<iselse>
+													<isset name="returnelgibility" value="${false}" scope="page" />
+												</iselse>
+												</isif>
+											<iselseif condition="${quantityFulfilled <= quantityOrdered && quantityFulfilled != '0' && quantityCredited < quantityFulfilled}">
+												<isset name="returnelgibility" value="${true}" scope="page" />
+											</iselseif>
+											<iselse>
+												<isset name="returnelgibility" value="${false}" scope="page" />
+											</iselse>
+											</isif>
+										</isif>
+									</isloop>
+								</isloop>
+							</isif>
+						</isloop> 
+						<isif condition="${pid == productLineItem.product.ID}">	
+							<isif condition="${ReasonCode == '' || dw.catalog.ProductMgr.getProduct(pid).custom.isWarranty || !(returnelgibility)}">
+								<div class="returning-product">Model ${pid} <span class="not-elgbl-rtn">Not Eligible For Return</span></div>
+								<isif condition="${dw.catalog.ProductMgr.getProduct(pid).custom.isWarranty}" >
+									<isset name="hasSTProduct" value="${true}" scope="page" />																	
+								</isif>						
+							<iselseif condition="${pdict.pilotShipping.contains(productLineItem.shipment.shippingMethodID)}" >
+								<div class="returning-product">
+									<span class="returning-reason">Model ${pid} Not Eligible For Online Return</span>
+								</div>
+							</iselseif>	
+							<iselse>		 		
+								<div class="returning-product">
+									<isset name="returnReason" value=" " scope="page"/>
+									<isset name="retReason" value="${product.Reason.toString().split('+')}" scope="page"/>
+									<isloop items="${retReason}" var="reason">	
+										<isset name="returnReason" value="${returnReason+' '+reason}" scope="page"/>
+									</isloop>
+									<iscomment> PANC-1817</iscomment>										
+									<span class="returning-reason">Returning</span> ${pid} |<span class="returning-reason"> Due to  ${returnReason}</span>													
+									<iscomment> PANC-1817 End</iscomment>
+									<isset name="ret-pro" value="${returnedProducts.add(pid)}" scope="page" />
+									<isset name="ret-show" value="${true}" scope="page" />
+									<isset name="hasSTProduct" value="${false}" scope="page" />
+									<isscript>
+										var omsitemDetail : Object = {};
+										omsitemDetail.OrderItemCode = product.ProductId;
+										omsitemDetail.OrderItemQtyReturned = new Number(product.Rqty).toFixed();
+										omsitemDetail.ReturnReasonCode = ReasonCode;
+										eligibleForOMSItems.push(omsitemDetail);
+									 </isscript>
+								</div>
+							</iselse>
+							</isif>
+			 				
+						<isset name="productObj" value="${dw.catalog.ProductMgr.getProduct(pid)}" scope="page" />
+						<isset name="image" value="${new ProductImage('image360X360',productObj, 0)}" scope="page"/>
+						<isset name="thumbnailUrl" value="${image.getURL()}" scope="page"/>
+						<div class="summary-content-holder">
+						<div class="Returning-Items-Details-Image return-summary-page">
+							<!-- img src="${thumbnailUrl}" /-->
+							<picture>
+								<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+								<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+								<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+								<img src="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}"  />
+							</picture>
+						</div>
+							<div class="summary-text-content-holder">
+								<isif condition="${!(returnelgibility)}" >
+								 	<span class="label">${Resource.msg('summary.desc6','locale',null)}</span>
+								<iselseif condition="${hasSTProduct != null && hasSTProduct}">
+									<span class="label">${Resource.msg('summary.desc7','locale',null)}</span>
+								</iselseif>
+								<iselseif condition="${ReasonCode == ''}">
+							 		<div class="return-reasn-holder">
+							 			<p class="label content-text">${Resource.msg('summary.desc5','locale',null)}
+							 				<a href="${URLUtils.url('Page-Show', 'cid' ,'pna-direct-store-policies')}" target="_blank"> Return Policy</a>
+							 			</p>								 			
+							 		</div>
+							 	</iselseif>	
+								<iselseif condition="${(pdict.fedExShipping.contains(productLineItem.shipment.shippingMethodID)) && (ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode2') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode9') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode43'))}">
+									<div class="return-reasn-holder">
+								 		<p class="label print-your-label content-heading">${Resource.msg('summary.desc11','locale',null)}</p>
+								 		<p class="label print-your-label-text content-text">${Resource.msg('summary.desc12','locale',null)}</p>
+							 		</div>							 		
+							 		<div class="return-reasn-holder">
+							 			<p class="label prepare-your-package-for-return content-heading">${Resource.msg('summary.desc13','locale',null)}</p>
+							 			<p class="label prepare-your-package-for-return-text content-text">${Resource.msg('summary.desc14','locale',null)}</p>
+							 		</div>							 		
+							 		<div class="return-reasn-holder">
+							 			<p class="label ship content-heading">${Resource.msg('summary.desc15','locale',null)}</p>
+							 			<p class="label ship-text content-text">${Resource.msg('summary.desc16','locale',null)}</p>
+							 		</div>
+						 		</iselseif>
+							 	<iselseif condition="${(pdict.fedExShipping.contains(productLineItem.shipment.shippingMethodID)) && (ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode3') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode4'))}" >									 	
+							 			<div class="return-reasn-holder">
+									 		<p class="label prepare-your-package-for-return content-heading">${Resource.msg('summary.desc21','locale',null)}</p>
+								 			<p class="label prepare-your-package-for-return-text content-text">${Resource.msg('summary.desc22','locale',null)}</p>
+									 	</div>										 										 		
+								 		<div class="return-reasn-holder">
+								 			<p class="label ship content-heading">${Resource.msg('summary.desc23','locale',null)}</p>
+								 			<p class="label ship-text content-text">${Resource.msg('summary.desc24','locale',null)}</p>
+								 		</div>								 		
+							 	</iselseif>
+							 	<iselseif condition="${pdict.pilotShipping.contains(productLineItem.shipment.shippingMethodID)}" >
+								 	
+								 	<div class="return-reasn-holder">
+								 		<p class="label content-text">${Resource.msg('summary.desc3','locale',null)}</p>						 	
+								 	</div>									 	
+							 	</iselseif>
+							 	<iselseif condition="${pdict.standardShipping.contains(productLineItem.shipment.shippingMethodID)}" >									 	
+								 	<div class="return-reasn-holder">
+								 		<p class="label content-text">${Resource.msg('summary.desc41','locale',null)}</p>
+								 		<p class="label content-text">${Resource.msg('summary.desc42','locale',null)}</p>										 	
+								 	</div>									 	
+							 	</iselseif>
+							 	</isif>	
+							</div>
+						</div>	
+						
+						<isif condition="${!empty(productLineItem.getRelatedBonusProductLineItems())}"> 
+									<isset name="bonuscount" value="${new Number(0)}" scope="page"/>									 
+									<isloop items="${productLineItem.getRelatedBonusProductLineItems()}" var="bonusProd" status="bonusprodloop" > 
+										<isif condition="${bonuscount == 0 || bonuscount < product.OrderItemQtyReturned}">
+									<isset name="productObj" value="${dw.catalog.ProductMgr.getProduct(bonusProd.product.ID)}" scope="page" />
+									<isset name="image" value="${new ProductImage('image360X360',productObj, 0)}" scope="page"/>
+									<isset name="thumbnailUrl" value="${image.getURL()}" scope="page"/>
+									
+									<div class="returning-product">
+										<span class="returning-reason">Returning bonus product</span> ${bonusProd.product.ID} | Due to Parent ${returnReason}
+									</div>
+									<div class="summary-content-holder">
+										<div class="Returning-Items-Details-Image return-summary-page">
+											<!-- img src="${thumbnailUrl}" /-->
+											<picture>
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+												<img src="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}"  />
+											</picture>
+										</div>
+										<div class="summary-text-content-holder">
+										
+								<isif condition="${(pdict.fedExShipping.contains(productLineItem.shipment.shippingMethodID)) && (ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode2') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode9') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode43'))}">
+									<div class="return-reasn-holder">
+								 		<p class="label print-your-label content-heading">${Resource.msg('summary.desc11','locale',null)}</p>
+								 		<p class="label print-your-label-text content-text">${Resource.msg('summary.desc12','locale',null)}</p>
+							 		</div>							 		
+							 		<div class="return-reasn-holder">
+							 			<p class="label prepare-your-package-for-return content-heading">${Resource.msg('summary.desc13','locale',null)}</p>
+							 			<p class="label prepare-your-package-for-return-text content-text">${Resource.msg('summary.desc14','locale',null)}</p>
+							 		</div>							 		
+							 		<div class="return-reasn-holder">
+							 			<p class="label ship content-heading">${Resource.msg('summary.desc15','locale',null)}</p>
+							 			<p class="label ship-text content-text">${Resource.msg('summary.desc16','locale',null)}</p>
+							 		</div>
+						 		
+							 	<iselseif condition="${(pdict.fedExShipping.contains(productLineItem.shipment.shippingMethodID)) && (ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode3') || ReasonCode == dw.system.Site.current.getCustomPreferenceValue('rcode4'))}" >									 	
+							 			<div class="return-reasn-holder">
+									 		<p class="label prepare-your-package-for-return content-heading">${Resource.msg('summary.desc21','locale',null)}</p>
+								 			<p class="label prepare-your-package-for-return-text content-text">${Resource.msg('summary.desc22','locale',null)}</p>
+									 	</div>										 										 		
+								 		<div class="return-reasn-holder">
+								 			<p class="label ship content-heading">${Resource.msg('summary.desc23','locale',null)}</p>
+								 			<p class="label ship-text content-text">${Resource.msg('summary.desc24','locale',null)}</p>
+								 		</div>								 		
+							 	</iselseif>
+							 	<iselseif condition="${pdict.pilotShipping.contains(productLineItem.shipment.shippingMethodID)}" >
+								 	
+								 	<div class="return-reasn-holder">
+								 		<p class="label content-text">${Resource.msg('summary.desc3','locale',null)}</p>						 	
+								 	</div>									 	
+							 	</iselseif>
+							 	<iselseif condition="${pdict.standardShipping.contains(productLineItem.shipment.shippingMethodID)}" >									 	
+								 	<div class="return-reasn-holder">
+								 		<p class="label content-text">${Resource.msg('summary.desc41','locale',null)}</p>
+								 		<p class="label content-text">${Resource.msg('summary.desc42','locale',null)}</p>										 	
+								 	</div>									 	
+							 	</iselseif>
+							 	</isif>
+							 		</div>
+							 		</div>
+										<isscript>
+										var omsitemDetail : Object = {};
+										omsitemDetail.OrderItemCode = bonusProd.product.ID;
+										omsitemDetail.OrderItemQtyReturned = new Number(1).toFixed();
+										omsitemDetail.ReturnReasonCode = ReasonCode;
+										eligibleForOMSItems.push(omsitemDetail);	
+										</isscript>
+										</isif>
+										<isset name="bonuscount" value="${bonuscount + 1}" scope="page"/>		
+									</isloop>
+								</isif>
+						
+								 												
+					</isif>	
+				</isloop>
+			</isloop>
+		</isloop>		
+		<isloop items="${eligibleForOMSItems}" var="prodID"  status="loostatus" > 						
+			<isset name="count" value="${loostatus.count.toFixed()}" scope="page" />	
+		</isloop>
+		
+		<iscomment> Refund Summary section of Return Summary Page </iscomment>
+		<div class= refund-sumry-wrapper>
+			<div class="heading-return-summary-page">Refund Summary</div>
+			<div class="summary-info-block-1">
+				<isset name="totalRestockingFee" value="${new Number(0)}" scope="page"/>
+				<isset name="finalTotal" value="${new Number(0)}" scope="page"/>
+				<isset name="totalShippingCost" value="${new Number(0)}" scope="page" />
+				<isset name="totalTax" value="${new Number(0)}" scope="page" />
+				<isloop items="${pdict.Order.shipments}" var="shipment" status="shipmentloopstate">
+					<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+					<isset name="eachItemTax" value="${productLineItem.tax / productLineItem.quantity}" scope="page" />
+						<isloop items="${productInfo.iterator()}" var="product" status="prodInfo"> 		
+							<isset name="pid" value="${product.ProductId}" scope="page" /> 	
+							<isif condition="${pid == productLineItem.product.ID}">
+								<isset name="ordered_quan" value="${productLineItem.quantity}" scope="page" />
+								<isset name="SalePrice" value="${productLineItem.getAdjustedPrice()}" scope="page" />
+								<isset name="salePrice" value="${dw.catalog.ProductMgr.getProduct(product.ProductId).getPriceModel().price.value}" scope="page" />											
+								<isset name="basePriceTotal" value="${SalePrice / ordered_quan}" scope="page" />																									
+																																											
+								<isloop items="${eligibleForOMSItems}" var="prodID"  status="loopstatus" >
+									<isif condition="${prodID.OrderItemCode.toString() == pid}" >
+										<p class="Model-No-return-summary-page refund-smry-text">Model ${pid} $<isprint value="${(product.Rqty) * basePriceTotal}"></p>
+										<isscript>
+											finalTotal = finalTotal + ((product.Rqty)  * basePriceTotal);
+											var shippingModel = dw.order.ShippingMgr.getShipmentShippingModel(shipment);
+											totalShippingCost = totalShippingCost + shippingModel.getShippingCost(productLineItem.shipment.shippingMethod).amount;
+											totalTax = totalTax + (eachItemTax * product.Rqty);
+										</isscript>
+									</isif>								
+									<isif condition="${prodID.OrderItemCode.toString() == pid && prodID.ReturnReasonCode == 'DW3'}">
+										<isset name="rfee" value="${(((product.Rqty) * basePriceTotal * 15) / 100)}" scope="page" />
+										<isscript>																							
+											totalRestockingFee = totalRestockingFee + rfee;																						
+										</isscript>																																																			
+									</isif>
+															
+									<isif condition="${prodInfo.last && loopstatus.last}"> 									
+										<p class="Shipping-Cost-return-summary-page refund-smry-text">Shipping $<isprint value="${totalShippingCost}"></p>
+										<p class="Restocking-fee-return-summary-page refund-smry-text">Total Tax $<isprint value="${totalTax}" style="DECIMAL"/></p>
+										<p class="Restocking-fee-return-summary-page refund-smry-text">Restocking Fee $<isprint value="${totalRestockingFee}" style="DECIMAL"/></p>
+										<p class="total-estimate-refund-return-summary-page refund-smry-text bold-let">Total Estimated Refund  $<isprint value="${(finalTotal + totalTax) - (totalRestockingFee + totalShippingCost)}"></p>				
+										<isset name="finalAmount" value="${(finalTotal + totalTax)- (totalRestockingFee + totalShippingCost)}" scope="page" />
+										<isset name="finalShippingAmount" value="${totalShippingCost}" scope="page" />
+										<isset name="finalRestockAmount" value="${totalRestockingFee}" scope="page" />
+										<isset name="finalTaxAmount" value="${totalTax}" scope="page" />
+									</isif>
+								</isloop>																	
+							</isif>				
+						</isloop>
+					</isloop>
+				</isloop> 
+			</div>
+			<div class="summary-info-block-2">
+				<p class="label-refundsummary-text-desc1 refund-smry-text">${Resource.msg('summary.refundDesc','locale',null)}</p>
+			</div>			
+			<input type="hidden" id="shippingAmount" name="shippingAmount" value="${finalShippingAmount}">
+			<input type="hidden" id="restockAmount" name="restockAmount" value="${finalRestockAmount}">
+			<input type="hidden" id="totalAmount" name="subTotal" value="${finalTotal}">
+			<input type="hidden" id="EstimatedAmount" name="EstimatedAmount" value="${finalAmount}">
+			<input type="hidden" id="EstimatedTax" name="EstimatedTax" value="${finalTaxAmount}">
+			<isscript>
+				eligibleForOMS.OrderId = pdict.CurrentSession.privacy.OrderNo;
+				eligibleForOMS.OrderItems  = eligibleForOMSItems;
+			 </isscript>
+			<input type="hidden" name="finalQualifyOMSObj" value="${JSON.stringify(eligibleForOMS)}">
+		</div>
+		<div class="submit_summary">
+			<input type="hidden" id="orderID" name="orderID" value="${pdict.CurrentSession.privacy.OrderNo}">
+			<input type="hidden" id="grossPrice" name="grossPrice" value="${pdict.CurrentHttpParameterMap.GrossPrice.value}"/>
+			<isloop items="${pdict.Order.shipments}" var="shipment" status="shipmentloopstate">
+				<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+					<isloop items="${eligibleForOMSItems}" var="prodID"  status="loopstatus" > 
+						<isif condition="${prodID.OrderItemCode.toString() == productLineItem.product.ID}" >
+							<isset name="isEligible" value="true" scope="page" />
+							<isbreak/>
+						<iselse/>
+							<isset name="isEligible" value="false" scope="page" />
+						</isif>
+					</isloop>
+				</isloop>
+			</isloop>
+			<isif condition="${isEligible}" >
+				<button type="submit" value="${Resource.msg('global.submit','locale',null)}">${Resource.msg('global.submit','locale',null)}</button>
+			</isif>
+		</div>	
+		</fieldset>
+	 </form>
+ </div>
+				
+	<div class="html-slot-container">
+		<isif condition="${slotcontent != null}">
+			<isloop items="${slotcontent.content}" var="markupText">
+				<isprint value="${markupText.markup}" encoding="off"/>	
+			</isloop>
+		</isif>
+	</div>	 
+</isdecorate>	

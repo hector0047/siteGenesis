@@ -1,0 +1,65 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isscript>var pageContext={title:'Checkout',type:'checkout',ns:'checkout'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="checkout/pt_checkout_UI"/>
+
+	<iscomment>Add template-specific header information here.</iscomment>	
+	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_checkout pt_checkoutsummary">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',false)}"/>
+			
+		<div id="main" role="main" class="primary-focus clearfix">
+		
+			<div id="primary" class="primary-content">
+				<isreplace/>
+			</div>
+			
+			<div id="secondary" class="nav summary mobileSecondary">
+				<isinclude template="checkout/minisummary"/>
+			<div class="mobileBlock">	
+			<form action="${URLUtils.https('COSummary-Submit')}" method="post" class="submit-order">
+				<fieldset>
+					<div class="form-row">
+						<iscomment><a  class="back-to-cart" href="${URLUtils.http('Cart-Show')}">
+							<isprint value="${Resource.msg('summary.editcart','checkout',null)}" encoding="off" />
+						</a></iscomment>						
+						<button class="button-blue" type="submit" name="submit" value="${Resource.msg('global.PlaceOrder','locale',null)}">
+							<iscomment>Star JIRA PREV-92 : Move all hard coded strings to Resource bundles</iscomment>
+							${Resource.msg('summary.submitorder','checkout',null)}
+							<iscomment>End JIRA PREV-92</iscomment>
+						</button>
+					</div>
+			    </fieldset>
+			</form>
+			</div>
+			</div>
+			<div class="mobileBlock mobileHelp">
+			<div class="help-nav-asset">
+				<iscontentasset aid="account-nav-text-prechat"/>
+			</div>	
+			</div>
+		</div>
+	
+	
+		<isinclude template="components/footer/footer"/>
+		<isinclude template="checkout/pt_checkout_VARS"/>
+		
+	</div></div>
+	
+</body>
+</html>

@@ -1,0 +1,105 @@
+/**
+ * Class which helps working with amplience UGC Streams 
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.content );
+
+function AmplienceUGCHelper() {
+	
+	/**
+	 * Return imported streams ids.
+	 *
+	 * @return {Array} streamsIds - Streams ids.
+	 */
+	this.getStreamsIds = function ( assets : Collection ) : Array {
+		
+		var assetsIterator : Iterator = assets.iterator();
+		var streamsIds : Array = [];
+		
+		while ( assetsIterator.hasNext() ) {
+			
+			var asset : Content = assetsIterator.next();
+			
+			if ( 'ampConfig' in asset.custom ) {
+				var ampConfig : Object = JSON.parse(asset.custom.ampConfig);
+				
+				if ( 'stream' in ampConfig && !empty(ampConfig['stream']) && 
+					streamsIds.indexOf(ampConfig['stream']) < 0 ) {
+					
+					streamsIds.push( ampConfig['stream'] );
+				};
+			};
+		}
+		
+		return streamsIds;
+		
+	};
+	
+	/**
+	 * Returns hashmap with key:streamId and value:streamData.
+	 *
+	 * @return {HashMap} streamsMap - Loaded Streams map.
+	 */
+	this.getLoadedStreamsMap = function ( data : Array ) : HashMap {
+		
+		var streamsMap : HashMap = new HashMap();
+		
+		for ( var i = 0; i < data.length; i++ ) {
+			var stream = data[i],
+				streamId = stream['id'];
+				
+			streamsMap.put(streamId, stream);
+		}
+		
+		return streamsMap;
+		
+	};
+	
+	
+	/**
+	 * Return object with viewers.
+	 *
+	 * @param {String} : streamId - Stream ID
+	 *
+	 * @return {Object} : viewersObj - Returned object contains two properties,
+	 * availableViewers and disabledViewers which contains grouped viewers in arrays.
+	 */
+	this.getViewers = function ( streamId ) : Object {
+		
+		/**
+		 * Get UGC viewers.
+		 */
+		var ugcViewersFolder : Folder = ContentMgr.getFolder('amp_viewers_ugc');
+		var ugcViewers : Collection = ugcViewersFolder.getContent();
+			
+		var availableViewers : Array = [],
+			disabledViewers : Array = [];
+		
+		var viewersIterator : Iterator = ugcViewers.iterator();
+		while ( viewersIterator.hasNext() ) {
+			
+			var viewer : Content = viewersIterator.next();
+			
+			var assignedViewerId : String = streamId + '-' + viewer.ID;
+			var assignedViewer : Content = ContentMgr.getContent(assignedViewerId);
+			
+			if ( assignedViewer ) {
+				disabledViewers.push(viewer);
+			}
+			else {
+				availableViewers.push(viewer);
+			}
+		};
+		
+		var viewersObj : Object = {
+			availableViewers : availableViewers,
+			disabledViewers : disabledViewers
+		};
+		
+		return viewersObj;
+	};
+};

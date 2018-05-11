@@ -1,0 +1,1098 @@
+/**
+ *
+ * A library file for Cybersource communication.
+ * This file is included by several script nodes using:
+ *
+ * importScript( "cybersource/libCybersource.ds" );
+ *
+ * It cannot be used in a script node by itself.
+ *
+ */
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+
+var numbersOnlyRegExp : RegExp = /\D/g;
+var CybersourceHelper = {
+	csReference : webreferences.CyberSourceTransaction,
+	
+	getMerchantID : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsMerchantId");
+	},
+	getSharedSecret : function () {
+    	return Site.getCurrent().getCustomPreferenceValue("CsSharedSecret");
+	},
+	getSerialNumber : function () {
+    	return Site.getCurrent().getCustomPreferenceValue("CsSerialNumber");
+	},
+	getSoapSecurityUsername : function() {
+		return Site.getCurrent().getCustomPreferenceValue("CsSecurityUsername");
+	},
+
+	getSoapSecurityKey : function() {
+		return Site.getCurrent().getCustomPreferenceValue("CsSecurityKey");
+	},
+	
+	getEndpoint : function getEndpoint() : String {
+		return Site.getCurrent().getCustomPreferenceValue("CsEndpoint") == null ? "" : Site.getCurrent().getCustomPreferenceValue("CsEndpoint").toString();
+	},
+	
+	getBMLMerchantID : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlMerchantId");
+	},
+	
+	getBMLMerchantPassword : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlPassword");		
+	},
+	
+	getBMLPromoMerchantID : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlPromoMerchantId");
+	},
+	
+	getBMLPromoMerchantPassword : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlPromoMerchantPassword");
+	},
+
+	getBMLItemCategory : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlItemCategory");
+	},
+
+	getBMLTCVersion : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlTCVersion");
+	},	
+
+	getBMLNewAcctNo : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsBmlNewAcctNo");
+	},
+
+	getDefaultShippingMethodTaxCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsDefaultShippingMethodTaxCode");
+	},	
+
+	getDefaultCouponTaxCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsDefaultCouponTaxCode");
+	},	
+
+	getDefaultProductTaxCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsDefaultProductTaxCode");
+	},	
+
+	getAvsIgnoreResult : function() {
+		return Site.getCurrent().getCustomPreferenceValue("CsAvsIgnoreResult");
+	},
+	
+	getAvsDeclineFlags : function() {
+		return Site.getCurrent().getCustomPreferenceValue("CsAvsDeclineFlags");
+	},
+	
+	getDavEnable : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsDavEnable");
+	},	
+
+	getDavOnAddressVerificationFailure : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsDavOnAddressVerificationFailure");
+	},
+
+	getShipFromCity : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsShipFromCity");
+	},
+	
+	getShipFromStateCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsShipFromStateCode");
+	},
+	
+	getShipFromZipCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsShipFromZipCode");
+	},
+		
+	getShipFromCountryCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsShipFromCountryCode");
+	},
+	
+	getPOACity : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsPoaCity");
+	},
+	
+	getPOAStateCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsPoaStateCode");
+	},
+	
+	getPOAZipCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsPoaZipCode");
+	},
+	
+	getPOACountryCode : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsPoaCountryCode");
+	},
+
+	getPOOCity : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPooCity");
+	},
+	
+	getPOOStateCode : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPooStateCode");
+	},
+	
+	getPOOZipCode : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPooZipCode");
+	},
+	
+	getPOOCountryCode : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPooCountryCode");
+	},
+	
+	getPAMerchantID : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPaMerchantId");
+	},
+
+	getPAMerchantName : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsPaMerchantName");
+	},
+	
+	getDigitalFingerprintOrgId : function (){
+		return Site.getCurrent().getCustomPreferenceValue('CsDeviceFingerprintOrgId')
+	},
+	
+	getDigitalFingerprintJetmetrixLocation : function (){
+		return Site.getCurrent().getCustomPreferenceValue('CsDeviceFingerprintJetmetrixLocation')
+	},
+	
+	getDigitalFingerprintEnabled : function (){
+		return Site.getCurrent().getCustomPreferenceValue("CsDeviceFingerprintEnabled");
+	},
+	
+	isTokenizationUsed : function () {
+		return Site.getCurrent().getCustomPreferenceValue("CsUseTokenization");
+	},
+	
+	/*****************************************************************************
+	 * Name: getNexus
+	 * Description: Returns the Nexus site preference.
+	 ****************************************************************************/	
+	getNexus : function() {
+	
+		var nexusList : Collection	= Site.getCurrent().getCustomPreferenceValue('CsNexus');
+		var nexus : String			= '';
+		var nexusCount : Number		= 0;
+		
+		for each(var nexusEntry : String in nexusList) {
+		
+			if(!empty(nexusEntry)) {
+			
+				nexus += nexusCount > 0 ? ', ' : '';
+				nexus += nexusEntry;
+				nexusCount++;
+			}	
+		}		
+		return nexus;
+	},
+	
+	/*****************************************************************************
+	 * Name: getNoNexus
+	 * Description: Returns the NoNexus site preference.
+	 *****************************************************************************/
+	getNoNexus : function() {
+	
+		var noNexusList : Collection	= Site.getCurrent().getCustomPreferenceValue('CsNoNexus');
+		var noNexus : String			= '';
+		var noNexusCount : Number		= 0;
+		
+		for each(var noNexusEntry : String in noNexusList) {
+		
+			if(!empty(noNexusEntry)) {
+			
+				noNexus += noNexusCount > 0 ? ', ' : '';
+				noNexus += noNexusEntry;
+				noNexusCount++;
+			}
+			
+		}
+		
+		return noNexus;
+	},	
+
+	/*****************************************************************************
+	 * Name: createHeader
+	 * Description: create header.
+	 *****************************************************************************/		
+	createHeader : function (service : Stub){
+		var merchantUsername : String = CybersourceHelper.getSoapSecurityUsername();
+		if(empty(merchantUsername)) merchantUsername = CybersourceHelper.getMerchantID();
+		var merchantPassword : String = CybersourceHelper.getSoapSecurityKey();
+		
+		if(empty(merchantUsername) || empty(merchantPassword)){
+			Logger.error("MerchantUsername and/or MerchantPassword are missing.");	
+			return false;
+		}
+		
+		// create Security Header
+		var usernameToken : XML = 
+			<wsse:UsernameToken xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<wsse:Username>{merchantUsername}</wsse:Username>
+				<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">
+					{merchantPassword}
+				</wsse:Password>
+			</wsse:UsernameToken>;
+
+		SOAPUtil.setHeader( service, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd","Security", usernameToken, true, null );
+		
+		//trace(usernameToken);		
+
+		return true;
+	},
+	getPublicDigest : function (customValues) {
+	  var pub = CybersourceHelper.getSharedSecret();
+	  var sha1Mac : dw.crypto.Mac = new dw.crypto.Mac(dw.crypto.Mac.HMAC_SHA_1);
+	  var publicBytes : Bytes = sha1Mac.digest(customValues, pub);
+	  var publicDigest : String = dw.crypto.Encoding.toBase64(publicBytes);
+	  return publicDigest.replace("\n", "");
+	},
+	insertSignature : function (map : dw.util.Map) {
+	  if (map == null) {
+	    return "";
+	  }
+	  try {
+	    map.put("merchantID", CybersourceHelper.getMerchantID());
+	    map.put("orderPage_timestamp", Math.round((new Date()).getTime()).toString());
+	    map.put("orderPage_version", "7");
+	    map.put("orderPage_serialNumber", CybersourceHelper.getSerialNumber());
+	    var keys : dw.util.Set = map.keySet();
+	    var customFields : String = "";
+	    var dataToSign : String = "";
+	    var output : String = "";
+	    var i : dw.util.Iterator = keys.iterator();
+	    while(i.hasNext()) {
+	      var key = i.next();
+	      customFields += key;
+	      dataToSign += key + "=" + map.get(key).toString();
+	      if (i.hasNext()) {
+	        customFields += ',';
+	        dataToSign += ',';
+	      }
+	
+	      output += "<input type=\"hidden\" name=\"";
+	      output += key;
+	      output += "\" value=\"";
+	      output += map.get(key).toString();
+	      output += "\">\n";
+	    }
+	    if(customFields.length > 0) {
+	        dataToSign += ',';
+	    }
+	    dataToSign += "signedFieldsPublicSignature=";
+	    dataToSign += CybersourceHelper.getPublicDigest(customFields);
+	    output += "<input type=\"hidden\" name=\"orderPage_signaturePublic\" value=\"" + CybersourceHelper.getPublicDigest(dataToSign) + "\">\n";
+	    output += "<input type=\"hidden\" name=\"orderPage_signedFields\" value=\"" + customFields + "\">\n";
+	    return output;
+	  } catch(e) {
+	    return e.message;
+	  }
+	},
+	insertSubscriptionSignature : function (subscriptionAmount, subscriptionStartDate, subscriptionFrequency, subscriptionNumberOfPayments, subscriptionAutomaticRenew) {
+	    if (subscriptionFrequency == null) {
+	      return "";
+	    }
+	    if (subscriptionAmount == null) {
+	      subscriptionAmount = "0.00";
+	    }
+	    if (subscriptionStartDate == null) {
+	      subscriptionStartDate = "00000000";
+	    }
+	    if (subscriptionNumberOfPayments == null) {
+	      subscriptionNumberOfPayments = "0";
+	    }
+	    if (subscriptionAutomaticRenew == null) {
+	      subscriptionAutomaticRenew = "true";
+	    }
+	    try {
+	      var data = subscriptionAmount + subscriptionStartDate + subscriptionFrequency + subscriptionNumberOfPayments + subscriptionAutomaticRenew;
+	      var sb = "";
+	      sb += "<input type=\"hidden\" name=\"recurringSubscriptionInfo_amount\" value=\"";
+	      sb += subscriptionAmount;
+	      sb += "\">\n<input type=\"hidden\" name=\"recurringSubscriptionInfo_numberOfPayments\" value=\"";
+	      sb += subscriptionNumberOfPayments;
+	      sb += "\">\n<input type=\"hidden\" name=\"recurringSubscriptionInfo_frequency\" value=\"";
+	      sb += subscriptionFrequency;
+	      sb += "\">\n<input type=\"hidden\" name=\"recurringSubscriptionInfo_automaticRenew\" value=\"";
+	      sb += subscriptionAutomaticRenew;
+	      sb += "\">\n<input type=\"hidden\" name=\"recurringSubscriptionInfo_startDate\" value=\"";
+	      sb += subscriptionStartDate;
+	      sb += "\">\n<input type=\"hidden\" name=\"recurringSubscriptionInfo_signaturePublic\" value=\"";
+	      sb += CybersourceHelper.getPublicDigest(data);
+	      sb += "\">\n";
+	      return sb;
+	    } catch (e) {
+	    	Logger.error(e.message);
+	      return e.message;
+	    }
+	  },
+	verifySignature : function(data : String, signature : String) {
+		if (data == null || signature == null) {
+	      return false;
+	    }
+	    try {
+	      var pub : String = CybersourceHelper.getSharedSecret();
+	      var sha1Mac : dw.crypto.Mac = new dw.crypto.Mac(dw.crypto.Mac.HMAC_SHA_1);
+	      var publicBytes : Bytes = sha1Mac.digest(data, pub);
+		  var publicDigest : String = dw.crypto.Encoding.toBase64(publicBytes);
+	      publicDigest = publicDigest.replace("[\r\n\t]", "");
+	      return signature.equals(publicDigest);
+	    } catch (e) {
+	      Logger.error(e.message);
+	      return false;
+	    }
+	},
+	verifyTransactionSignature : function (map : dw.web.HttpParameterMap) {
+	    if (map == null) {
+	      return false;
+	    }
+	    var transactionSignature : String = map.get("signedDataPublicSignature").stringValue;
+	    if (transactionSignature == null) {
+	      return false;
+	    }
+	    var transactionSignatureFields : String = map.get("signedFields").stringValue;
+	    if (transactionSignatureFields == null) {
+	      return false;
+	    }
+	    var tokenizer = transactionSignatureFields.split(",");
+	    var data : String = "";
+	    
+	    for (var i=0;i < tokenizer.length;i++) {
+	        var key : String = tokenizer[i];
+	        data += key + "=" + map.get(key).stringValue;
+	        data += ',';
+	    }
+	    data += "signedFieldsPublicSignature=";
+	    try{
+	        data += dw.util.StringUtils.trim(CybersourceHelper.getPublicDigest(transactionSignatureFields));
+	    } catch (e) {
+	        Logger.error(e.message);
+	        return false;
+	    }
+	    return CybersourceHelper.verifySignature(data.toString(), transactionSignature);
+	  },
+	  buildCCSubscriptionResponseObject : function(map : dw.web.HttpParameterMap){
+	  	var ccsubscriptionRespObj : Object = new Object();	 
+	  	ccsubscriptionRespObj.reasonCode = map.get("reasonCode").stringValue;
+	  	ccsubscriptionRespObj.decision = map.get("decision").stringValue;
+	  	ccsubscriptionRespObj.subscriptionID = map.get("paySubscriptionCreateReply_subscriptionID").stringValue;
+	  	session.custom.freshToken =	map.get("paySubscriptionCreateReply_subscriptionID").stringValue;
+	  	ccsubscriptionRespObj.cardType = map.get("card_cardType").stringValue;
+	  	ccsubscriptionRespObj.requestId = map.get("requestID").stringValue;
+	  	ccsubscriptionRespObj.expYear = map.get("card_expirationYear").intValue;
+	  	ccsubscriptionRespObj.expMonth = map.get("card_expirationMonth").intValue;
+	  	ccsubscriptionRespObj.maskedCCNumber = map.get("card_accountNumber").stringValue;
+	  	ccsubscriptionRespObj.cardHolderName = map.get("billTo_firstName").stringValue+" "+map.get("billTo_lastName").stringValue;
+	  	var InvalidFieldsArray = [];
+	  	for(var v=0; v <  15; v++){
+	  		var keyName : String = "InvalidField"+v; 
+	  		if(!empty(map.get(keyName)) && map.get(keyName) != "" && map.get(keyName) != null){
+	  			InvalidFieldsArray.push(map.get(keyName).stringValue);
+	  		}
+	  	}
+	  	ccsubscriptionRespObj.invalidFields = InvalidFieldsArray;
+	  	return ccsubscriptionRespObj;
+	  },
+	  buildCCAuthorizationResponseObject : function(map : dw.web.HttpParameterMap){
+	  	var ccauthRespObj : Object = new Object();	 
+	  	ccauthRespObj.reasonCode = map.get("reasonCode").stringValue;
+	  	ccauthRespObj.decision = map.get("decision").stringValue;
+	  	ccauthRespObj.ccAuthReply_reasonCode = map.get("ccAuthReply_reasonCode").stringValue;
+	  	ccauthRespObj.ccAuthReply_processorResponse = map.get("ccAuthReply_processorResponse").stringValue;
+	  	ccauthRespObj.transactionSignature = map.get("transactionSignature").stringValue;
+	  	ccauthRespObj.orderAmount_publicSignature = map.get("orderAmount_publicSignature").stringValue;
+	  	ccauthRespObj.ccAuthReply_amount = map.get("ccAuthReply_amount").stringValue;
+	  	ccauthRespObj.requestID = map.get("requestID").stringValue;
+	  	ccauthRespObj.cardType = map.get("card_cardType").stringValue;	  	
+	  	ccauthRespObj.expYear = map.get("card_expirationYear").intValue;
+	  	ccauthRespObj.expMonth = map.get("card_expirationMonth").intValue;
+	  	ccauthRespObj.maskedCCNumber = map.get("card_accountNumber").stringValue;
+	  	ccauthRespObj.cardHolderName = map.get("merchantDefinedData2").stringValue;
+	  	ccauthRespObj.subscriptionID = map.get("paySubscriptionCreateReply_subscriptionID").stringValue;
+	  	ccauthRespObj.ccAuthReply_authorizationCode = map.get("ccAuthReply_authorizationCode").stringValue;
+	  	ccauthRespObj.merchantReferenceCode = map.get("merchantReferenceCode").stringValue;
+	  	ccauthRespObj.ccAuthReply_avsCodeRaw = map.get("ccAuthReply_avsCodeRaw").stringValue;
+	  	ccauthRespObj.ccAuthReply_avsCode = map.get("ccAuthReply_avsCode").stringValue;
+	  	ccauthRespObj.reconciliationID = map.get("reconciliationID").stringValue;
+	  	ccauthRespObj.orderPage_requestToken = map.get("orderPage_requestToken").stringValue;
+	  	var InvalidFieldsArray = [];
+	  	for(var v=0; v <  15; v++){
+	  		var keyName : String = "InvalidField"+v; 
+	  		if(!empty(map.get(keyName)) && map.get(keyName) != "" && map.get(keyName) != null){
+	  			InvalidFieldsArray.push(map.get(keyName).stringValue);
+	  		}
+	  	}
+	  	ccauthRespObj.invalidFields = InvalidFieldsArray;	  	
+	  	return ccauthRespObj;
+	  },
+	/*****************************************************************************
+	 * Name: createBMLHeader
+	 * Description: create BML header.
+	 *****************************************************************************/		
+	createBMLHeader : function (service : Stub){
+		var merchantID : String = CybersourceHelper.getBMLMerchantID();
+		var merchantPassword : String = CybersourceHelper.getBMLMerchantPassword();
+		
+		if(empty(merchantID) || empty(merchantPassword)){
+			Logger.error("MerchantID and/or MerchantPassword are missing.");	
+			return false;
+		}
+		
+		// create Security Header
+		var usernameToken : XML = 
+			<wsse:UsernameToken xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<wsse:Username>{merchantID}</wsse:Username>
+				<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">
+					{merchantPassword}
+				</wsse:Password>
+			</wsse:UsernameToken>;
+	
+		SOAPUtil.setHeader( service, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd","Security", usernameToken, true, null );
+		return true;
+	},
+	
+	/*****************************************************************************
+	 * Name: createBMLPromoHeader
+	 * Description: create BML promo header.
+	 *****************************************************************************/			
+	createBMLPromoHeader : function (service : Stub){
+		var merchantID : String = Site.getCurrent().getCustomPreferenceValue("CsBmlPromoMerchantId");
+		var merchantPassword : String = Site.getCurrent().getCustomPreferenceValue("CsBmlPromoMerchantPassword");
+		
+		if(empty(merchantID) || empty(merchantPassword)){
+			Logger.error("MerchantID and/or MerchantPassword are missing.");	
+			return false;
+		}
+		
+		// create Security Header
+		var usernameToken : XML = 
+			<wsse:UsernameToken xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+				<wsse:Username>{merchantID}</wsse:Username>
+				<wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">
+					{merchantPassword}
+				</wsse:Password>
+			</wsse:UsernameToken>;
+	
+		SOAPUtil.setHeader( service, "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd","Security", usernameToken, true, null );
+		return true;
+	},
+	 
+	/*****************************************************************************
+	 * Name: createBMLPromoHeader
+	 * Description: create BML promo header.
+	 *****************************************************************************/		
+	 setEndpoint : function (service : Stub)
+	 {
+		var endpoint = CybersourceHelper.getEndpoint();
+
+		switch ( endpoint )
+		{
+			case "Production":
+				service._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY,'https://ics2ws.ic3.com/commerce/1.x/transactionProcessor');
+				break;
+			case "Test" :
+				service._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY,'https://ics2wstest.ic3.com/commerce/1.x/transactionProcessor');
+				break;
+			case "Development":
+				service._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY,'https://ics2ws.ic3.com/commerce/1.x/transactionProcessor');
+				break;
+			case "Missing":
+				service._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY,dw.web.URLUtils.https('CyberSourceUtil-TestNullEndPoint').toString() );			
+				break;
+			default:
+				throw "Undefined Cybersource Endpoint \"" + endpoint + "\""; 
+		}
+	},
+	
+	 /*****************************************************************************
+	 * Name: addCCCreditRequestInfo
+	 * Description: create CC request info.
+	 *****************************************************************************/		
+	addCCCreditRequestInfo : function(request : Object, order : dw.order.Order, pi : OrderPaymentInstrument)
+	{
+		request.merchantID = CybersourceHelper.getMerchantID();
+
+		__setClientData( request, order.orderNo );
+		
+		var billingAddress : OrderAddress = order.billingAddress;
+		request.billTo = new CybersourceHelper.csReference.BillTo();
+		request.billTo.firstName=billingAddress.firstName;
+		request.billTo.lastName=billingAddress.lastName;
+		request.billTo.street1=billingAddress.address1;
+		request.billTo.city=billingAddress.city;
+		request.billTo.state=billingAddress.stateCode;
+		request.billTo.postalCode=billingAddress.postalCode;
+		request.billTo.country=billingAddress.countryCode;
+		request.billTo.phoneNumber=billingAddress.phone.replace(numbersOnlyRegExp,"");
+		request.billTo.email=order.customerEmail;
+
+		var pt : PaymentTransaction = pi.paymentTransaction;		
+		request.purchaseTotals = new CybersourceHelper.csReference.PurchaseTotals();
+		request.purchaseTotals.currency=pt.amount.currencyCode;
+		request.purchaseTotals.grandTotalAmount=StringUtils.formatNumber(pt.amount.value * -1,"000000.00","en_US");
+
+		var rsaKey = 'MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAM5DBABpssb61H2tP0qyzx73OaWq/IeZ2VwE83G+Dks1GKiOmb1Eb06uz5BtTLM6ouJ+Z/DLf7NgkL6jg25HeWx6pNTosUoyXyWfyu+eNiST+PMZL1s8PeMnUGY+b80lkt04v7ItpAEc4VJ1yBEPKOjJyC++WZhXPngBNKkp48xxAgMBAAECgYBniDv5+RRDzKPccZnTZO2SHYZSIgGgDxmLlvCbp0qFdaFq+ikxV6iHVjfZxwM487XO+qQxufPflhkRmAHg2P+ZDTnZQjrCF/WtyPe01wXekl1zfjlcnZ2HcJMNcjqxJ1NRka3lzHSufSlUk57R5uRJqtna2GHhqhMjSvhrsjDSAQJBAOqrm9tVOX6+1g6KWM8+J+kXqlcG2P1El2uNrYPMBZEQl8mpif5FhoSI8MyXSmMq6T8OeYPsduJZpT6YNtH/FfcCQQDhAmLrVg4Q05DStCegsNiedaiq5g8EP7swGWYCy1k+zwbjoqy2IsBu0kRMpoXhXEAr0ZL5NOWY10WTlA1nm/bXAkEAv4BFUsqMfcLr2bfKW2zEkvHN/vDGmH+l9Y4LX/dZP5VD2LxysL451OQPZVW8zYpSBzQfs6l/Jp2zPI5ohhvc5wJBAJbP2KlPtoHEq+7t3RmxLp+W0QQqyqnYZYhpnZwF271jWYS9hfFV/ZDJ0glmG5nfEQvNnir2L2Vv9CxkMU/ek2UCQHLCp12bvkMe0H/4EDfUT8TWCHx8Bcey+SvkOSTg0+1XWA1l2zhvLyAf2viE6h3zZt2f4jr7yxYNy+UYSlB7Y74=';
+		var pubKey = 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDOQwQAabLG+tR9rT9Kss8e9zmlqvyHmdlcBPNxvg5LNRiojpm9RG9Ors+QbUyzOqLifmfwy3+zYJC+o4NuR3lseqTU6LFKMl8ln8rvnjYkk/jzGS9bPD3jJ1BmPm/NJZLdOL+yLaQBHOFSdcgRDyjoycgvvlmYVz54ATSpKePMcQIDAQAB';
+		var cipher : Cipher = new Cipher();
+		var ccNum : String = cipher.decrypt(pi.getEncryptedCreditCardNumber('RSA', pubKey), rsaKey, 'RSA', '', 0).replace(numbersOnlyRegExp,"");				
+			
+		request.card = new CybersourceHelper.csReference.Card();
+		request.card.accountNumber=ccNum;
+		request.card.expirationMonth=pi.creditCardExpirationMonth;
+		request.card.expirationYear=pi.creditCardExpirationYear;
+		switch(pi.creditCardType){
+			case "Visa": 
+				request.card.cardType="001";
+				break;
+			case "Master": 
+			case "MasterCard": 
+				request.card.cardType="002";
+				break;
+			case "Amex": 
+				request.card.cardType="003";
+				break;
+			case "Discover": 
+				request.card.cardType="004";
+				break;
+			case "Discover": 
+				request.card.cardType="101";
+				break;
+		}
+
+		request.ccCreditService=new CybersourceHelper.csReference.CCCreditService();	
+		request.ccCreditService.run=true;
+	},
+
+	 /*****************************************************************************
+	 * Name: addCCCaptureRequestInfo
+	 * Description: add CC capture request info.
+	 *****************************************************************************/		
+	addCCCaptureRequestInfo : function(request : Object, order : dw.order.Order){
+		request.merchantID = CybersourceHelper.getMerchantID();
+		
+		__setClientData( request, order.orderNo );
+		
+		var pt : PaymentTransaction = order.getPaymentInstruments(PaymentInstrument.METHOD_CREDIT_CARD)[0].paymentTransaction;
+		
+		request.purchaseTotals = new CybersourceHelper.csReference.PurchaseTotals();
+		request.purchaseTotals.currency=pt.amount.currencyCode;
+		request.purchaseTotals.grandTotalAmount=StringUtils.formatNumber(pt.amount.value,"000000.00","en_US");
+			
+		request.ccCaptureService=new CybersourceHelper.csReference.CCCaptureService();	
+		request.ccCaptureService.run=true;
+		request.ccCaptureService.authRequestID = pt.transactionID;	
+		request.ccCaptureService.authRequestToken = pt.custom.requestToken;	
+	},
+		
+	/*****************************************************************************
+	 * request   : Object, 
+	 * billTo    : BillTo_Object, 
+	 * shipTo    : ShipTo_Object, 
+	 * purchase  : PurchaseTotals_Object, 
+	 * card      : Card_Object,
+	 * refCode   : String                    - Basket.UUID
+	 *****************************************************************************/	
+	addPayPalAuthRequestInfo : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, purchase : PurchaseTotals_Object, card : Card_Object,refCode : String)
+	{
+		request.merchantID = CybersourceHelper.getMerchantID();
+		__setClientData( request, refCode );
+		request.billTo = __copyBillTo( billTo );
+		request.shipTo = __copyShipTo( shipTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );
+		// request.card = __copyCreditCard( card );
+		
+		request.payPalButtonCreateService = new CybersourceHelper.csReference.PayPalButtonCreateService();
+		request.payPalButtonCreateService.buttonType = "Buy";
+		request.payPalButtonCreateService.run = true;
+		
+		/*
+		request.payPalPaymentService = new CybersourceHelper.csReference.PayPalPaymentService();
+      	request.payPalPaymentService.cancelURL        = "COPayments-Start";
+      	request.payPalPaymentService.successURL       = "COSubmit-ReturnFromPayPal";
+      	request.payPalPaymentService.reconciliationID = "";
+		request.payPalPaymentService.run = true;
+		*/	
+	},
+	/*CC Auth with out basket*/
+	addCCAuthRequestInfo : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, purchase : PurchaseTotals_Object, card : Card_Object , refCode : String , enableDeviceFingerprint : Boolean)
+	{
+		
+		request.merchantID = CybersourceHelper.getMerchantID();
+		var fingerprint : String  = null;
+		if (enableDeviceFingerprint) {
+		  fingerprint =  session.sessionID;
+		}
+		
+		__setClientData( request, refCode , fingerprint );
+		request.billTo = __copyBillTo( billTo );
+		request.shipTo = __copyShipTo( shipTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );
+		request.card = __copyCreditCard( card );
+		
+		request.ccAuthService = new CybersourceHelper.csReference.CCAuthService();		
+		request.ccAuthService.run = true;	
+	},
+	/*****************************************************************************	
+	 * request  : Object, 
+	 * billTo   : BillTo_Object, 
+	 * shipTo   : ShipTo_Object, 
+	 * purchase : PurchaseTotals_Object, 
+	 * card     : Card_Object,
+	 * refCode  : String   - Basket.UUID
+	 *****************************************************************************/	
+	addCCAuthRequestInfoWB : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, purchase : PurchaseTotals_Object, subscriptionId : String , refCode : String , enableDeviceFingerprint : Boolean, basket : Basket, _currentAuthShipmentId : String,customerGroups : String)
+	{
+		var shipmentforAuth : Shipment = basket.getShipment(_currentAuthShipmentId);
+		request.merchantID = CybersourceHelper.getMerchantID();
+		var fingerprint : String  = null;
+		//Blocking fingerprint for call center IP : PANC-698
+		var checkCallcenterIP : Boolean = (!empty(billTo['ipAddress'])&&(billTo['ipAddress'].length > 0))?true:false;
+		if (enableDeviceFingerprint && checkCallcenterIP) {
+		  fingerprint =  session.sessionID;
+		}
+		
+		__setClientData( request, refCode , fingerprint );
+		request.shipTo = __copyShipTo( shipTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );		
+		// Always send billing address, regardless of whether it's token or card for auth.
+		// This enables AVS using submitted address instead of the original address when first tokenized.
+		request.billTo = __copyBillTo( billTo );
+		
+		// If pay subscription ID (aka payment token) is enabled and a subscription ID is available
+		// for this card, pass the subscription token and do not send the unencrypted card number.
+		request.recurringSubscriptionInfo = new CybersourceHelper.csReference.RecurringSubscriptionInfo();
+		request.recurringSubscriptionInfo.subscriptionID = subscriptionId;
+		
+		var merchantDD = new CybersourceHelper.csReference.MerchantDefinedData();
+		if( basket.getShipments().getLength() > 1 ){
+			merchantDD.field1 = "MULTISHIP";
+			request.merchantDefinedData = merchantDD;
+		}
+		
+		//Adding device (desktop/mobile) information PANC:656
+		merchantDD.field2 = session.custom.device;
+		//Adding source code information PANC:450
+		if(('SourceCode' in session.privacy ) && !empty(session.privacy.SourceCode)){
+		 	merchantDD.field3 = session.privacy.SourceCode;
+		}
+		//Adding customer group information  PANC:450
+		if(customerGroups.length > 0){
+			merchantDD.field4 = customerGroups;
+		}
+		request.merchantDefinedData = merchantDD;
+		
+		//Passing CVV through card obj PANC:660
+		var card = new CybersourceHelper.csReference.Card();
+		if(('cvn' in session.privacy) && !empty(session.privacy.cvn)){
+			card.cvNumber = session.privacy.cvn;
+			//Clearing the cvn from session
+			session.privacy.cvn = null;
+		}
+		request.card = card;
+		// Client Rewards cards require individual line items for merchandise,
+		// shipping, and tax. Use amounts from purchaseTotals to create these.
+		var items : Array = new Array();
+
+		// Having individual sku details in auth request. 
+		var counter : Number = 0;		
+		for each(var pli : ProductLineItem in shipmentforAuth.getProductLineItems()){
+			var item = new CybersourceHelper.csReference.Item();
+			item.id = counter;
+			item.quantity = pli.getQuantity().value;
+			item.unitPrice = StringUtils.formatNumber(pli.getProduct().getPriceModel().getPrice().value,"000000.00","en_US");
+			//Start JIRA PANC-353
+			if(empty(pli.getProduct().getName())) {
+				item.productName = pli.getProduct().ID;
+			} else {
+				item.productName = pli.getProduct().getName();
+			}
+			//End JIRA PANC-353
+			item.productSKU = pli.getProduct().ID;
+			item.productCode = pli.getProduct().ID;
+			items.push(item);
+			counter++;
+		}
+		
+		// getting basket product line item quantity
+		var no_of_lineItems : Number = shipmentforAuth.getProductLineItems().length;
+		
+		// Shipping amount line item
+		item = new CybersourceHelper.csReference.Item();
+		item.id = no_of_lineItems.toFixed();
+		item.quantity = 1;
+		item.unitPrice = purchase.getTaxAmount(); 
+		item.productCode = 'TAX001';
+		item.productName = 'Tax';
+		item.productSKU = 'TAX001';
+		items.push(item);
+		no_of_lineItems++;
+		
+		// Tax amount line item
+		item = new CybersourceHelper.csReference.Item();
+		item.id = no_of_lineItems.toFixed();
+		item.quantity = 1;
+		item.unitPrice = purchase.getFreightAmount();
+		item.productCode = 'SHP001';
+		item.productName = 'Shipping and Handling';
+		item.productSKU = 'SHP001';
+		items.push(item);
+		
+		// Add items to auth request
+		request.item = items;
+		
+		request.ccAuthService = new CybersourceHelper.csReference.CCAuthService();		
+		request.ccAuthService.run = true;
+		
+		//Add DecisionManager values to request obj : PANC-230
+		var dManager = new CybersourceHelper.csReference.DecisionManager();
+		dManager.enabled = true;
+		request.decisionManager = dManager;
+		
+	},
+
+	addBMLAuthRequestInfo : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, purchase : PurchaseTotals_Object, card : Card_Object,bml : BML_Object, promo : Boolean, refCode : String)
+	{			
+		request.merchantID = CybersourceHelper.getBMLMerchantID();
+		__setClientData( request, refCode );
+		request.billTo = __copyBillTo( billTo );
+		request.shipTo = __copyShipTo( shipTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );
+		request.card = __copyCreditCard( card );
+		request.bml = __copyBml( bml );
+		
+		request.ccAuthService=new CybersourceHelper.csReference.CCAuthService();	
+		request.ccAuthService.run=true;	
+	},
+
+
+	addDAVRequestInfo : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, ignoreDAVResult : boolean, refCode : String )
+	{
+		request.merchantID = CybersourceHelper.getMerchantID();
+		if( !empty(refCode) ) {
+			__setClientData( request, refCode );
+		}
+		request.billTo = __copyBillTo( billTo );
+		request.shipTo = __copyShipTo( shipTo );
+
+		request.davService=new CybersourceHelper.csReference.DAVService();	
+		request.davService.run=true;
+
+		if( !("businessRules" in request && !empty(request.businessRules)) ) {
+			request.businessRules = new CybersourceHelper.csReference.BusinessRules();				
+		}
+		
+		if( ignoreDAVResult ) {
+			request.businessRules.ignoreDAVResult = true;
+		} else {
+			request.businessRules.ignoreDAVResult = false;	
+		}
+	},
+	
+	
+	addAVSRequestInfo : function(request : Object, ignoreAVSResult : Boolean, declineAVSFlags : String )
+	{
+		if( !("businessRules" in request && !empty(request.businessRules)) ) {
+			request.businessRules = new CybersourceHelper.csReference.BusinessRules();				
+		}
+		
+		if( !empty(ignoreAVSResult) && ignoreAVSResult.valueOf() ) {
+			request.businessRules.ignoreAVSResult = true;
+		} else {
+			request.businessRules.ignoreAVSResult = false;
+		}
+		
+		if( !empty(declineAVSFlags) ) {
+			request.businessRules.declineAVSFlags = declineAVSFlags;
+		}
+	},
+	
+	
+	addPayerAuthEnrollInfo : function(request : Object, orderNo : String, creditCardForm : dw.web.FormElement, countryCode : String, amount : dw.value.Money, request : Request){
+		request.merchantID = CybersourceHelper.getMerchantID();
+		
+		__setClientData( request, orderNo );
+
+		CybersourceHelper.addCardInfo(request, creditCardForm);
+
+		// enroll specific stuff		
+		request.payerAuthEnrollService = new CybersourceHelper.csReference.PayerAuthEnrollService();
+		request.payerAuthEnrollService.countryCode = countryCode;
+		request.payerAuthEnrollService.merchantID = CybersourceHelper.getPAMerchantID(); // NOT the Cybersource merchant ID
+		request.payerAuthEnrollService.merchantName = CybersourceHelper.getPAMerchantName();
+		request.payerAuthEnrollService.merchantURL = CybersourceHelper.getMerchantURL();
+
+		request.purchaseTotals = new CybersourceHelper.csReference.PurchaseTotals();
+		request.purchaseTotals.currency=amount.currencyCode;
+
+		var items : Array = new Array();
+		var item = new CybersourceHelper.csReference.Item();
+		item.id = 0;
+		item.unitPrice = StringUtils.formatNumber(amount.value,"000000.00","en_US");
+		items.push(item);
+		request.item = items;
+
+		request.payerAuthEnrollService.run=true;
+	},
+	
+	addPayerAuthValidateInfo : function(request : Object, orderNo : String, signedPARes : String, creditCardForm : dw.web.FormElement, currency : String){
+		request.merchantID = CybersourceHelper.getMerchantID();
+		
+		__setClientData( request, orderNo );
+
+		CybersourceHelper.addCardInfo(request, creditCardForm);
+
+		// validate specific stuff
+		request.payerAuthValidateService = new CybersourceHelper.csReference.PayerAuthValidateService();
+		request.payerAuthValidateService.signedPARes = signedPARes;
+
+		request.purchaseTotals = new CybersourceHelper.csReference.PurchaseTotals();
+		request.purchaseTotals.currency=currency;
+
+		request.payerAuthValidateService.run=true;
+	},
+	
+	addPayerAuthReplyInfo : function(request : Object, cavv : String, ucafAuthenticationData : String, ucafCollectionIndicator : String, eciRaw : String, commerceIndicator : String, xid : String){
+		if(request.ccAuthService == null){
+			request.ccAuthService=new CybersourceHelper.csReference.CCAuthService();
+		}
+		request.ccAuthService.commerceIndicator = commerceIndicator;
+		request.ccAuthService.xid = xid;
+		if(cavv != null){
+			request.ccAuthService.cavv = cavv;	
+		}
+		if(eciRaw != null){
+			request.ccAuthService.eciRaw = eciRaw;	
+		}
+		if(ucafAuthenticationData != null){
+			request.ucaf = new CybersourceHelper.csReference.UCAF();
+			request.ucaf.authenticationData = ucafAuthenticationData;
+			request.ucaf.collectionIndicator = ucafCollectionIndicator;
+		}
+	},
+
+   addTaxRequest : function(request : Object, billTo : BillTo_Object, shipTo : ShipTo_Object, purchase : PurchaseTotals_Object, card : Card_Object, shipFrom : ShipFrom_Object, taxService : TaxService_Object, items : Array, refCode : String)
+   {
+		request.merchantID = CybersourceHelper.getMerchantID();
+		__setClientData( request, refCode );
+		request.billTo     = __copyBillTo( billTo );
+		request.shipTo     = __copyShipTo( shipTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );
+		request.card       = __copyCreditCard( card );
+		request.taxService = __copyTaxService( taxService );
+		request.shipFrom   = __copyShipFrom  ( shipFrom );
+		
+		// Nexus / No Nexus
+		var nexus : String		= CybersourceHelper.getNexus();
+		var noNexus : String	= CybersourceHelper.getNoNexus();
+		if(!empty(nexus) && empty(noNexus)) {			
+			request.taxService.nexus	= nexus;
+		}
+		else if(!empty(noNexus) && empty(nexus)) {			
+			request.taxService.noNexus	= noNexus;
+		}
+		else if(!empty(noNexus) && !empty(nexus)) {			
+			Logger.error("[libCybersource.ds] Nexus and NoNexus contains data. Please specify Nexus OR NoNexus!");
+			return PIPELET_ERROR;
+		}
+	
+		var _items : Array = new Array();
+		var length : Number = items.length;
+		var i = 0;
+		while(i < length){
+			_items[i] = items[i];
+			i++;
+		}
+		request.item = _items;
+		request.taxService.run=true;	
+	},
+	
+	addPaySubscriptionCreateService : function(request : Object, billTo : BillTo_Object, purchase : PurchaseTotals_Object, card : Card_Object, refCode : String, decisionManager_enabled: String, requestID : String) {
+		request.merchantID = CybersourceHelper.getMerchantID();
+		__setClientData( request, refCode );
+		request.billTo     = __copyBillTo( billTo );
+		request.purchaseTotals = __copyPurchaseTotals( purchase );
+		request.card       = __copyCreditCard( card );
+		request.paySubscriptionCreateService = new CybersourceHelper.csReference.PaySubscriptionCreateService();
+		request.paySubscriptionCreateService.paymentRequestID = requestID;
+		request.paySubscriptionCreateService.disableAutoAuth = 'true';
+		request.paySubscriptionCreateService.run = 'true';
+		request.recurringSubscriptionInfo = new CybersourceHelper.csReference.RecurringSubscriptionInfo();
+		request.recurringSubscriptionInfo.frequency = 'on-demand';
+	},
+	
+	//Method for fetching Card Number from Subscription ID
+	addPaySubscriptionRetrieveService : function(
+                                                   request : Object,
+                                                   refCode : String,
+                                                   subscriptionID : String)
+       {
+       request.merchantID = CybersourceHelper.getMerchantID();
+       __setClientData( request, refCode );
+       request.recurringSubscriptionInfo = new CybersourceHelper.csReference.RecurringSubscriptionInfo();
+       request.recurringSubscriptionInfo.subscriptionID = subscriptionID;
+       request.paySubscriptionRetrieveService = new CybersourceHelper.csReference.PaySubscriptionRetrieveService();
+       request.paySubscriptionRetrieveService.run = true;
+       }
+	
+}
+
+// Helper method to export the helper
+function getCybersourceHelper()
+{
+	return CybersourceHelper;
+}
+
+function __setClientData( request : Object, refCode : String , fingerprint : String  )
+{
+	request.merchantReferenceCode = refCode; 
+	request.clientLibrary='Demandware';
+	request.clientLibraryVersion='2.2';
+	request.clientEnvironment='Linux';
+	if (fingerprint) {
+	  request.deviceFingerprintID = fingerprint;
+	}
+}
+
+function __copyBillTo( billTo : BillTo_Object ) : Object
+{
+	var request_billTo : Object = new CybersourceHelper.csReference.BillTo();
+	var value : String;
+	for ( var name : String in billTo )
+	{
+		if( name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = billTo[name];
+			if(value != "" && name in request_billTo)
+			{
+				request_billTo[name] = value;
+			}
+		}
+	}
+	return request_billTo;
+}
+
+function __copyShipTo( shipTo : ShipTo_Object ) : Object
+{
+	var request_shipTo : Object = new CybersourceHelper.csReference.ShipTo();	
+	var value : String;
+	for ( var name : String in shipTo )
+	{
+		if(name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = shipTo[name];
+			if(value != "" && name in request_shipTo)
+			{
+				request_shipTo[name] = value;
+			}
+		}
+	}
+	return request_shipTo;
+}
+
+function __copyPurchaseTotals( purchase : PurchaseTotals_Object ) : Object
+{
+	var request_purchaseTotals : Object = new CybersourceHelper.csReference.PurchaseTotals();	
+	var value : String;
+	for ( var name : String in purchase )
+	{
+		if(name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = purchase[name];
+			if(value != "" && name in request_purchaseTotals)
+			{
+				// trace( "setting purchase attirb " + name + " to " + value );
+				request_purchaseTotals[name] = value;
+			}
+		}
+	}
+	return request_purchaseTotals;
+}
+
+function __copyCreditCard( card : Card_Object ) : Object
+{
+	var request_card : Object = new CybersourceHelper.csReference.Card();		
+	var value : String;
+	for ( var name : String in card)
+	{
+		if(name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = card[name];
+			if(value != "" && name in request_card)
+			{
+				// trace( "setting card attirb " + name + " to " + value );
+				request_card[name] = value;
+			}
+		}
+	}
+	return request_card;
+}
+
+function __copyBml( bml : BML_Object ) : Object
+{ 
+	var request_bml = new CybersourceHelper.csReference.BML();
+	var value : String;
+	for ( var name : String in bml)
+	{
+		if(name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = bml[name];
+			if(value != "" && name in request_bml)
+			{
+				request_bml[name] = value;
+			}
+		}
+	}
+	return request_bml;
+}
+
+function __copyTaxService( taxService : TaxService_Object ) : Object
+{
+	var request_taxService : Object = new CybersourceHelper.csReference.TaxService();		
+	var value : String;
+	for ( var name : String in taxService)
+	{
+		if(name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = taxService[name];
+			if(value != "" && name in request_taxService)
+			{
+				request_taxService[name] = value;
+			}
+		}
+	}
+	return request_taxService;
+}
+
+function __copyShipFrom( shipFrom : ShipFrom_Object ) : Object
+{
+	var request_shipFrom : Object = new CybersourceHelper.csReference.ShipFrom();
+	var value : String;
+	for ( var name : String in shipFrom)
+	{
+		if ( name.indexOf("set") == -1 && name.indexOf("get") == -1)
+		{
+			value = shipFrom[name];
+			if(value != "" && name in request_shipFrom)
+			{
+				request_shipFrom[name] = value;
+			}
+		}
+	}
+	return request_shipFrom;
+}
+
+function __copyTaxAmounts( _taxReply : Object ) : Object
+{
+	var taxReply : Object = new Object();
+	var value : String;
+	for ( var name : String in _taxReply ) {
+		if(name.indexOf("Amount")>-1 ) {
+			value = _taxReply[name];
+			taxReply[name] = value;
+		}
+	}
+	return taxReply;
+}

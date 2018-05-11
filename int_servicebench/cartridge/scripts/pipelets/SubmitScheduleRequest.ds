@@ -1,0 +1,155 @@
+/**
+*
+* TITLE:  
+*
+*	Service Bench status request
+*
+* 
+*
+*	
+*
+* INPUT PARAMETERS:
+*
+*	
+* 	
+* 	
+*
+* 	
+*
+* OUPUT PARAMETERS:
+*
+* 	@input CurrentCustomer : dw.customer.Customer
+*   @input request : dw.system.Request
+*   @input session : dw.system.Session
+* 	@output WSResponse : Object
+* 	@output WSResponseStatus : String
+* 	@output WSResponseErrorText : String
+* 	@output error : Object
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.customer );
+
+importScript("int_servicebench:sb/Credentials.ds");
+
+var sf = require("bc_serviceframework");
+require("../services/SubmitScheduleRequestService");
+
+
+function execute(pdict) {
+	
+	try{
+		
+		var session : Session = pdict.session;
+		
+		var SubmitScheduleRequestService = sf.getService("SubmitScheduleRequestService");
+		var service = new SubmitScheduleRequestService();
+		
+		var sbObject : Object	=	new Object();
+		
+		var repairRequestForm : dw.web.FormElement = pdict.CurrentForms.repairsubmit;
+		
+		var dateOfPurchase =  repairRequestForm.year.value + repairRequestForm.month.value + repairRequestForm.day.value;
+		
+		sbObject.sourceSystemName 		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemName");
+		sbObject.sourceSystemVersion 	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemVersion");
+		//sbObject.requestControlID		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_requestControlID");
+		sbObject.serviceOrderType		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_serviceOrderType");
+		sbObject.customerNumber			= pdict.CurrentCustomer.profile.customerNo;
+		//sbObject.customerBillingAcct	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_customerBillingAcct");
+		//sbObject.companyName			= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_companyName");
+		
+		//entering the shipping/repair related customer address.
+		
+		sbObject.lastName				= session.privacy.serviceBenchObject.shippingAddress.lastName;
+		sbObject.firstName				= session.privacy.serviceBenchObject.shippingAddress.firstName;
+		sbObject.address1				= session.privacy.serviceBenchObject.shippingAddress.address1;
+		sbObject.city					= session.privacy.serviceBenchObject.shippingAddress.city;
+		sbObject.stateProvince			= session.privacy.serviceBenchObject.shippingAddress.state;
+		sbObject.postalCode				= session.privacy.serviceBenchObject.shippingAddress.postal;
+		sbObject.country				= "US";
+		sbObject.homePhone				= session.privacy.serviceBenchObject.shippingAddress.phone;
+		sbObject.workPhone				= session.privacy.serviceBenchObject.shippingAddress.phone;
+		
+		// Entering the billing related customer address.
+												  
+		sbObject.accountAddress1		= session.privacy.serviceBenchObject.billingAddress.address1;
+		sbObject.accountCity			= session.privacy.serviceBenchObject.billingAddress.city;
+		sbObject.accountStateProvince	= session.privacy.serviceBenchObject.billingAddress.state;
+		sbObject.accountPostalCode		= session.privacy.serviceBenchObject.billingAddress.postal;
+		sbObject.accountPhone			= session.privacy.serviceBenchObject.billingAddress.phone;
+		sbObject.accountWorkPhone		= session.privacy.serviceBenchObject.billingAddress.phone;
+		sbObject.serviceDescription		= session.privacy.serviceBenchObject.shippingAddress.problemDescription;
+		sbObject.emailAddress			= session.privacy.serviceBenchObject.billingAddress.emailAddress;
+		sbObject.warrantyStatusLabor	= session.custom.warrantyStatusLabor;
+		sbObject.warrantyStatusPart	= session.custom.warrantyStatusPart;
+		
+		// Other details Related to the Request
+		 
+		sbObject.serviceProviderAccount = dw.system.Site.getCurrent().getCustomPreferenceValue("SB_serviceProviderAccount");
+		sbObject.crmNumber				= pdict.CurrentCustomer.profile.customerNo;
+		sbObject.serviceJobType			= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_serviceJobType");
+		sbObject.forceBooked			= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_forceBooked");
+		sbObject.contractPurchaseDate	= dateOfPurchase;
+		sbObject.mailingLabelMethod		= "2";
+		sbObject.preferredContactMethod = "1";
+		sbObject.primaryPhoneNumber		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_primaryPhoneNumber");
+		sbObject.skippedAvailability	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_skippedAvailability");
+		sbObject.servicePurchaseDate	= dateOfPurchase;
+		sbObject.modelID				= repairRequestForm.mnumber.value;
+		sbObject.serialNumb				= repairRequestForm.snumber.value;
+		sbObject.modelPurchaseDate		= dateOfPurchase;
+		//sbObject.cardType;
+		sbObject.cardHolderFirstName	= session.privacy.serviceBenchObject.creditCard.owner;
+		sbObject.cardHolderLastName		= session.privacy.serviceBenchObject.creditCard.cclastname;
+		sbObject.cardNumber				= session.privacy.serviceBenchObject.creditCard.number;
+		sbObject.unmaskedcardnumber		= session.privacy.serviceBenchObject.creditCard.unmaskedcardnumber;
+		sbObject.cvn					= session.privacy.serviceBenchObject.creditCard.cvn;
+		sbObject.cardType				= session.privacy.serviceBenchObject.creditCard.type;
+		sbObject.cardName				= session.privacy.serviceBenchObject.creditCard.cardname;
+		if(session.privacy.serviceBenchObject.creditCard.year != null){
+			var month : String = session.privacy.serviceBenchObject.creditCard.month;
+			var len = month.toString().length;
+			if(month.toString().length > 1){
+				sbObject.expirationDate			= month + session.privacy.serviceBenchObject.creditCard.year.toString();
+			}else{
+				
+				sbObject.expirationDate			= '0' + month + session.privacy.serviceBenchObject.creditCard.year.toString();
+			}
+		}
+		sbObject.authorizedAmount		= session.custom.warrantyShipAmount + session.custom.warrantyExchangeAmount;
+		/*sbObject.warehouseServicesType	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_warehouseServicesType");
+		sbObject.clientAccountNumber	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_clientAccountNumber");
+		sbObject.plantCode				= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_plantCode");
+		sbObject.itemNumber 			= "280";
+		sbObject.modelNumber			= repairRequestForm.mnumber.value;
+		sbObject.serialNumber			= repairRequestForm.snumber.value;
+		sbObject.quantity				= "1";
+		sbObject.depotLocationCode		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_depotLocationCode");
+		sbObject.rmaNumber				= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_rmaNumber");
+		sbObject.rmaType				= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_rmaType");
+		sbObject.rmaPostedDate			= dateOfPurchase;*/
+		
+		service.call(sbObject);
+		
+		//response handling
+		var response  : Object = service.response;
+	}
+	catch(e){
+		var error = e;
+		pdict.error = error;
+		return PIPELET_ERROR;
+	}
+	
+	pdict.WSResponse = response;
+	if(response!=null){
+		pdict.WSResponseStatus = response.msgStatus;
+	}else{ 
+		pdict.WSResponseStatus = ERROR;
+	}
+	
+   	return PIPELET_NEXT;
+}

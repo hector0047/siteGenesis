@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19" secure="true">
+	<field formid="username" label="label.email" type="string" mandatory="true" binding="username"/>
+	<field formid="refcode" label="Code" type="string" mandatory="true" binding="refcode"/>
+	<!-- This form action is necessary Ref-code check -->
+	<action formid="continue" valid-form="true"/>	
+</form>

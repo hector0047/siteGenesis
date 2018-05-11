@@ -1,0 +1,16 @@
+<!--- TEMPLATENAME: lastvisitedproducts.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+</isscript>
+<isinclude template="util/modules"/>
+<isif condition="${pdict.lastVariants.length > 0}">
+<h2>${Resource.msg('product.recentlyviewed','product',null)}</h2>
+<ul>
+<isloop items="${pdict.lastVariants}" var="lastvariant"  status="status"> 
+<li class="<isif condition="${status.first}">first</isif> <isif condition="${status.last}">last</isif>">
+		<isproducttilepdp product="${lastvariant}" showswatches="${false}" showpricing="${true}" showrating="${true}" cartrefresh="${true}" transformationtemplate="$Cart-Recently-Viewed-Desktop$" />
+</li>
+</isloop>
+</ul>
+</isif>

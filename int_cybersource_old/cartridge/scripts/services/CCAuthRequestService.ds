@@ -1,0 +1,133 @@
+var sf = require("bc_serviceframework");
+var CCAuthRequest = require("../objects/CCAuthRequest");
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage (dw.value);
+
+importScript('cybersource/Cybersource_BillTo_Object.ds');
+importScript('cybersource/Cybersource_ShipTo_Object.ds');
+importScript('cybersource/Cybersource_Card_Object.ds');
+importScript('cybersource/Cybersource_PurchaseTotals_Object.ds');
+importScript('cybersource/libCybersource.ds');
+
+var CybersourceHelper = getCybersourceHelper();	 
+
+function getCCAuthRequestService() {
+	return CCAuthRequestService;
+}
+
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var CCAuthRequestService = sf.getService('AbstractSoapService').extend(
+/** @lends CreditCardCheckerService.prototype */ 
+{
+	/**
+	 * @constructs CreditCardCheckerService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("CybersourceService" , new CCAuthRequest());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.CyberSourceTransaction;
+		this.serviceClient = this.webReference.getService("TransactionProcessor", "portXML");
+		CybersourceHelper.setEndpoint(this.serviceClient);			
+	},
+
+	createRequest: function (ccAuthInfoObj) {	
+		var ccdata : CreditCardInfoHelper			= ccAuthInfoObj.ccdata;		
+		var basket : LineItemCtnr 					= ccAuthInfoObj.basket;  			
+   	    var orderNo : String						= ccAuthInfoObj.orderNo; 			
+		var billToObject: BillTo_Object 			= ccAuthInfoObj.billToObject;		
+		var shipToObject: ShipTo_Object 			= ccAuthInfoObj.shipToObject;		
+		var cardObject: Card_Object 				= ccAuthInfoObj.cardObject;		
+		var purchaseObject: PurchaseTotals_Object  	= ccAuthInfoObj.purchaseObject;    
+		var item : Array							= ccAuthInfoObj.item; 
+		var CAVV :	String							= ccAuthInfoObj.CAVV ;						
+		var UCAFAuthenticationData	: String		= ccAuthInfoObj.UCAFAuthenticationData; 	
+		var UCAFCollectionIndicator	: String		= ccAuthInfoObj.UCAFCollectionIndicator;	
+		var	ECIRaw	: String						= ccAuthInfoObj.ECIRaw; 					
+        var CommerceIndicator : String				= ccAuthInfoObj.CommerceIndicator; 		
+		var	XID	: String							= ccAuthInfoObj.XID; 						
+		var	ParesStatus	: String					= ccAuthInfoObj.ParesStatus; 				
+		
+		if(!CybersourceHelper.createHeader(this.serviceClient))
+		{
+			return null;
+		}	
+		//var requestObject = new this.webReference.CheckCC();
+		//requestObject.setCardNumber(creditCardNumber);		
+		//return requestObject;	
+		
+				
+		//**************************************************************************//
+		// the request object holds the input parameter for the AUTH request
+		//**************************************************************************//	
+		var request = new this.webReference.RequestMessage();
+		CybersourceHelper.addCCAuthRequestInfo(request,billToObject,shipToObject,purchaseObject,cardObject,orderNo, CybersourceHelper.getDigitalFingerprintEnabled(), item);		
+		if(XID != null)
+		{
+			CybersourceHelper.addPayerAuthReplyInfo(request, CAVV, UCAFAuthenticationData, UCAFCollectionIndicator, ECIRaw, CommerceIndicator, XID, ParesStatus);
+		}
+			
+		/********************************/
+		/* TOKEN-related WebService setup */
+		/********************************/
+		var enableTokenization : String = CybersourceHelper.getTokenizationEnabled();
+		if(enableTokenization=='YES')
+			CybersourceHelper.addPaySubscriptionCreateService(request,billToObject,purchaseObject,cardObject,orderNo);
+		
+		/********************************/
+		/* DAV-related WebService setup */
+		/********************************/	
+		var enableDAV : String = CybersourceHelper.getDavEnable();
+		var approveDAV : String = CybersourceHelper.getDavOnAddressVerificationFailure();
+		
+		if( enableDAV=='YES' ) {
+			var ignoreDAVResult = false;
+			if( approveDAV=='APPROVE' ) {
+				ignoreDAVResult = true;
+			}
+			CybersourceHelper.addDAVRequestInfo(request,billToObject,shipToObject,ignoreDAVResult);
+		}
+		/* End of DAV WebService setup */
+		
+		/* AVS Service setup */
+		var ignoreAVSResult : Boolean = CybersourceHelper.getAvsIgnoreResult();
+		var declineAVSFlags : String = CybersourceHelper.getAvsDeclineFlags();
+		
+		CybersourceHelper.addAVSRequestInfo(request,ignoreAVSResult,declineAVSFlags);
+		/* End of AVS Service setup */
+		
+		return request;
+				
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.runTransaction(this.request);
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('CybersourceService',CCAuthRequestService);

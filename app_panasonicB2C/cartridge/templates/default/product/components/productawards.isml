@@ -1,0 +1,13 @@
+<div class="product-awards-holder">
+<h2 class="block-headline"><isprint value="${Resource.msg('product.lefttab5','product',null)}" encoding="off"/></h2>
+	<div class="PDPFeaturecontent">
+		<ul class="awards-holder-ul">
+			<isloop items="${pdict.ProductOwnerImages}" var="url" status="loopstate">
+				<li class="awards-content-block <isif condition="${loopstate.first}">first</isif>">
+					<div class="awards-icon-holder"><img alt="${url.toString().split('$')[0]}?$PDP-Awards-Desktop$" src="${url.toString().split('$')[1]}?$PDP-Awards-Desktop$"/></div>
+					<div class="awards-name"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></div>
+				</li>
+			</isloop>
+		</ul>
+	</div>
+</div>

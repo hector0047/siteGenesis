@@ -1,0 +1,33 @@
+/**
+* This script loads All Amplience content assets that need to be migrated
+* 
+* @output AssetsForMigration : dw.util.Collection
+* @output AssetsForMigrationCount : Number
+*
+*/
+importPackage( dw.system );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		/**
+		 * Get All Content Assets that need to be migrated.
+		 */
+		var ampContentAssetsHelper = new AmplienceContentAssetsHelper();
+		var assetsForMigration : Collection = ampContentAssetsHelper.getAllContentAssetsForMigration();
+
+		args.AssetsForMigration = assetsForMigration;
+		args.AssetsForMigrationCount = assetsForMigration.size();
+		
+	} catch(e) {
+
+		var errMsg = 'LoadContentAssetsForMigration.ds : ' + e.message;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

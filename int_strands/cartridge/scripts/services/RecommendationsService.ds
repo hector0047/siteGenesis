@@ -1,0 +1,65 @@
+var sf = require("bc_serviceframework");
+var Recommendations = require("../objects/Recommendations");
+
+importPackage(dw.system);
+importPackage(dw.net);
+
+function getRecommendationsService() {
+	return RecommendationsService;
+}
+
+
+var RecommendationsService = sf.getService('AbstractHTTPService').extend (
+/** @lends RecommendationsService.prototype */ 
+{
+	/**
+	 * @constructs RecommendationsService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("RecommendationsService", new Recommendations()); 	
+		
+	},
+	
+	createRequest: function (recprod) {		
+		
+		var user : String = recprod.user;	
+		var product : String = recprod.product;
+				
+		var strandsUrl = 'http://bizsolutions.strands.com/api2/recs/item/get.sbs?';
+	
+		var cartString : String = strandsUrl +'apid=' + dw.crypto.Encoding.toURI(dw.system.Site.current.preferences.custom.StrandsApiID);
+				
+		cartString += '&tpl=' + "prod";
+		//var user = args.User;
+		cartString += '&user=' + user;
+		
+		cartString += '&format=' + "json";
+		
+		cartString += '&metadata=' + "false";
+		
+		cartString += '&item=' + product;
+		
+		return cartString;					
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		 var eventCart : HTTPClient = this.serviceClient;
+	   		eventCart.setTimeout(1000);
+    		eventCart.open("GET", this.request);
+    		eventCart.send();  		
+	   		return eventCart;
+	},
+	
+	
+	/*getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}*/
+	
+});
+
+sf.registerService("RecommendationsService", RecommendationsService);

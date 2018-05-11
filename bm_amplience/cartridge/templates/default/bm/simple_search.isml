@@ -1,0 +1,21 @@
+<!--- TEMPLATENAME: search_streams.isml --->
+
+<div class="amp-module-search">
+	<p class="search-title">
+		<isprint value="${Resource.msg('components.search.searchheader','locale',null)}" />
+	</p>
+	
+	<form name="search" action="${pdict.AbsPageURL}" method="get" >
+		<label for="q" class="infobox_item"><isprint value="${Resource.msg('components.search.label','locale',null)}" /></label>
+		
+		<input id="q" class="inputfield_en" name="q" type="text" size="35" maxlength="255"
+			<isif condition="${!empty(pdict.CurrentHttpParameterMap.q.stringValue)}">
+				value="${pdict.CurrentHttpParameterMap.q.stringValue}"	
+			</isif>
+		/>
+		<input name="active_tab" value="${pdict.ActiveTab}" type="hidden" />
+		<input name="selectedAreaIDs" value="${pdict.SelectedAreaIDs}" type="hidden" />
+		<button class="button" type="submit"><isprint value="${Resource.msg('components.search.find','locale',null)}" /></button>
+	</form>
+	
+</div>

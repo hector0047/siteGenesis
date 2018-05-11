@@ -1,0 +1,87 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/pt_account">
+	<isinclude template="util/modules"/>
+	
+	<div class="desktopBlock"><isslot id="account-banner" description="Banner for My Account pages" context="global" /></div>
+	
+	<iscomment>Builds a registration page for the user. It provides all input fields for names and address</iscomment>
+
+		<isif condition="${!empty(pdict.Action) && pdict.Action == 'edit'}">
+			<h1>${Resource.msg('account.editaccount','account',null)}</h1>
+		<iselse/>
+			<h1>${Resource.msg('account.createnew','account',null)}</h1>
+			<h3 class="head-info">${Resource.msg('account.createnew.info','account',null)} <a href="${URLUtils.https('Account-Show')}">sign in.</a></h3>
+		</isif>
+
+		<iscomment>Only enable the facebook registration if the customer isn't authenticated</iscomment>
+		<isif condition="${!pdict.CurrentCustomer.authenticated &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookConnectEnabled')) &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookAppID') != null) &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookURI') != null)
+							}">
+			<isinclude template="account/facebook/facebookregistration"/>
+		</isif>
+
+		<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationForm">
+
+			<fieldset>
+			<iscomment> 
+				<legend>
+					${Resource.msg('registration.name','account',null)}
+					<span>&#8226; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span>
+				</legend>
+			</iscomment>
+				<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.title}" type="select" class="title" requiredtextstar="true" requiredtext="${Resource.msg('createprofile.title','forms',null)}"/>
+				</div>
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.firstname}" type="input" rowclass="firstrow-cont" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}" attribute1="placeholder" value1="First Name*"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.lastname}" type="input" rowclass="loginfieldright" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}" attribute1="placeholder" value1="Last Name*"/>
+				</div>
+				<iselse/>
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.firstname}" type="input" attribute1="disabled" value1="disabled" rowclass="firstrow-cont" attribute2="placeholder" value1="First Name*"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.lastname}" type="input" rowclass="loginfieldright" attribute1="disabled" value1="disabled" attribute2="placeholder" value1="Last Name*"/>
+				</div>
+				</isif>
+			</fieldset>
+			
+			
+			<fieldset>
+			<iscomment> 
+				<legend>
+					${Resource.msg('registration.logininfo','account',null)}
+					<div class="dialog-required"> <span class="required-indicator">&#8226; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+				</legend>
+			</iscomment>
+				<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.email}" type="input" xhtmlclass="email" rowclass="firstrow-cont" requiredtext="${Resource.msg('profile.customer.email.missing-error','forms',null)}" attribute1="placeholder" value1="Email*"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.emailconfirm}" type="input" xhtmlclass="email" rowclass="loginfieldright" requiredtext="${Resource.msg('logincreate.usernameconfirm.missing-error','forms',null)}" attribute1="placeholder" value1="Confirm Email*"/>
+				</div>
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.login.password}" type="password" rowclass="firstrow-cont" requiredtext="${Resource.msg('login.newpassword.missing-error','forms',null)}" attribute1="placeholder" value1="Password*"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.login.passwordconfirm}" type="password" rowclass="loginfieldright" requiredtext="${Resource.msg('login.newpasswordcon.missing-error','forms',null)}" attribute1="placeholder" value1="Confirm Password*"/>
+				</div>
+				<iselse/>
+				<div class="pnsb2c-creat-accnt-form-row">
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.email}" type="input" attribute1="disabled" value1="disabled" rowclass="firstrow-cont"/>
+				</div>
+				</isif>					
+				<isinputfield formfield="${pdict.CurrentForms.profile.customer.addtoemaillist}" type="checkbox" rowclass="form-indent label-inline creat-accnt-formindent tickmark" attribute1="checked" value1="checked"/>
+				<div class="form-row form-row-button pnsb2c-create-accnt-butn-holder">
+					<button type="submit" value="${Resource.msg('global.continue','locale',null)}" name="${pdict.CurrentForms.profile.confirm.htmlName}">
+						${Resource.msg('global.continueInCaps','locale',null)}
+					</button>
+				</div>
+				<div class="form-caption pnsb2c-create-acnt-policy">
+					<iscontentasset aid="terms-privacy-policy"/>
+				</div>	 	
+				<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>	
+				
+			</fieldset>
+			
+		</form>
+	
+</isdecorate>

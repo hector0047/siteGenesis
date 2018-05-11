@@ -1,0 +1,25 @@
+<iscache type="relative" hour="24"/>
+<isset name="DecoratorTemplate" value="util/pt_empty" scope="page"/>
+
+<isif condition="${pdict.Content != null && pdict.Content.custom.amplienceStandalonePage == true && pdict.SlotContent == null}">
+	<isset name="DecoratorTemplate" value="content/home/pt_storefront" scope="page"/>
+</isif>
+
+<isdecorate template="${DecoratorTemplate}">
+<iscomment>
+  Renders amplience HTML content asset. This template is supposed to be included by another
+  template. The enclosing template would define caching attributes.
+</iscomment>
+
+<iscomment>make sure we have an asset at all</iscomment>
+<isif condition="${pdict.Content != null}">
+	<isscript>
+		importScript("amplience/libAmplienceContent.ds");
+		var ampContent = new AmplienceContent( pdict.Content );
+		var content = ampContent.getContent();
+	</isscript>
+	<div class="content-asset"><!-- dwMarker="content" dwContentID="${pdict.Content.UUID}" -->
+		<isprint value="${content}" encoding="off"/>
+	</div> <!-- End content-asset -->
+</isif>
+</isdecorate>

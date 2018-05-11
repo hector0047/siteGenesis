@@ -1,0 +1,104 @@
+/**
+* Class which process manifest report functionality, i.e. saving the detailed manifest report as a file
+*
+*/
+importPackage( dw.system );
+importPackage( dw.web );
+importPackage( dw.io );
+
+function ManifestImportReportProcessor() {
+
+	/**
+	 * Iterate through amplience images, asign product names, filter not existing ones and generates a report with the result
+	 *
+	 * @param {Object} manifestImportReport - manifest import report information
+	 * @param {String} filePath - destination file path to store the detailed report
+	 * @param {String} reportStart - Report Start Time
+	 * @param {String} reportEnd - Report End Time
+	 *
+	 */
+	this.saveDetailedReport = function(manifestImportReport : Object, filePath : String, reportStart : String, reportEnd : String) {
+		
+		var file : File = new File(filePath);
+		if (!file.exists()) {
+			file.createNewFile();	
+		}
+
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		
+		fileWriter.writeLine('<!DOCTYPE html>');
+		
+		fileWriter.writeLine('<html>');
+		fileWriter.writeLine('<head>');
+		fileWriter.writeLine('<meta http-equiv="content-type" content="text/html; charset=UTF-8">');
+		fileWriter.writeLine('<style type="text/css">');
+		fileWriter.writeLine('body{font-family: "Helvetica Neue",Helvetica,Arial,Verdana,sans-serif;}');
+		fileWriter.writeLine('table {width:100%;border-collapse:collapse;}');
+		fileWriter.writeLine('tr:nth-of-type(odd){background:#eee;}');
+		fileWriter.writeLine('th{background:#333;color:white;font-weight:bold;}');
+		fileWriter.writeLine('td, th{ padding:6px;border:1px solid #ccc;text-align:left;}');
+		fileWriter.writeLine('h1{color:#84bd00;font-size:28px;}');
+		fileWriter.writeLine('h2{color:#84bd00;font-size:22px;}');
+		fileWriter.writeLine('</style>');
+		fileWriter.writeLine('</head>');
+		fileWriter.writeLine('<body>');
+		fileWriter.writeLine('<h1>' + Resource.msg('detailreport.title','report',null) + '</h1>');
+		fileWriter.writeLine('<p>' + Resource.msg('detailreport.summary','report',null) + '</p>');
+		fileWriter.writeLine('<p>' + Resource.msg('summarymail.starttime','report',null) + ': ' + reportStart + '</p>');
+		fileWriter.writeLine('<p>' + Resource.msg('summarymail.endtime','report',null) + ': ' + reportEnd + '</p>');
+		/**
+		 * Export products without images table
+		 */
+		fileWriter.writeLine('<h2>' + Resource.msg('detailreport.productswithoutimages','report',null) + '</h2>');
+		fileWriter.writeLine('<table>');
+	    fileWriter.writeLine('<thead>');
+	    fileWriter.writeLine('<tr>');
+		fileWriter.writeLine('<th>' + Resource.msg('detailreport.productid','report',null) + '</th>');
+		fileWriter.writeLine('<th>' + Resource.msg('detailreport.productname','report',null) + '</th>');
+		fileWriter.writeLine('<th>' + Resource.msg('detailreport.expectedfilename','report',null) + '</th>');
+		fileWriter.writeLine('</tr>');
+		fileWriter.writeLine('</thead>');
+		fileWriter.writeLine('<tbody>');
+		for each ( var productWithoutImage in manifestImportReport['productsWithoutImagesArray'] ) {
+		
+			fileWriter.writeLine('<tr>');
+			fileWriter.writeLine('<td>' + productWithoutImage['productId'] + '</td>');
+			fileWriter.writeLine('<td>' + productWithoutImage['productName'] + '</td>');
+			fileWriter.writeLine('<td>' + productWithoutImage['expectedFileName'] + '</td>');		
+			fileWriter.writeLine('</tr>');
+		}
+		fileWriter.writeLine('</tbody>');
+		fileWriter.writeLine('</table>');
+		
+		fileWriter.writeLine('<h2>' + Resource.msg('detailreport.notmacthedsets','report',null) + '</h2>');
+		
+		/**
+		 * Export Sets not matched to Products
+		 */
+		fileWriter.writeLine('<table>');
+	    fileWriter.writeLine('<thead>');
+	    fileWriter.writeLine('<tr>');
+		fileWriter.writeLine('<th>' + Resource.msg('detailreport.setdata','report',null) + '</th>');
+		fileWriter.writeLine('</tr>');
+		fileWriter.writeLine('</thead>');
+		fileWriter.writeLine('<tbody>');
+
+		var setIDs : Iterator = manifestImportReport['notMacthedSets'].iterator();
+		while( setIDs.hasNext() ) {
+			
+			var setID = setIDs.next();
+			
+			fileWriter.writeLine('<tr>');
+			fileWriter.writeLine('<td>' + setID + '</td>');	
+			fileWriter.writeLine('</tr>');
+		}
+		
+		fileWriter.writeLine('</tbody>');
+		fileWriter.writeLine('</table>');
+		
+		fileWriter.writeLine('</body>');
+		fileWriter.writeLine('</html>');
+		
+		fileWriter.close();
+	};
+}

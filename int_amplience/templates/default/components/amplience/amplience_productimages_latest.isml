@@ -1,0 +1,25 @@
+ <isscript>
+ var mediaSetRegEx = /[^\/]*$/;
+ var imgMediaFile : MediaFile = pdict.Product.getImage('set');
+ var mediaSet : String = !empty(imgMediaFile) ? imgMediaFile.getURL().toString().match(mediaSetRegEx)[0] : '';
+</isscript>
+ <div class="viewer" data-mediaSet="${mediaSet}">
+        <div id="viewer_main">
+        </div>
+		 <!-- div class="pdp-zoom-container">
+           <div class="zoom">Zoom</div>
+        </div -->
+        <div id="nav">
+         	<div class="prev pdpcursolicn pdpcursol-left"></div>                
+            <div id="carousel"></div>
+            <div class="next pdpcursolicn pdpcursol-right"></div>
+        </div>
+    </div>
+ <div id="player"></div>
+ 
+ 
+ <script src="${URLUtils.absStatic('/js/dam/dam.js')}" type="text/javascript"></script>
+ 
+ <script>
+ 
+ </script>

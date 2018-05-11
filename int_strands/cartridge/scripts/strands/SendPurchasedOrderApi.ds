@@ -1,0 +1,81 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendPurchasedOrderApi.ds
+ *  
+ *	This script tries to send the tracking event of a successful purchase to
+ *	Strands Recommender. In case an error occurs, it will output the 
+ *	corresponding error.
+ *
+ * @input User : String The final user
+ * @input Order : Object The current order
+ * @input OrderId : String Order ID
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ */
+
+importPackage( dw.net );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Send Purchased) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+	
+	
+	var strandsUrl : String = 'http://bizsolutions.strands.com/api2/event/';
+	 
+	var itemsList : String = '';
+	
+	for each(var purchasedItem : ProductLineItem in pdict.Order.allProductLineItems) { 
+		var quantity : Number = purchasedItem.quantity.value;
+		var unitPrice : Number = purchasedItem.price / quantity;
+		var itemId;
+		if (purchasedItem.product == null) {
+			continue;
+		} else if (!purchasedItem.product.variant) {
+			itemId = purchasedItem.product.ID;
+		} else if (purchasedItem.product.masterProduct) {
+			itemId = purchasedItem.product.masterProduct.ID;
+		}
+		itemsList += '&item=' + itemId + '::' + unitPrice + '::' + quantity;
+	}
+		
+	var purchasedString = strandsUrl + 'purchased.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(Site.current.preferences.custom.StrandsApiID)
+						+ '&orderid=' + dw.crypto.Encoding.toURI(pdict.OrderId)
+						+ dw.crypto.Encoding.toURI(itemsList)
+						+ '&currency=' + dw.crypto.Encoding.toURI(pdict.Order.getCurrencyCode()) 
+						+ '&user=' + dw.crypto.Encoding.toURI(pdict.User);
+					
+    var eventPurchased : HTTPClient = new HTTPClient();
+    try
+	{
+    	eventPurchased.setTimeout(1000);
+    	eventPurchased.open("GET", purchasedString);
+    	eventPurchased.send();    		
+    }
+    catch(e) 
+    {
+    	pdict.ErrorCode = '601';
+    	pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Send Purchased) Request to "+purchasedString+" failed: {0}", e.message);
+    	return PIPELET_ERROR;
+    }
+
+   return PIPELET_NEXT;
+}

@@ -1,0 +1,42 @@
+<iscontent type="text/html" charset="UTF-8" compact="true">
+<isscript>
+importPackage(dw.system);
+</isscript>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head> 
+		<title>MainStreet Lib Tests</title>
+		<style type="text/css">
+		  body {
+		    font-size:12px;
+		  }
+		  .fail {
+		  	background-color: red;
+		  }
+		  .ok {
+		  	background-color: green;
+		  	color:white;
+		  }
+		</style>
+	</head>
+	<body>
+		<h1>Main Street Unit Tests</h1>
+	    <p><a href="#" onclick="document.getElementById('ScriptLog').style.display = (document.getElementById('ScriptLog').style.display == 'block' ? 'none' : 'block')">Show Log Messages</a></p>
+	    <pre id="ScriptLog" style="display: none">${pdict.ScriptLog}</pre>
+	    <table>
+	    	<tr>
+	    		<th>Name</th>
+	    		<th>Status</th>
+	    		<th>Message</th>
+	    	</tr>
+		    <isloop iterator="${pdict.results}" alias="result">
+		    	<tr>
+		    		<td class="${result.status}">${result.name}</td>
+		    		<td class="${result.status}">${result.status}</td>
+		    		<td class="${result.status}">${result.reason}</td>
+		    	</tr>
+		    </isloop>
+	    </table>
+    </body>
+</html>

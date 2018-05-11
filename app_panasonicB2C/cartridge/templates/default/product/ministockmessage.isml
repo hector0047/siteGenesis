@@ -1,0 +1,131 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isset name="Product" value="${!empty(pdict.product)?pdict.product:null}" scope="page"/>
+<isset name="inStock" value="${(Product.availabilityModel.availability>0) ? true : false }" scope="page"/>
+<isset name="availabilityStatus" value="${Product.availabilityModel.availabilityStatus}" scope="PAGE"/>
+<isif condition="${!empty(Product)&&inStock}">
+		<div class="default-shippingmethod-msg">
+			<isif condition="${!empty(pdict.ordercreationdate)}"> 
+				<span class="label">${Resource.msg('orderdetails.estimatedshipment','account',null)}</span>
+			</isif>
+<isif condition="${'shippingmethodID' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.shippingmethodID.stringValue!=null}">
+	<isset name="shippingmethodID" value="${pdict.CurrentHttpParameterMap.shippingmethodID.stringValue}" scope="pdict" />  
+<iselse/>
+	<isset name="shippingmethodID" value="" scope="pdict" />
+</isif>
+<isif condition="${'shippingmethodName' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.shippingmethodName.stringValue!=null}">
+	<isset name="shippingmethodName" value="${pdict.CurrentHttpParameterMap.shippingmethodName.stringValue}" scope="pdict" />  
+<iselse/>
+	<isset name="shippingmethodName" value="" scope="pdict" />
+</isif>
+			<isscript>importScript("product/ProductUtils.ds");importScript("util/DateUtils.ds");</isscript>
+			
+			<isif condition="${'shipping_message' in Product.custom && availabilityStatus != dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK}">
+				<isprint value="${Product.custom.shipping_message}" encoding="off"/>	
+			<iselseif condition="${'isPreOrderable' in Product.custom && Product.custom.isPreOrderable}">
+				<isif condition="${!empty(Product.availabilityModel.inventoryRecord.inStockDate)}">
+					<isset name="preOrerInstockDate" value="${Product.availabilityModel.inventoryRecord.inStockDate}" scope="PAGE"/>
+					<isif condition="${(preOrerInstockDate.getFullYear() == 9999) || (preOrerInstockDate< (new Date()))}">
+								<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+								</isif> 
+								<isif condition="${'preOrderShippingMessage' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.preOrderShippingMessage}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('preOrderShippingMessage')}" encoding="off"/>	
+								</isif>	
+					<iselse>
+							<isset name="dynamicDate1" value="${ProductUtils.getMonthName(new Date(Product.availabilityModel.inventoryRecord.inStockDate.toString()).getMonth())}" scope="PAGE"/>
+							<isset name="dynamicDate2" value="${ProductUtils.getMonthName((new Date(Product.availabilityModel.inventoryRecord.inStockDate.toString()).getMonth())+1)}" scope="PAGE"/>
+								<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+								</isif>	
+								<isprint value="${dynamicDate1.toString().concat('-').concat(dynamicDate2.toString())}" encoding="off"/>
+					</isif>
+				<iselse>
+								<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+								</isif>	
+								<isif condition="${'preOrderShippingMessage' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.preOrderShippingMessage}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('preOrderShippingMessage')}" encoding="off"/>	
+								</isif>	
+				</isif>
+			<iselseif condition="${!('isPreOrderable' in Product.custom && Product.custom.isPreOrderable)}">
+						<isset name="availabilityModel" value="${Product.availabilityModel}" scope="PAGE"/>
+						<isset name="availabilityStatus" value="${Product.availabilityModel.availabilityStatus}" scope="PAGE"/>
+						<isset name="inventoryRecord" value="${Product.availabilityModel.inventoryRecord}" scope="PAGE"/>
+						<isif condition="${(availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK) && !empty(inventoryRecord) && (inventoryRecord.stockLevel.available)}">
+								<isif condition="${'inStockShippingMessage' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.inStockShippingMessage}">
+									<isif condition="${!empty(pdict.shippingmethodID) && empty(pdict.ordercreationdate)}"> 
+										<isif condition="${pdict.shippingmethodID!= 'PAA5' && pdict.shippingmethodID != 'PAA7' && pdict.shippingmethodName.indexOf('STANDARD')!=-1}" >
+									      	Estimated Delivery ${getDayName(pdict.stdDate1.getDay())}, ${getMonthName(pdict.stdDate1.getMonth())} ${pdict.stdDate1.getDate().toFixed()} - ${getDayName(pdict.stdDate2.getDay())}, ${getMonthName(pdict.stdDate2.getMonth())} ${pdict.stdDate2.getDate().toFixed()}
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('SECOND DAY')!=-1}" >
+									       <iscomment>Order in the next <isprint value="${pdict.hoursdiff}" formatter="#00"/> hours and <isprint value="${pdict.minutesdiff}" formatter="#00"/> minutes to get it by ${Resource.msg('checkout.estdatesecondday','checkout',null)} </iscomment>Estimated Delivery ${getDayName(pdict.secondDay.getDay())}, ${getMonthName(pdict.secondDay.getMonth())} ${pdict.secondDay.getDate().toFixed()}
+								        </iselseif> 
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('OVERNIGHT')!=-1}" >
+								        	 <iscomment>Order in the next <isprint value="${pdict.hoursdiff}" formatter="#00"/> hours and <isprint value="${pdict.minutesdiff}" formatter="#00"/> minutes to get it by  ${getDayName(pdict.overnight.getDay())}, ${getMonthName(pdict.overnight.getMonth())} ${pdict.overnight.getDate().toFixed()} ${Resource.msg('checkout.estdatesecondday','checkout',null)}</iscomment>
+								        	Estimated Delivery ${getDayName(pdict.overnight.getDay())}, ${getMonthName(pdict.overnight.getMonth())} ${pdict.overnight.getDate().toFixed()}
+								        </iselseif>
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('WHITE GLOVE')!=-1 || pdict.shippingmethodID == 'PAA5' || pdict.shippingmethodID == 'PAA7'}" >
+									          Estimated Delivery ${getDayName(pdict.whiteGloveDate1.getDay())}, ${getMonthName(pdict.whiteGloveDate1.getMonth())} ${pdict.whiteGloveDate1.getDate().toFixed()} - ${getDayName(pdict.whiteGloveDate2.getDay())}, ${getMonthName(pdict.whiteGloveDate2.getMonth())} ${pdict.whiteGloveDate2.getDate().toFixed()}
+								        </iselseif>
+								        </isif>
+								    <iselseif condition="${!empty(pdict.ordercreationdate)}" >
+								    	<isif condition="${pdict.shippingmethodID!= 'PAA5' && pdict.shippingmethodID != 'PAA7' && pdict.shippingmethodName.indexOf('STANDARD')!=-1}" >
+									      	<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('inStockShippingMessage')}" encoding="off"/>
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('SECOND DAY')!=-1}" >
+									        Ships In 1-2 Business Days
+								        </iselseif>
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('OVERNIGHT')!=-1}" >
+								        	Ships In One Business Days
+								        </iselseif>
+								        <iselseif condition="${pdict.shippingmethodName.indexOf('WHITE GLOVE')!=-1 || pdict.shippingmethodID == 'PAA5' || pdict.shippingmethodID == 'PAA7'}" >
+									         Ships In 5-7 Business Days
+								        </iselseif>
+								        </isif>
+								    </iselseif> 	
+								    <iselse/>
+							          		<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('inStockShippingMessage')}" encoding="off"/>
+							        </isif>
+								</isif>	
+						<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER}">
+								<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+								</isif>	
+								<isif condition="${'preOrderShippingMessage' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.preOrderShippingMessage}">
+									<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('preOrderShippingMessage')}" encoding="off"/>	
+								</isif>	
+						<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER}">
+							<isscript>
+								var currDate : String = (new Date()).getTime().toFixed();
+								var avilDate = !empty(Product.availabilityModel.inventoryRecord.inStockDate)?(new Date(Product.availabilityModel.inventoryRecord.inStockDate.toString()).getTime().toFixed()):0;
+								var Days = (avilDate-currDate)/(1000 * 60 * 60 * 24);
+								if(Days < 0){
+									Days=0;
+								}
+							</isscript>
+								<isif condition="${((Days.toFixed() > 0) || (Days.toFixed() == 0)) && ((Days.toFixed() < 14)||(Days.toFixed() == 14))}">
+									<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+										<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+									</isif>	
+									<isif condition="${'backOrderShippingMessage5to7' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.backOrderShippingMessage5to7}">
+										<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('backOrderShippingMessage5to7')}"/>	
+									</isif>	
+								<iselseif condition="${((Days.toFixed() > 15) || (Days.toFixed() == 15)) && ((Days.toFixed() < 21)||(Days.toFixed() == 21))}">
+									<isif condition="${'estimatedShippingLabel' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.estimatedShippingLabel}">
+										<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('estimatedShippingLabel')}" encoding="off"/>	
+									</isif>
+									<isif condition="${'backOrderShippingMessage7to10' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.backOrderShippingMessage7to10}">
+										<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('backOrderShippingMessage7to10')}"/>	
+									</isif>	
+								<iselseif condition="${(Days.toFixed() > 21)}">
+									<isif condition="${'backOrderShippingMessage21' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.backOrderShippingMessage21}">
+										<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('backOrderShippingMessage21')}"/>	
+									</isif>	
+								</isif>
+						<iselse/>
+							<!-- No message while product out of stock -->
+						</isif>
+			<iselse>	
+				<isprint value="${Resource.msg('product.noshippingmessage','product',null)}" encoding="off"/>
+			</isif>
+		</div>
+</isif>

@@ -1,0 +1,28 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isset name="DecoratorTemplate" value="account/pt_friendsfamilyexperience.isml" scope="page"/>
+<isset name="bctext1" value="Friend And Family Store" scope="pdict"/>
+<isdecorate template="${DecoratorTemplate}">
+<div class="pnsb2c-friends-family-page-wrapper">
+<isslot id="friends-family-slot" description="Friends and Family" context="global"/>
+	<h1 class="pnsb2c-friends-family-head">${Resource.msg('account.employeeReferral','account',null)}</h1>
+	<div class="pnsb2c-friends-family-page ">
+	
+		<form action="${URLUtils.https('Account-FFSend')}" method="post" id="${pdict.CurrentForms.friendandfamily.htmlName}">
+			<fieldset>	
+				<isinputfield formfield="${pdict.CurrentForms.friendandfamily.username}" type="input" xhtmlclass="email-input email" p_dynamic="true" rowclass="email-row first-margin" requiredtextstar="true" requiredtext="${Resource.msg('forms.referralemail','forms',null)}"/>
+				<isinputfield formfield="${pdict.CurrentForms.friendandfamily.refcode}" type="input" xhtmlclass="ffcode" class="ffcode" rowclass="code-row middle-row" requiredtextstar="true" requiredtext="${Resource.msg('forms.ffcode','forms',null)}"/>	
+			</fieldset>
+			<isif condition="${(typeof pdict.FFerror != 'undefined') && !empty(pdict.FFerror)}"> 
+				<span class="ff-server-error-msg error"><isprint value="${pdict.FFerror}" encoding="off" /></span></br>
+			</isif>
+			<button type="submit" value="${Resource.msg('global.continue','locale',null)}" name="${pdict.CurrentForms.friendandfamily.continue.htmlName}">
+				${Resource.msg('global.continue','locale',null)}
+			</button>
+			<input type="hidden" name="${pdict.CurrentForms.friendandfamily.secureKeyHtmlName}" value="${pdict.CurrentForms.friendandfamily.secureKeyValue}"/>
+		</form>
+		
+	</div>
+</div>
+</isdecorate>
+

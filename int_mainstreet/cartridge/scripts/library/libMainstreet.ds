@@ -1,0 +1,295 @@
+/**
+ * This file provides access to the MainStreet Order Service.
+ * You can use it by including it 
+ *    importScript("int_mainstreet:library/libMainstreet.ds");
+ * 
+ * It cannot be used in a script node by itself.
+ * For a description of the webservices please read the requirements document:
+ * Integration-OrderStatusWS.docx
+ *
+ *
+ * @author Demandware
+ * @creationdate 2011-07-22
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+
+/**
+* Create a new instance of MainStreet Communication class
+*/
+var MainStreet = function () {
+	
+	this.MainStreetDomain = Site.getCurrent().getCustomPreferenceValue("MainStreetDomain");
+	if(empty(this.MainStreetDomain)) {
+		// removed coding by convention because there is no test account
+		this.MainStreetDomain = "";
+		Logger.warn("No main street domain set. Please provide it in the back office. Site -> <YOURSITE> -> Site Preferences -> Custom Preferences -> MainStreet -> MainStreet Domain");
+	}
+
+	this.MainStreetUsername = Site.getCurrent().getCustomPreferenceValue("MainStreetUsername");
+	if(empty(this.MainStreetUsername)) {
+		// removed coding by convention because there is no test account
+		this.MainStreetUsername = "";
+		Logger.warn("No main street Username set. Please provide it in the back office. Site -> <YOURSITE> -> Site Preferences -> Custom Preferences -> MainStreet -> MainStreet Username");
+	}
+
+	this.MainStreetPassword = Site.getCurrent().getCustomPreferenceValue("MainStreetPassword");
+	if(empty(this.MainStreetPassword)) {
+		// removed coding by convention because there is no test account
+		this.MainStreetPassword = "";
+		Logger.warn("No main street Password set. Please provide it in the back office. Site -> <YOURSITE> -> Site Preferences -> Custom Preferences -> MainStreet -> MainStreet Password");
+	}
+
+	this.MainStreetEndpoint = Site.getCurrent().getCustomPreferenceValue("MainStreetEndpoint");
+}
+
+
+MainStreet.prototype = {
+	
+	mainstreetReference : webreferences.OrderService,	
+	
+	getService: function() {
+		var service : Stub = this.mainstreetReference.getService("Order","BasicHttpBinding_IOrder");
+		if(!empty(this.MainStreetEndpoint)) {
+			service._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY, this.MainStreetEndpoint);
+		}
+		return service;
+	},
+	
+	getCredentials: function () {
+		var credentials = new this.mainstreetReference.Credentials();
+		credentials.domain = this.MainStreetDomain;
+		credentials.password = this.MainStreetPassword; 
+		credentials.username = this.MainStreetUsername;
+		return credentials;
+	},
+	
+	/**
+	* Gets a list of orders which where created by the customer.
+	*/
+	GetOrdersByCustomer: function(customerCode) {
+		// create request body
+		var request = new this.mainstreetReference.GetOrdersByCustomer();
+		
+		request.credentials = this.getCredentials();
+		request.request = new this.mainstreetReference.CustomerOrdersDataRequest();
+		request.request.customerCode = customerCode;
+		var orderHistoryResponse = null;
+		
+		// send request
+		try {
+		orderHistoryResponse = this.getService().getOrdersByCustomer(request);
+		} catch(e) {
+			Logger.error(e.name+""+e.message);
+			return null;
+		}		
+		Logger.debug(orderHistoryResponse.getOrdersByCustomerResult.data.toString());
+		return new XML(orderHistoryResponse.getOrdersByCustomerResult.data.toString());
+	},
+	
+	/**
+	* Get detail order
+	*/
+	GetOrderDetail: function(orderNo) {
+		// create request body
+		var request = new this.mainstreetReference.GetOrderDetail();
+		
+		request.credentials = this.getCredentials();
+		request.request = new this.mainstreetReference.OrderGetDataRequest();
+		request.request.orderId = orderNo;
+		var orderDetailResponse = null;
+		
+		// send request
+		try {
+			orderDetailResponse = this.getService().getOrderDetail(request);
+		} catch(e) {
+			Logger.error(e.name+""+e.message);
+			return null;
+		}
+		Logger.debug("attributes: "+orderDetailResponse.getOrderDetailResult.data.attributes.toString()+"\n"+
+			"primaryData: "+orderDetailResponse.getOrderDetailResult.data.primaryData.toString()+"\n"+
+			"providerAttributes: "+orderDetailResponse.getOrderDetailResult.data.providerAttributes.toString()+"\n"+
+			"shipmentDetail: "+orderDetailResponse.getOrderDetailResult.data.shipmentDetail.toString()+"\n"
+		);
+		return orderDetailResponse.getOrderDetailResult.data.primaryData != "<dsOrderDetail />" ? {
+			"attributes" : new XML(orderDetailResponse.getOrderDetailResult.data.attributes.toString()),
+			"primaryData" : new XML(orderDetailResponse.getOrderDetailResult.data.primaryData.toString()),
+			"providerAttributes" : new XML(orderDetailResponse.getOrderDetailResult.data.providerAttributes.toString()),
+			"shipmentDetail" : new XML(orderDetailResponse.getOrderDetailResult.data.shipmentDetail.toString())
+		} : null;
+	},
+	
+	/**
+	* Generate a JavaScript Date Object from an ISO 8601 timestamp
+	* e.g. 2010-05-19T17:11:00.17-04:00
+	*/
+	parseISO8601: function (string) {
+		var returnDate : Date = new Date();
+		var regexp = "([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
+	        "(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
+	        "(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?";
+	    var d = string.match(new RegExp(regexp));
+	
+	    var offset = 0;
+	    var date = new Date(d[1], 0, 1);
+	
+	    if (d[3]) { date.setMonth(d[3] - 1); }
+	    if (d[5]) { date.setDate(d[5]); }
+	    if (d[7]) { date.setHours(d[7]); }
+	    if (d[8]) { date.setMinutes(d[8]); }
+	    if (d[10]) { date.setSeconds(d[10]); }
+	    if (d[12]) { date.setMilliseconds(Number("0." + d[12]) * 1000); }
+	    if (d[14]) {
+	        offset = (Number(d[16]) * 60) + Number(d[17]);
+	        offset *= ((d[15] == '-') ? 1 : -1);
+	    }
+	
+	    offset -= date.getTimezoneOffset();
+	    var time = (Number(date) + (offset * 60 * 1000));
+	    returnDate.setTime(Number(time));
+		return returnDate;
+	},
+	
+	/**
+	* Wraps an order from mainstreet in a demandware
+	* order object.
+	*/
+	makeDemandwareSmallOrder: function (order) {
+		
+		var returnOrder = {
+		   mainStreetOrder : 1,
+       	   orderNo : order.order_id.toString(),
+           creationDate : this.parseISO8601(order.order_date),
+           status: order.order_status.toString(),
+           totalTax : new Money(order.order_tax, Site.getCurrent().getDefaultCurrency()),
+           totalGrossPrice : new Money(order.order_total, Site.getCurrent().getDefaultCurrency()),
+           shippingTotalPrice : new Money(order.order_shipping, Site.getCurrent().getDefaultCurrency()),
+           giftCertificateTotalPrice : new Money(0, Site.getCurrent().getDefaultCurrency()),
+           shipments : new ArrayList()
+       };
+       returnOrder.shipments.push({
+         gift : false,
+         shippingAddress : {
+             fullName : order.order_ship_attention.toString()
+         },
+         giftCertificateLineItems : new ArrayList(),
+         productLineItems : new ArrayList()
+       });
+       return returnOrder;
+	},
+	
+	/**
+	* Generate a complete demandware order from a mainstreet response
+	*/
+	makeDemandwareBigOrder: function (order, response) {
+		order.billingAddress = {
+			fullName : response.primaryData.Orders[0].order_bill_attention,
+			firstName : response.primaryData.Orders[0].customer_first_name,
+			lastName : response.primaryData.Orders[0].customer_last_name,
+			companyName : response.primaryData.Orders[0].order_bill_company_name,
+			postalCode : response.primaryData.Orders[0].order_bill_postal_code,
+			stateCode : response.primaryData.Orders[0].order_bill_region_cd,
+			address1 : response.primaryData.Orders[0].order_bill_address,
+			city : response.primaryData.Orders[0].order_bill_city,
+			phone : response.primaryData.Orders[0].order_bill_phone
+		};
+		response.primaryData.Orders[0].order_payment_expiration.toString().match(/(\d+)\/(\d+)/);
+		var expirationMonth = RegExp.$1;
+		var expirationYear = RegExp.$2;
+		order.paymentInstruments = [{
+				paymentTransaction : { amount : new Money(response.primaryData.Orders[0].order_amount_paid, Site.getCurrent().getDefaultCurrency()) },
+			creditCardType : response.primaryData.Orders[0].payment_method_description,
+			maskedCreditCardNumber : response.primaryData.Orders[0].order_payment_number_masked,
+			creditCardExpirationMonth : expirationMonth,
+			creditCardExpirationYear : expirationYear,
+			creditCardHolder : response.primaryData.Orders[0].order_payment_name
+			}
+		];
+		order.getPaymentInstruments = function (s) {
+			if(s == dw.order.PaymentInstrument.METHOD_CREDIT_CARD) {
+				return this.paymentInstruments;
+			} else {
+				return [];
+			}
+		};
+		order.adjustedMerchandizeTotalPriceTrue = new Money(parseFloat(response.primaryData.Orders[0].order_subtotal)+parseFloat(response.primaryData.Orders[0].order_discount), Site.getCurrent().getDefaultCurrency());
+		order.adjustedMerchandizeTotalPriceFalse = new Money(response.primaryData.Orders[0].order_subtotal, Site.getCurrent().getDefaultCurrency());
+		order.getAdjustedMerchandizeTotalPrice = function (b) {
+			if(!b) {
+				return this.adjustedMerchandizeTotalPriceFalse;
+			} else {
+				return this.adjustedMerchandizeTotalPriceTrue;
+			}
+		};
+		order.getAdjustedShippingTotalPrice = function () {
+			return this.shippingTotalPrice;
+		};
+		order.shipments[0].shippingMethod = {
+			displayName : response.primaryData.Orders[0].shipping_method_description
+		};
+		var shippingFirstName = "";
+		var shippingLastName = "";
+		var splitShippingName = response.primaryData.Orders[0].order_ship_attention;
+		if(splitShippingName.length == 2) {
+			shippingFirstName = splitShippingName[0];
+			shippingLastName = splitShippingName[1];
+		} else {
+			shippingLastName = response.primaryData.Orders[0].order_ship_attention;
+		}
+		order.shipments[0].shippingAddress = {
+			fullName : response.primaryData.Orders[0].order_ship_attention,
+			firstName : shippingFirstName,
+			lastName : shippingLastName,
+			companyName : response.primaryData.Orders[0].order_ship_company_name,
+			postalCode : response.primaryData.Orders[0].order_ship_postal_code,
+			stateCode : response.primaryData.Orders[0].order_ship_region_cd,
+			address1 : response.primaryData.Orders[0].order_ship_address,
+			city : response.primaryData.Orders[0].order_ship_city,
+			phone : response.primaryData.Orders[0].order_ship_phone
+		};
+		order.shipments[0].productLineItems = new ArrayList();
+		for each (var product : XML in response.primaryData.OrderItems) {
+			var lineItem = {
+				productName : product.order_item_description,
+				productID : product.order_item_cd,
+				quantity : product.order_item_quantity,
+				optionProductLineItems : new ArrayList(),
+				adjustedPrice : new Money(product.order_item_extended_price, Site.getCurrent().getDefaultCurrency()),
+				product : {
+					productSet : false,
+					master : false,
+					priceModel : {
+						price : new Money(product.order_item_extended_price, Site.getCurrent().getDefaultCurrency()),
+						getPrice: function () {
+							return this.price;
+						},
+						getPriceBookPrice: function (s) {
+							return this.price;
+						}
+					},
+					getPriceModel: function () {
+						return this.priceModel;
+					},
+					getPriceTable: function () {
+						return [];
+					},
+					isVariant: function () {
+						return false;
+					}
+				},
+				priceAdjustments : new ArrayList()
+			};
+			if(product.order_item_discount > 0) {
+				lineItem.priceAdjustments.push({
+					lineItemText : "You get "+new Money(product.order_item_discount, Site.getCurrent().getDefaultCurrency())+" discount."
+				});
+			}
+			order.shipments[0].productLineItems.push(lineItem);
+		}
+		return order;
+	} 
+}

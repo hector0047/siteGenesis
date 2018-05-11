@@ -1,0 +1,70 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Displays the product sorting options.
+	It expects the name of the key of the pageable in a parameter
+    pageable.
+</iscomment>
+
+<isscript>
+
+	// determine the ID of the sorting rule used to sort the current search results
+	var sortingRule : SortingRule = null;
+	if(pdict.productsearchmodel.getSortingRule() != null) {
+		sortingRule = pdict.productsearchmodel.getSortingRule();
+	}
+	else {
+		var category : Category = pdict.productsearchmodel.getCategory();
+		if (category == null) {
+			category = dw.catalog.CatalogMgr.getSiteCatalog().getRoot();
+		}
+		if (category.getDefaultSortingRule() != null) {
+			sortingRule = category.getDefaultSortingRule();
+		}
+	}
+	
+	var sortingRuleID : String = null;
+	if(sortingRule != null) {
+		var sortingOptions : List = dw.catalog.CatalogMgr.getSortingOptions();
+		for(var it : Iterator = sortingOptions.iterator(); it.hasNext(); ) {
+			var option : SortingOption = it.next();
+			if(option.getSortingRule().getID() == sortingRule.getID()) {
+				sortingRuleID = sortingRule.getID();
+			}
+		}
+	}
+	
+	// in case there are multiple elements on a page
+	var uniqueId : String = '';
+	if (! empty(pdict.uniqueid))
+	{
+		uniqueId = pdict.uniqueid;
+	}
+	
+</isscript>  
+	<div class="sort-by">
+		<form action="${URLUtils.url('Search-Show','cgid', pdict.CurrentHttpParameterMap.cgid)}" method="post" name="Product-Sorting-Options">
+		<iscomment> PANC-459 : Support Product Landing Page</iscomment>
+			<fieldset>
+				<label for="${uniqueId}">${Resource.msg('pagecomponents.paginginformation.sortby','pagecomponents',null)}</label>
+					<isif condition="${('supportpage' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.supportpage.booleanValue)  && ('defaultSupportSortingRule' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.defaultSupportSortingRule))}">
+							<select id="${uniqueId}" <isif condition="${empty(sortingRuleID)}"> style="font-style:italic;"</isif> class="custom-select">
+								<option value="${pdict.pagingmodel.appendPaging(pdict.productsearchmodel.urlSortingRule('Search-Show', dw.catalog.CatalogMgr.getSortingRule(dw.system.Site.current.preferences.custom.defaultSupportSortingRule.split(',')[0].trim())),0)}" <isprint value="${selectedString}" encoding="off"/>>${dw.system.Site.current.preferences.custom.defaultSupportSortingRule.split(',')[1].trim()}</option>
+							</select>
+					<iselseif condition="${('supportpage' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.supportpage.booleanValue) && ('supportSortingList' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.supportSortingList.length > 0)}">
+							<select id="${uniqueId}" <isif condition="${empty(sortingRuleID)}"> style="font-style:italic;"</isif> class="custom-select">
+								<isloop items="${dw.system.Site.getCurrent().getCustomPreferenceValue('supportSortingList')}" var="supportSorting">
+									<option value="${pdict.pagingmodel.appendPaging(pdict.productsearchmodel.urlSortingRule('Search-Show', dw.catalog.CatalogMgr.getSortingRule(supportSorting.split(',')[0].trim())),0)}" <isif condition="${sortingRuleID == dw.catalog.CatalogMgr.getSortingRule(supportSorting.split(',')[0].trim()).getID()}"> <isprint value="${selectedString}" encoding="off"/></isif>>${supportSorting.split(',')[1].trim()}</option>
+								</isloop>
+							</select>
+					<iselse>
+						   <select id="${uniqueId}" <isif condition="${empty(sortingRuleID)}"> style="font-style:italic;"</isif> class="custom-select">
+							 <isloop items="${dw.catalog.CatalogMgr.getSortingOptions()}" var="SortingOption" status="Status">
+								<option value="${pdict.pagingmodel.appendPaging(pdict.productsearchmodel.urlSortingRule('Search-Show', SortingOption.getSortingRule()),0)}"<isif condition="${sortingRuleID == SortingOption.getSortingRule().getID()}"> <isprint value="${selectedString}" encoding="off"/></isif>>${SortingOption.getDisplayName()}</option>
+							 </isloop>
+						   </select>
+					</isif>
+				<button class="sort-Go-Button simple-submit" type="submit" value="${Resource.msg('productsortingoptions.go','search',null)}">${Resource.msg('productsortingoptions.go','search',null)}</button>
+	<iscomment> PANC-459 : Support Product Landing Page</iscomment>
+			</fieldset>
+		</form>
+	</div><!-- END: sortby -->

@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Sample jenkins + build suite job with git and custom build suite properties file with dynamic version number&#xd;
+&#xd;
+- requires intallation of Jenkins GIT Plugin&#xd;
+- in your build suite dependency file you must remember to set the path to the local jenkins workspace and NOT your git repository location!&#xd;
+  e.g. file://C:/Users/patrick/.jenkins/jobs/sample/workspace&#xd;
+- the custom build suite properties file is defined below in Build -&gt; Advanced -&gt; Properties&#xd;
+- in the custom build suite properties file set build.project.version=${env.BUILD_TAG}&#xd;
+- the git tag is pushed at the end of the job, after the build, but this is optional for you</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.4.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name></name>
+        <refspec></refspec>
+        <url>patrick@127.0.0.1:/home/patrick/git/office.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <disableSubmodules>false</disableSubmodules>
+    <recursiveSubmodules>false</recursiveSubmodules>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <authorOrCommitter>false</authorOrCommitter>
+    <clean>false</clean>
+    <wipeOutWorkspace>false</wipeOutWorkspace>
+    <pruneBranches>false</pruneBranches>
+    <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
+    <useShallowClone>false</useShallowClone>
+    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <relativeTargetDir></relativeTargetDir>
+    <reference></reference>
+    <excludedRegions></excludedRegions>
+    <excludedUsers></excludedUsers>
+    <gitConfigName></gitConfigName>
+    <gitConfigEmail></gitConfigEmail>
+    <skipTag>false</skipTag>
+    <includedRegions></includedRegions>
+    <scmName></scmName>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Ant plugin="ant@1.2">
+      <targets>RunProjectBuild
+RunUploadCartridges
+RunActivateBuild</targets>
+      <antOpts>-Dhudson.plugins.git.GitSCM.verbose=&quot;true&quot; -Djavax.net.ssl.trustStore=C:\projects\office\bitbucket\build-suite\cartridges\build_cs\cartridge\keystore\keystore -Djavax.net.ssl.keyStorePassword=testing</antOpts>
+      <buildFile>C:\projects\office\bitbucket\build-suite\cartridges\build_cs\cartridge\build\build.xml</buildFile>
+      <properties>buildfile=build_jenkins.properties</properties>
+    </hudson.tasks.Ant>
+  </builders>
+  <publishers>
+    <hudson.plugins.git.GitPublisher plugin="git@1.4.0">
+      <configVersion>2</configVersion>
+      <pushMerge>false</pushMerge>
+      <pushOnlyIfSuccess>true</pushOnlyIfSuccess>
+      <tagsToPush>
+        <hudson.plugins.git.GitPublisher_-TagToPush>
+          <targetRepoName>origin</targetRepoName>
+          <tagName>$BUILD_TAG</tagName>
+          <tagMessage></tagMessage>
+          <createTag>false</createTag>
+          <updateTag>false</updateTag>
+        </hudson.plugins.git.GitPublisher_-TagToPush>
+      </tagsToPush>
+    </hudson.plugins.git.GitPublisher>
+  </publishers>
+  <buildWrappers/>
+</project>

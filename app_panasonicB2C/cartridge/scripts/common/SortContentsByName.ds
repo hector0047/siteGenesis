@@ -1,0 +1,31 @@
+/*
+ *   @input Contents : dw.util.Collection
+ *   @input SortDirection : Number
+ *   @output SortedContents : dw.util.Collection
+ */
+importPackage(dw.system);
+importPackage(dw.catalog);
+importPackage(dw.util);
+
+function execute(args: PipelineDictionary): Number {
+	var contents = args.Contents,
+		sortDirection = args.SortDirection,
+		booleanSortDirection = false;
+
+	if (sortDirection === 1) {
+		booleanSortDirection = true;
+	} else if (sortDirection === 2) {
+		booleanSortDirection = false;
+	}
+
+	var comparator = new PropertyComparator('name', booleanSortDirection),
+		sortedContents: dw.util.SortedSet = new dw.util.SortedSet(comparator);
+
+	for each(var content in contents) {
+		sortedContents.add(content);
+	}
+
+	args.SortedContents = sortedContents;
+
+	return PIPELET_NEXT;
+}

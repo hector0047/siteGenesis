@@ -1,0 +1,48 @@
+/** 
+ * Provides easy access to services which were implemented using the service framework
+ *
+ * @module bc_serviceframework 
+ */
+
+/**
+ * Manager class providing easy access to services which were implemented using the service framework
+ *
+ * @class
+ */
+var ServiceMgr = function(){
+	this.services = new Object();
+};
+
+/**
+ * This method loads the service <code>serviceName</code>, the parameters cartridge and scriptFile are optional
+ *
+ * @param {String} serviceName The name of the service to load
+ */
+ServiceMgr.prototype.getService = function(serviceName : String){
+	return this.services[serviceName];
+};
+
+/**
+ * Registers a web service implementation to the service framework, so it can be accessed throughout the application
+ *
+ * @param {String} serviceName	The name of the service to load
+ * @param {Object} serviceClass	The class structure of the service to register
+ */
+ServiceMgr.prototype.registerService = function(serviceName, serviceClass){			
+	this.services[serviceName] = serviceClass;
+};
+
+/** 
+ * Singleton instance of the ServiceMgr class
+ *
+ * @see ServiceMgr
+ */
+module.exports = new ServiceMgr();
+
+// Now require all prebuilt services, they register themselves
+module.exports.registerService('AbstractBaseService', require('/bc_serviceframework/cartridge/scripts/services/AbstractBaseService'));
+module.exports.registerService('AbstractSoapService', require('/bc_serviceframework/cartridge/scripts/services/AbstractSoapService'));
+module.exports.registerService('AbstractHTTPService', require('/bc_serviceframework/cartridge/scripts/services/AbstractHTTPService'));
+module.exports.registerService('AbstractXMLBaseService', require('/bc_serviceframework/cartridge/scripts/services/AbstractXMLBaseService'));
+module.exports.registerService('BaseFTPService', require('/bc_serviceframework/cartridge/scripts/services/BaseFTPService'));
+module.exports.registerService('HTTPFormPostService', require('/bc_serviceframework/cartridge/scripts/services/HTTPFormPostService'));

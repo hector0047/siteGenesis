@@ -1,0 +1,54 @@
+/*********************************************************************************
+*	SortedShippingMethodsMap.ds
+*	Description: This script is used to sort shipping methods on the basis of cost.
+**********************************************************************************
+*
+* @input ShippingCosts : Object The shipping method calculated costs.
+* @input ShippingMethodsForEachShipmentMap : dw.util.HashMap The shipping methods.
+* @input Basket : Object
+* @output ShippingMethodsForEachShipmentMap : dw.util.LinkedHashMap
+**********************************************************************************/
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute( pdict : PipelineDictionary ) : Number {
+	
+	var shippingMethodsForEachShipmentMap : LinkedHashMap = new LinkedHashMap();
+	var sortedShippingMethods : ArrayList = new ArrayList;
+	if(!empty(pdict.ShippingMethodsForEachShipmentMap) && pdict.ShippingMethodsForEachShipmentMap.length > 0 ) {
+		 for each(var shippingMethods in  pdict.ShippingMethodsForEachShipmentMap.entrySet()){
+			 var sortedMap : SortedMap = new SortedMap();
+		 	 var costlist : ArrayList = new ArrayList();
+		 	 var sortedShippingMethods : ArrayList = new ArrayList();
+		 	 var i = 0;
+		 	 for each(var shipment in pdict.Basket.shipments){
+		 		 if(shipment.UUID.equals(shippingMethods.key)){
+					var shippingModel : ShipmentShippingModel = ShippingMgr.getShipmentShippingModel(shipment);
+		 		 	break;
+		 		 }
+		 	 }
+			 for each(var shippingMethod in shippingMethods.value){
+				 var shippingCost = shippingModel.getShippingCost(shippingMethod).amount.value;
+				 costlist.add(shippingCost);
+			 }
+			 costlist.sort();
+			 var checksortedshipmethods : ArrayList = new ArrayList(); 
+			 //var sortedCostlist : ArrayList = new ArrayList(costlist.sort());
+			 for(var i=0; i< costlist.length;i++){
+				 for each(var shippingMethod in shippingMethods.value){
+				 	var shippingCost = shippingModel.getShippingCost(shippingMethod).amount.value;
+				 	if(costlist[i]==shippingCost &&(checksortedshipmethods!=undefined || !checksortedshipmethods.contains(shippingMethod.ID))){
+				 		sortedShippingMethods.add(shippingMethod);
+				 		checksortedshipmethods.add(shippingMethod.ID);
+				 		break;
+				 	}
+			 	}
+			 }
+			 shippingMethodsForEachShipmentMap.put(shippingMethods.key ,sortedShippingMethods);
+		 }
+		 pdict.ShippingMethodsForEachShipmentMap = shippingMethodsForEachShipmentMap;
+	 }
+
+	 return PIPELET_NEXT;
+}

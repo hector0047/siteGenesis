@@ -1,0 +1,83 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*	This method use ProductSearchModel and gives the products in order(instock,backorder,preorder,Not Available) 
+*
+* For example:
+*
+*   @input ContentSearchResult : dw.util.Iterator
+*   @output SortedContentSearchResultAsc : dw.util.Collection
+*	@output SortedContentSearchResultDes : dw.util.Collection
+*
+*/
+importPackage( dw.system );
+importPackage( dw.catalog);
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try{
+		 var contents : List = args.ContentSearchResult.asList();
+		 //Sort and store by name
+		 var sortedContentSearchResult : dw.util.SortedSet = new dw.util.SortedSet(); 
+		 for each(var content in contents){
+		 	sortedContentSearchResult.add(content.name.toString().trim().toLowerCase());
+		 }
+	 
+	 	var  ascContents : dw.util.Collection = getAscendingOrder(sortedContentSearchResult, contents);
+	 
+	 	var  desContents : dw.util.Collection = getDescendingOrder(ascContents);
+	 
+	 
+	    args.SortedContentSearchResultAsc = ascContents;
+	    args.SortedContentSearchResultDes = desContents;
+ 			
+      }
+    catch(e) {
+		 log.error("error while executing SortContents.ds ",e.message);
+		 args.SortedContentSearchResultAsc = null;
+	     args.SortedContentSearchResultDes = null;
+		 return PIPELET_NEXT;
+	}
+	return PIPELET_NEXT; 
+}
+
+
+function getAscendingOrder( sortedContentSearchResultNames : dw.util.Collection,contents : dw.util.Collection ) : dw.util.Collection
+{    
+	   var ascendingContents : LinkedHashSet = new LinkedHashSet();
+	   for each(name in sortedContentSearchResultNames){
+	   		if(!empty(getSortContent(name.trim().toLowerCase(),contents))){
+	   		    ascendingContents.add(getSortContent(name.trim(),contents));
+	   		}
+	     }
+   return 	ascendingContents;
+}
+function getDescendingOrder(contents : dw.util.Collection ) : dw.util.Collection
+{    
+	   var descendingContents : LinkedHashSet = new LinkedHashSet();
+	   for(var i = contents.size()-1;i>=0;i--){
+	       descendingContents.add(contents[i]);
+	   }
+      return descendingContents;
+}
+function getSortContent( sortedContentSearchResultName : String,contents : dw.util.Collection ) : Object
+{
+	var contentObj :Object = null;
+	for each(var content in contents){
+		if(content.name.toString().trim().toLowerCase().equals(sortedContentSearchResultName.trim().toLowerCase())){
+		   contentObj = content;
+		   break;
+		}
+	
+	}
+	return contentObj;
+}

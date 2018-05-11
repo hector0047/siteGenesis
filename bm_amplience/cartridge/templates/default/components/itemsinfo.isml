@@ -1,0 +1,28 @@
+<!--- TEMPLATENAME: itemsinfo.isml --->
+<iscomment>
+	Displays paging information.
+	
+	pagingmodel : current paging model
+</iscomment>
+
+<isscript>
+	importPackage( dw.web );
+
+	var startIndex = pdict.pagingmodel.getStart() + 1,
+		endIndex = pdict.pagingmodel.getEnd() + 1,
+		count = pdict.pagingmodel.getCount();
+</isscript>
+
+<isif condition="${!empty(pdict.pagingmodel) && !pdict.pagingmodel.isEmpty()}">
+
+<div class="items-info">
+	<p>
+		<isprint value="${Resource.msg('components.itemsinfo.showing','locale',null)}" />
+		<span><isprint value="${startIndex.toFixed()}" /></span> - <span><isprint value="${endIndex.toFixed()}" /></span>
+		<isprint value="${Resource.msg('components.itemsinfo.of','locale',null)}" />
+		<span><isprint value="${count.toFixed()}" /></span>
+		<isprint value="${Resource.msg('components.itemsinfo.items','locale',null)}" />
+	</p>
+</div>
+
+</isif>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19">
+
+	<field formid="dropdown" label="forms.reason" type="string" mandatory="false">
+		<options>
+			<option optionid="" 	label="reason.default" 		value=""/>
+			<option optionid="r1" 	label="reason.reason1" 		value="Ordered wrong product"/>
+			<option optionid="r2" 	label="reason.reason2" 		value="Better price available"/>
+			<option optionid="r3" 	label="reason.reason3" 	value="Item is damaged"/>
+			<option optionid="r4" 	label="reason.reason4" 		value="No longer needed or wanted"/>
+			<option optionid="r5" 	label="reason.reason5" 		value="Not satisfied with product quality"/>
+			<option optionid="r6" 	label="reason.reason6" 	value="Product is defective"/>
+			<option optionid="r7" 	label="reason.reason7" 		value="Wrong item was sent"/>
+		</options>	
+	</field>	
+	<field formid="returnpolicyradio" type="boolean" mandatory="true" />
+	<field formid="returnpolicyradio1" type="boolean" mandatory="true" />	
+	<field formid="returncheckbox" type="string" mandatory="false" />	
+
+	<action formid="submitForm" valid-form="true"/>
+	
+</form>

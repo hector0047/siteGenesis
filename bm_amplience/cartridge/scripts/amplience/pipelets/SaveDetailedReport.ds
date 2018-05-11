@@ -1,0 +1,51 @@
+/**
+* This script stores detailed manifest report file as a file on the server and returns URL of the saved report file.
+* 
+* @input ManifestReport : Object
+* @input ReportStart : String
+* @input ReportEnd : String
+* @output ErrorMsg : String
+* @output ManifestReportURL : String
+*
+*/
+importPackage( dw.system );
+
+importScript( "amplience/ManifestImportReportProcessor.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		/**
+		 * get object with manifest import data
+		 */
+		var manifestReport : Object = args.ManifestReport;
+		if ( empty(manifestReport) ) {
+			throw new Error("Manifest Report is empty");
+		}
+
+		/**
+		 * Manifest detailed report file path
+		 */
+		var ms = new Date().getTime();
+		var filePath : String = 'IMPEX/src/temp/report-' + ms + '.html';
+		
+		/**
+		 * Store detailed manifest report data
+		 */
+		var manifestImportReportProcessor : ManifestImportReportProcessor = new ManifestImportReportProcessor();		
+		manifestImportReportProcessor.saveDetailedReport(manifestReport, filePath, args.ReportStart, args.ReportEnd);
+
+		/**
+		 * Return URL to the generated detailed report file
+		 */
+		args.ManifestReportURL = 'https://' + System.instanceHostname + '/on/demandware.servlet/webdav/Sites/' + filePath;
+	}
+	catch(e) {
+		var errMsg : String = "SaveProcessingLog.ds : " + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}

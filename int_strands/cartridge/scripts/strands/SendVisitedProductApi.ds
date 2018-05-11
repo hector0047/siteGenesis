@@ -1,0 +1,64 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendVisitedProductApi.ds
+ *  
+ *	This script tries to send the tracking event of an article being visited
+ *	to Strands Recommender. In case an error occurs, it will output the 
+ *	corresponding error.
+ *
+ * @input ProductId : String Product ID
+ * @input User : String The final user
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ */
+
+importPackage( dw.net );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Send Visited) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+	
+	
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/event/';
+	
+	var visitedString = strandsUrl + 'visited.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(Site.current.preferences.custom.StrandsApiID)
+						+ '&item=' + dw.crypto.Encoding.toURI(pdict.ProductId)
+						+ '&user=' +  dw.crypto.Encoding.toURI(pdict.User);
+							
+
+					
+    var eventVisited : HTTPClient = new HTTPClient();
+    try
+	{
+    	eventVisited.setTimeout(1000);
+    	eventVisited.open("GET", visitedString);
+    	eventVisited.send();    		
+    }
+    catch(e) 
+    {
+		pdict.ErrorCode = '401';
+		pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Send Visited) Request to "+visitedString+" failed: {0}", e.message);
+    	return PIPELET_ERROR;
+    }
+
+   return PIPELET_NEXT;
+}

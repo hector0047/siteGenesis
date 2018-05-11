@@ -1,0 +1,153 @@
+/*************************************************************************************
+*	FileName : SAPPricebookFeedReader.ds
+*	Description : This script is used to read SAP Pricebook feed and writes all data 
+*				  in a PriceBookMap object.
+*
+***************************************************************************************
+*	Copyright (C) 2016-2017 Panasonic.  All Rights Reserved.
+***************************************************************************************
+*   @input SAPFile : dw.io.File
+*   @output PriceBookMap : dw.util.HashMap
+*   @output ErrorMsg : String
+***************************************************************************************/
+/**************************************************************************************
+SAP File Pattern :
+MODEL #|MSRP PRICE |MSRP START DT| MSRP END DT | MAP PRICE |MAP START DT| MAP END DT | 
+		THRESHOLD PRICE |THRESHOLD START DT| THRESHOLD END DT | 
+***************************************************************************************/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.web );
+
+function execute( pdict : PipelineDictionary ) : Number {
+	try{
+		var file : File ;
+		if(!empty(pdict.SAPFile) && pdict.SAPFile.isFile() ){
+			file = pdict.SAPFile;
+		}else{
+			Logger.error("[SAPPricebookFeedReader.ds] Error in file ({0})",Resource.msg('sappricebook.filenotfounderror','sappricebookfeedimport', null));
+			pdict.ErrorMsg = Resource.msg('sappricebook.filenotfounderror','sappricebookfeedimport', null);
+			return PIPELET_ERROR;
+		}
+		var line : String = "";
+		var pricingArray : Array ;
+		var productId : String;
+		var msrpPriceArray : Array;
+		var thresholdPriceArray : Array;
+		var pricingArray : Array;
+		var msrpPriceBookObject : Object;
+		var mapPriceBookObject : Object;
+		var thresholdPriceBookObject : Object;
+		var pricebookMap : HashMap = new HashMap();
+		var msrpPriceBookArrayList : ArrayList = new ArrayList();
+		var mapPriceBookArrayList : ArrayList = new ArrayList();
+		var thresholdPriceBookArrayList : ArrayList = new ArrayList();
+		var count;
+		if( file.file ) {
+			var fileReader : dw.io.FileReader = new dw.io.FileReader( file );
+			//Reading Each Line of file
+			if( fileReader.ready() ) {
+				while( ( line = fileReader.readLine())!=null ) {
+					msrpPriceArray = new Array();
+					mapPriceArray = new Array();
+					thresholdPriceArray = new Array();
+					pricingArray = new Array();
+					msrpPriceBookObject = new Object();
+					mapPriceBookObject = new Object();
+					thresholdPriceBookObject = new Object();
+					
+					count = 1 ;
+					
+					pricingArray = line.split('|');
+				
+					productId = pricingArray[0];
+					
+					if(!empty(pricingArray[count])){
+						msrpPriceArray = pricingArray.slice(count,count+3);
+						if( isPricebookPriceOnline(msrpPriceArray[2]) ){
+							msrpPriceBookObject.productId = productId;
+							msrpPriceBookObject.amount = new Number(msrpPriceArray[0]);
+							msrpPriceBookObject.onlineFrom = !empty(msrpPriceArray[1]) ? setXMLDateFormat(msrpPriceArray[1] , true ): "";
+							msrpPriceBookObject.onlineTo = !empty(msrpPriceArray[2]) ? setXMLDateFormat( msrpPriceArray[2] , false ) : "";
+						
+							msrpPriceBookArrayList.add(msrpPriceBookObject);
+						}
+					}
+					count+=3;						
+					if(!empty(pricingArray[count])){
+						mapPriceArray = pricingArray.slice(count,count+3);
+						if( isPricebookPriceOnline(mapPriceArray[2]) ){
+							mapPriceBookObject.productId = productId;
+							mapPriceBookObject.amount = new Number(mapPriceArray[0]);
+							mapPriceBookObject.onlineFrom = !empty(mapPriceArray[1]) ? setXMLDateFormat( mapPriceArray[1] , true ) : "";
+							mapPriceBookObject.onlineTo = !empty(mapPriceArray[2]) ? setXMLDateFormat( mapPriceArray[2] , false ) : "";
+							
+							mapPriceBookArrayList.add(mapPriceBookObject);
+						}
+					}
+					count+=3;						
+					if(!empty(pricingArray[count])){
+						thresholdPriceArray = pricingArray.slice(count,count+3);
+						if( isPricebookPriceOnline(thresholdPriceArray[2]) ){
+							thresholdPriceBookObject.productId = productId;
+							thresholdPriceBookObject.amount = new Number(thresholdPriceArray[0]);
+							thresholdPriceBookObject.onlineFrom = !empty(thresholdPriceArray[1]) ?  setXMLDateFormat( thresholdPriceArray[1] , true ) : "";
+							thresholdPriceBookObject.onlineTo = !empty(thresholdPriceArray[2]) ? setXMLDateFormat( thresholdPriceArray[2] ,false ) :"";
+							
+							thresholdPriceBookArrayList.add(thresholdPriceBookObject);
+						}
+					}
+				}
+		}
+	}
+		if(msrpPriceBookArrayList.size()>0){
+			pricebookMap.put('shop-pna-list-price',msrpPriceBookArrayList);
+		}
+		if(mapPriceBookArrayList.size()>0){
+			pricebookMap.put('shop-pna-map-price',mapPriceBookArrayList);
+		}
+		if(thresholdPriceBookArrayList.size()>0){
+			pricebookMap.put('shop-pna-thresold-price',thresholdPriceBookArrayList);
+		}
+		pdict.PriceBookMap = pricebookMap;
+		
+	} catch(ex) {
+		Logger.error("[SAPPricebookFeedReader.ds] Error in file ( {0} )",ex.message);
+		pdict.ErrorMsg = ex.toString();
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}
+
+/* This Function is used to set the date in format yyyy-MM-dd'T'HH:mm:ss.SSS'Z' */
+
+function setXMLDateFormat( date : String , isOnlineFrom ){
+	var dateArray : Array = date.split("/");
+	var calendar : Calendar = new Calendar();
+	var dateString : String = "";
+	calendar.setTimeZone(Site.current.timezone);
+	if(isOnlineFrom){
+		calendar.set(parseInt(dateArray[2],'10'), parseInt(dateArray[0],'10') - 1, parseInt(dateArray[1],'10'), 0, 0, 0);
+	}else{
+		calendar.set(parseInt(dateArray[2],'10'), parseInt(dateArray[0],'10') - 1, parseInt(dateArray[1],'10'), 5, 0, 0);
+	}
+	dateString = StringUtils.formatCalendar(calendar, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	return dateString;
+}
+
+/* Check if Current Pricebook Price online */
+
+function isPricebookPriceOnline( onlineTo : String ){
+	var isPricebookPriceOnline : Boolean = false;
+	if(!empty(onlineTo)){
+		var onlineToDateArray : Array = onlineTo.split("/");
+		var onlineToCalendar : Calendar = new Calendar();
+		onlineToCalendar.setTimeZone(Site.current.timezone);
+		onlineToCalendar.set(parseInt(onlineToDateArray[2],'10'), parseInt(onlineToDateArray[0],'10') - 1, parseInt(onlineToDateArray[1],'10'));
+		isPricebookPriceOnline = onlineToCalendar.compareTo(new Calendar()) >= 0 ? true : false;
+	}
+	return isPricebookPriceOnline;
+}

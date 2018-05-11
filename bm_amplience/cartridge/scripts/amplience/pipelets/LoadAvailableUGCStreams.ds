@@ -1,0 +1,68 @@
+/**
+* Load available UGC streams from Amplience server
+*
+* Params:
+*
+* @input SearchPhrase : String
+* @input PageSize : Number
+* @input Start : Number
+* @input Sort : String
+*
+* @output UgcClient : Object
+* @output LoadedContent : Object
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.net );
+
+importScript( 'bc_amplience:/ugc/libAmplienceUgcClient.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		/**
+		 * Set query parameters object
+		 */
+		var queryParams : Object = {
+			pageSize : args.PageSize,
+			start : args.Start,
+			searchPhrase : args.SearchPhrase,
+			sort : args.Sort
+		};
+		
+		/**
+		 * Get Custom Preferences
+		 */
+		var customPreferences = dw.system.Site.getCurrent().getPreferences().custom;
+		
+		/**
+		 * Set authentication parameters object
+		 */
+		var authParams : Object = {
+			username : customPreferences['ampAPIUser'],
+			password : customPreferences['ampAPIPassword'],
+			ampApiURL : customPreferences['ampAPI']
+		};
+		
+		/**
+		 * Load streams from server
+		 */
+		var ugcClient : Object = new UgcClient( authParams, queryParams );
+		var assets : Object = ugcClient.getAssets();
+		
+		args.LoadedContent = assets['content'];
+		args.UgcClient = ugcClient;
+
+	}
+	catch(e) {
+		var errMsg = 'LoadAvailableUGCStreams.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

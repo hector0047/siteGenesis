@@ -1,0 +1,37 @@
+<!--- TEMPLATENAME: logininshippingpage.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<iscomment>New code for PANC 1.0.5 CodeRelease  </iscomment>
+	<isif condition="${!pdict.CurrentCustomer.authenticated}"> 
+		<iscomment><isinclude template="account/login/logininclude"/></iscomment>
+		<iscontentasset aid="returningcustomer" />
+		<h3>${Resource.msg('logininclude.loginoption','account',null)}</h3>
+		<form action="${URLUtils.httpsContinue()}" method="post" class="clearfix checkoutlogin" id="${pdict.CurrentForms.login.login.htmlName}"> 
+			<isif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && pdict.TempCustomer.profile.credentials.locked}">
+				<div class="error-form">${Resource.msg('logininclude.locked','account',null)}</div>
+			<iselseif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && (pdict.TempCustomer.profile.credentials.remainingLoginAttempts == 1)}">
+				<div class="error-form">${Resource.msg('logininclude.willbelocked','account',null)}</div>
+			<iselseif condition="${pdict.RegistrationStatus != null && pdict.RegistrationStatus != false && pdict.RegistrationStatus.code == 'CustomerAlreadyExistError'}">			
+				<div class="error-form">${Resource.msg('logininclude.loginfberror','account',null)}</div>
+			<iselseif condition="${!pdict.CurrentForms.login.loginsucceeded.valid}">
+				<div class="error-form">${Resource.msg('logininclude.loginerror','account',null)}</div>
+			</isif>
+			<fieldset>
+				<isinputfield formfield="${pdict.CurrentForms.login.username}" type="input" xhtmlclass="loginemail" p_dynamic="true" requiredtext="${Resource.msg('login.username.missing-error','forms',null)}" rowclass="loginrow-cont"/>
+				<isinputfield formfield="${pdict.CurrentForms.login.password}" type="password" xhtmlclass="password-input" requiredtext="${Resource.msg('login.password.missing-error','forms',null)}" rowclass="loginrow-cont"/>
+				<div class="form-row-2contents">
+					<isinputfield formfield="${pdict.CurrentForms.login.rememberme}" type="checkbox" rowclass="label-inline remember-me-row-cont"/>
+					<a id="password-reset" href="${URLUtils.url('Account-PasswordResetDialog')}" title="${Resource.msg('logininclude.forgotpassword','account',null)}">
+							${Resource.msg('logininclude.forgotpassword','account',null)}
+					</a>
+				</div>
+				<div class="form-row form-row-button">					
+					<button type="submit" value="${Resource.msg('global.continueInCaps','locale',null)}" name="${pdict.CurrentForms.login.login.htmlName}" class="button-blue">
+						${Resource.msg('global.continueInCaps','locale',null)}
+					</button>
+				</div>
+				<input type="hidden" name="${pdict.CurrentForms.login.secureKeyHtmlName}" value="${pdict.CurrentForms.login.secureKeyValue}"/>
+			</fieldset>
+ 		</form> 
+   	</isif>
+	

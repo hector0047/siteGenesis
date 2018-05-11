@@ -1,0 +1,132 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	This template renders a summary of all shipments of the basket which is
+	used below the order summary at the right hand side in the checkout
+	process.
+</iscomment>
+<isset name="Shipments" value="${pdict.Basket.shipments}" scope="page"/>
+
+<iscomment>the url to edit shipping addresses depends on the checkout scenario</iscomment>
+<isset name="editUrl" value="${URLUtils.https('COShipping-Start')}" scope="page"/>
+<isif condition="${pdict.CurrentForms.multishipping.entered.value}">
+	<isset name="editUrl" value="${URLUtils.https('COShippingMultiple-Start')}" scope="page"/>
+</isif>
+
+<isif condition="${!empty(Shipments)}">
+	<iscomment>render a box per shipment</iscomment>
+	<isset name="shipmentCount" value="${0}" scope="page"/>
+	<isloop items="${Shipments}" var="shipment" status="loopstate" begin="0" end="0"  >
+		<isif condition="${(shipment.giftCertificateLineItems.size() > 0 && shipment.shippingAddress == null) || shipment.shippingAddress != null}">
+			<isif condition="${shipment.custom.shipmentType == null && shipment.UUID==pdict.Basket.defaultShipment.UUID && shipment.shippingAddress.address1 == null || shipment.productLineItems.length <= 0}">
+				<iscontinue/>
+			</isif>
+			<isset name="shipmentCount" value="${shipmentCount+1}" scope="page"/>
+			<div class="mini-shipment order-component-block <isif condition="${loopstate.first}"> first <iselseif condition="${loopstate.last}"> last</isif>">
+				<iscomment>omit the shipment name, if there is just one shipment</iscomment>				
+				<iscomment>	
+					<isif condition="${Shipments.size() > 1 && pdict.Basket.productLineItems.size() > 0}"><div class="name">Shipment ${'#' + shipmentCount}</div></isif>
+				 </iscomment>
+
+				<h3 class="section-header">
+					<isif condition="${shipment.giftCertificateLineItems.size() > 0}">
+						${Resource.msg('minishipments.shipping','checkout',null)} <span>${Resource.msg('minishipments.giftcertdelivery','checkout',null)}</span>
+					<iselseif condition="${shipment.custom.shipmentType == 'instore'}"/>
+						<isset name="editUrl" value="${URLUtils.https('Cart-Show')}" scope="page"/>						
+						${Resource.msg('cart.store.instorepickup','storepickup',null)}
+						<a href="${editUrl}"  class="section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+					<iselseif condition="${shipment.shippingAddress != null && pdict.Basket.productLineItems.size() > 0}"/>
+						${Resource.msg('minishipments.shippingaddress','checkout',null)}
+						<a href="${editUrl}"  class="section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+					</isif>
+				</h3>
+	
+				<div class="details">
+					<iscomment>
+						render the detail section depending on whether this is a physical shipment with products
+						(shipped to an address) or if this is a gift certificate (send via email)
+					</iscomment>
+					<isif condition="${shipment.giftCertificateLineItems.size() > 0}">
+						<isloop items="${shipment.giftCertificateLineItems}" var="giftCertLI">
+							<div><isprint value="${giftCertLI.recipientName}"/></div>
+							<div>(<isprint value="${giftCertLI.recipientEmail}"/>)</div>
+						</isloop>
+					<iselseif condition="${shipment.shippingAddress != null && pdict.Basket.productLineItems.size() > 0}">
+						<isset name="address" value="${shipment.shippingAddress}" scope="page"/>
+						<div><isprint value="${address.firstName}"/> <isprint value="${address.lastName}"/></div>
+						<div><isprint value="${address.address1}"/></div>
+						<isif condition="${!empty(address.address2)}">
+							<div><isprint value="${address.address2}"/></div>
+						</isif>
+						
+						<div><isprint value="${address.city}"/>, <isprint value="${address.stateCode}"/> <isprint value="${address.postalCode}"/></div>
+						
+						<iscomment>Start JIRA PREV-35: Phone Number is missing in Shipping section. Added isprint tag</iscomment>
+							<isscript>  
+					        	var originalNum: String =address.phone;
+					        	var formattedNum: String = '';  
+					            formattedNum = originalNum.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');        
+					       </isscript> 
+			       
+							<div><isprint value="${formattedNum}"/></div>
+							
+						<iscomment>End JIRA PREV-35</iscomment>
+												
+						<iscomment>
+							Country name is not requrired for panasonic 
+							<div><isprint value="${address.countryCode}"/></div>
+						</iscomment>
+						<isscript>
+							importPackage(dw.util);
+							
+							var shippingMethodsIter : Iterator = pdict.Basket.shipments.iterator();
+							var uniqueshipmethodIDsMap : SortedMap = new SortedMap();
+							var uniqueshipmethods : Array = new Array();
+							
+							while(shippingMethodsIter.hasNext()){
+								var shippingMethodsForEachShipmentMap = shippingMethodsIter.next();
+								var shippingmethodId : String = shippingMethodsForEachShipmentMap.shippingMethod.ID;
+								var shippingmethodName : String = shippingMethodsForEachShipmentMap.shippingMethod.displayName;
+								uniqueshipmethodIDsMap.put(shippingmethodName,shippingmethodId)
+							}
+						</isscript>
+						<isset name="loopIndex" value="${1}" scope="page" />
+						<isset name="shipmentMethods" value="${uniqueshipmethodIDsMap.keySet()}" scope="pdict" />
+						<iscomment>
+						<isloop items="${uniqueshipmethodIDsMap.keySet()}" var="multishipment" status="loopstate"> 
+							<isif condition="${!empty(multishipment)}">
+								<div class="minishipments-method">
+									<isif condition="${loopstate.last && loopstate.count == 1}">
+										<span>${Resource.msg('orderdetails.shippingmethod','components',null)}: </span>
+									<iselse/>
+										<span>${Resource.msg('orderdetails.shippingmethod','components',null)} <isprint value="${loopIndex.toFixed()}"/> :</span>
+									</isif>
+									
+							    	<span><isprint value="${multishipment}"/></span>
+								</div>
+								<isset name="loopIndex" value="${loopIndex+1}" scope="page" />	
+							</isif>
+						</isloop>
+						</iscomment>
+						<isloop items="${Shipments}" var="multishipment" status="loopstate">
+							<isif condition="${!empty(multishipment.shippingMethod)}">
+								<isif condition="${uniqueshipmethodIDsMap.containsValue(multishipment.shippingMethod.ID)}">
+									<div class="minishipments-method">
+										<isif condition="${loopstate.last && loopstate.count == 1}">
+											<span>${Resource.msg('orderdetails.shippingmethod','components',null)}: </span>
+										<iselse/>
+											<span>${Resource.msg('orderdetails.shippingmethod','components',null)} <isprint value="${loopIndex.toFixed()}"/> :</span>
+										</isif>
+										
+								    	<span><isprint value="${multishipment.shippingMethod.displayName}"/></span>
+								    		<isset name="loopIndex" value="${loopIndex+1}" scope="page" />	
+									</div>
+								</isif>									
+							</isif>
+						</isloop>	
+					</isif>
+				</div>
+	
+			</div>
+		</isif>
+	</isloop>
+</isif>

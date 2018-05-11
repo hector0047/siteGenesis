@@ -1,0 +1,48 @@
+/**
+*    @input Basket : dw.order.Basket
+*    @output ShipTo : Object
+*    @output BillTo : Object
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importScript('int_cybersource:cybersource/Cybersource_ShipTo_Object.ds');
+importScript('int_cybersource:cybersource/Cybersource_BillTo_Object.ds');
+function execute( args : PipelineDictionary ) : Number
+{
+	var _basket : Basket = args.Basket;
+	if(_basket != null){
+		var shipToObject : ShipTo_Object = new ShipTo_Object(); 
+		var billToObject: BillTo_Object = new BillTo_Object();
+		var shippingAddress : OrderAddress = null;
+		var shippingMethod : ShippingMethod = null;
+		shippingAddress = _basket.defaultShipment.shippingAddress;	
+		// Create the shipto object for the Cybersource request
+		if( !empty(shippingAddress) && !empty(_basket) ) {
+			shipToObject.setFirstName(shippingAddress.firstName);
+			billToObject.setFirstName(shippingAddress.firstName);
+			shipToObject.setLastName(shippingAddress.lastName);
+			billToObject.setLastName(shippingAddress.lastName);
+			shipToObject.setStreet1(shippingAddress.address1 +" "+shippingAddress.address2);
+			billToObject.setStreet1(shippingAddress.address1 +" "+shippingAddress.address2);
+			shipToObject.setStreet2(shippingAddress.address2);
+			billToObject.setStreet2(shippingAddress.address2);
+			shipToObject.setCity(shippingAddress.city);
+			billToObject.setCity(shippingAddress.city);
+			shipToObject.setState(shippingAddress.stateCode);
+			billToObject.setState(shippingAddress.stateCode);
+			shipToObject.setPostalCode(shippingAddress.postalCode);
+			billToObject.setPostalCode(shippingAddress.postalCode);
+			shipToObject.setCountry(shippingAddress.countryCode);
+			billToObject.setCountry(shippingAddress.countryCode);
+			shipToObject.setPhoneNumber(shippingAddress.phone);
+			billToObject.setPhoneNumber(shippingAddress.phone);
+		}
+		args.ShipTo = shipToObject;
+		args.BillTo = billToObject;
+	}else{
+		return PIPELET_ERROR;
+	}	
+    return PIPELET_NEXT;
+}

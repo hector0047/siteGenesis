@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Notify JOB main pipeline to trigger function based pipelines</description>
+        </text-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_2">
+    <segment>
+      <node>
+        <text-node>
+          <description>Notifys All OOS productID's and its corresponding promotion ID to the merchant mailID configured in BM</description>
+        </text-node>
+        <node-display x="2" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="SendNotification">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="SendNotification" secure="false"/>
+        <node-display x="0" y="2"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <call-node start-name-ref="Notification-NotifyOOSPromoProduct"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="Success"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="NotifyOOSPromoProduct">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="NotifyOOSPromoProduct" secure="false"/>
+        <node-display x="2" y="2"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="common/OOSPromotionList.ds"/>
+          <key-binding alias="log" key="ScriptLog"/>
+          <key-binding alias="promotionlist" key="PromotionList"/>
+          <key-binding alias="promotionlist" key="promotionList"/>
+          <key-binding alias="oosproductlist" key="oosproductList"/>
+          <key-binding alias="promodetails" key="promodetails"/>
+          <key-binding alias="emaillist" key="emails"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="error"/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="&quot;noreply@demandware.com&quot;" key="MailFrom"/>
+          <key-binding alias="&quot;mail/promotionslist&quot;" key="MailTemplate"/>
+          <key-binding alias="emaillist" key="MailTo"/>
+          <key-binding alias="&quot;Daily Shop Notifications &quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="Success"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

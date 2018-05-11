@@ -1,0 +1,15 @@
+/**
+*   To Validate the return parameters of Cybersource SASOP Hit
+*   @input ParameterMap : dw.web.HttpParameterMap The current parameter map.
+*   @output Valid : Boolean Wether or not the response is a valid one.
+*
+*/
+importPackage( dw.system );
+importScript('int_cybersource:library/libCybersource_secureacceptance.ds');
+
+function execute( args : PipelineDictionary ) : Number
+{   
+	var CybersourceHelper = getCybersource_SecureAcceptanceHelper();
+    args.Valid = CybersourceHelper.verifyTransactionSignature(args.ParameterMap);    
+   return PIPELET_NEXT;
+}

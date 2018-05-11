@@ -1,0 +1,170 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i,700,700i,900,900i" rel="stylesheet">
+<isinclude template="util/modules"/>
+<iscache type="relative" hour="24"/>
+<div id="browser-cookie-check"></div>
+<isinclude template="bv/display/headerincludes"/>
+<isinclude url="${URLUtils.url('Home-IncludeCustomerGroup')}"/>
+<div id="header" role="banner">	
+		<!--  branding logo -->
+		<div class="headerlogoWithMenu">
+		<div class="menublock">
+		<div class="primary-logo pnsb2c-header-left">
+			<a href="${URLUtils.http('Home-Show')}" title="${Resource.msg('global.storename','locale',null)}">
+				<span>${Resource.msg('global.storename','locale',null)}</span>
+			</a>
+		</div>
+	
+		<a href="#main" class="visually-hidden">Skip to content</a>
+		<div class="header-top desktopBlock"><iscomment>INCLUDE: Mini-cart, do not cache</iscomment>
+			    <div id="mini-cart" class="minicartheadercount">
+			    	<isinclude url="${URLUtils.url('Cart-MiniCart')}"/>
+			    </div>
+				 <!--  utility user menu -->
+				<iscomment>INCLUDE: Customer login information, login, etc. (contains personal information, do not cache)</iscomment>
+				<isinclude url="${URLUtils.url('Home-IncludeHeaderCustomerInfo')}"/> </div>
+ 
+		<div class="pnsb2c-header-right desktopBlock">
+		    <div class="pnsb2c-header-top pnsb2c-header-dropdown">
+		   		<!-- utility menu -->
+		   		<ul class="menu-utility level-dropdown">
+					<li class="about_menu">
+						<a id="GlobalHeaderAbout" href="${URLUtils.url('Search-ShowContent','fdid','our-company')}" title="About Header" class="business_link">
+							${Resource.msg('header.about','components',null)} </a>
+						
+						<div class = "level-2">
+						    <div class = "menu-wrapper">
+							<iscontentasset aid="aboutus-dropdown-links" />
+							</div>
+						</div>
+					</li> 
+					<li>
+						<a id="GlobalHeaderBusiness"  href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontBusinessSiteURL')}" title="" class="business_link">
+									${Resource.msg('header.business','components',null)} </a>
+					</li>
+					<li class="last">
+						<a id="global-header-industry" href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontIndustrialSiteURL')}" title="">
+							${Resource.msg('header.industry','components',null)} </a>
+					</li>
+				</ul>
+				  <div class="header-search global-search">
+					<isinclude template="search/simplesearch"/>
+					<span class="ico-search"></span>
+				</div>
+				
+		<iscomment>
+			    	SLOT CONFIGURATION:  SLOT/ID: header-banner
+	    <div class="header-banner">
+	    	<isslot id="header-banner" description="Header banner within the header, between the logo and search bar, width XXXpx by height XXpx." context="global" />
+	    </div>
+				</iscomment>
+		</div>	
+		
+</div>
+<div id="navigation" role="navigation" class="pnsb2c-header-bottom pnsb2c-header-dropdown desktopBlock">
+			<nav>
+				<span class="visually-hidden navigation-header">Catalog Navigation</span>
+				<!--  category navigation -->
+				<iscomment>INCLUDE: category menu</iscomment>
+				<isinclude url="${URLUtils.url('Home-IncludeHeaderMenu')}"/>
+				
+			</nav>
+		</div><!-- /navigation -->
+<div class="mobileBlock">
+<iscomment>Mobile-Main-Nav-Start</iscomment>
+				<div class="mobilemainNav" style="float:right;">
+				 <div class="pnsb2c-header-top pnsb2c-header-dropdown">
+			   		<!-- utility menu -->
+					<iscomment>INCLUDE: Mini-cart, do not cache</iscomment>
+				    <div  class="mobDeals mobTabMainMenu">
+				  	<a href="${URLUtils.url('Search-Show', 'cgid', 'deals')}"><span></span></a>
+				    </div>
+				    <div id="mini-cart" class="mobTabMainMenu minicartheadercount">
+				    	<isinclude url="${URLUtils.url('Cart-MiniCart')}"/>
+				    </div>
+				    
+				      <div class="mobnav mobTabMainMenu">
+				    	<span></span>
+				    </div>
+		 		</div>
+				</div>
+				
+				<iscomment>Mobile-Main-Nav-End</iscomment>
+				
+			<iscomment>Mobile-Drop-Nav-Start</iscomment>
+			<div id="mobileMenuWrpper" style="display:none;">
+				<div class="pnsb2c-header-right mobileMenu">
+					<iscomment>Mobile-Nav-Search-Start</iscomment>
+						<div class="SmalSearch nav-search">
+							<div class="header-search global-search">
+								<isinclude template="search/simplesearch"/>
+								<span class="ico-search"></span>
+							</div>
+						</div>
+					<iscomment>Mobile-Nav-Search-Start</iscomment>
+				<div class="pnsb2c-header-dropdown">
+					<div id="navigation" role="navigation" class="pnsb2c-header-bottom pnsb2c-header-dropdown ">
+						<nav>	
+							<span class="visually-hidden navigation-header">Catalog Navigation</span>
+							<!--  category navigation -->
+							<iscomment>INCLUDE: category menu</iscomment>
+							<isinclude url="${URLUtils.url('Home-IncludeHeaderMenu')}"/>
+						</nav>
+					</div><!-- /navigation -->
+					<div class="utility-menu">
+					<!--  utility user menu -->
+					<iscomment>INCLUDE: Customer login information, login, etc. (contains personal information, do not cache)</iscomment>
+					<isinclude url="${URLUtils.url('Home-IncludeHeaderCustomerInfo')}"/> 
+					<iscomment>
+						SLOT CONFIGURATION:  SLOT/ID: header-banner
+						<div class="header-banner">
+							<isslot id="header-banner" description="Header banner within the header, between the logo and search bar, width XXXpx by height XXpx." context="global" />
+						</div>
+					</iscomment>
+					</div>	
+					
+					<div class="secondary-menu">
+					<ul class="menu-utility level-dropdown">
+						<li class="about_menu">
+							<a id="GlobalHeaderAbout" href="${URLUtils.url('Search-ShowContent','fdid','our-company')}" title="About Header" class="business_link">
+								${Resource.msg('header.about','components',null)} </a><span class="headernavicn"></span>
+							<div class="level-2">
+								<div class="menu-wrapper">
+								<iscontentasset aid="aboutus-dropdown-links" />
+								</div>
+							</div>
+						</li>
+						<li>
+							<a id="GlobalHeaderBusiness"  href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontBusinessSiteURL')}" title="" class="business_link">
+							${Resource.msg('header.business','components',null)} </a>
+						</li>
+						<li class="last">
+							<a id="global-header-industry" href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontIndustrialSiteURL')}" title="">
+							${Resource.msg('header.industry','components',null)} </a>
+						</li>
+					</ul>
+					</div>	
+				</div>	</div>
+			</div>
+<iscomment>Mobile-Drop-Nav-End</iscomment>
+
+<iscomment>Mobile-Search-Start</iscomment>
+<div class="SmalSearch headerSmalSearch">
+<div class="header-search global-search">
+	<isinclude template="search/simplesearch"/>
+	<span class="ico-search"></span>
+</div>
+</div>
+<iscomment>Mobile-Search-Start</iscomment>
+</div></div>
+</div><!-- /header -->
+<iscomment>Pixlee Embedded JS</iscomment>
+<isinclude template="utils/pixleeevents"/>
+ 
+<iscomment>PANC-1663 Commenting Hometeam code- below code is related to B2C not hometeam PANC-1843</iscomment>
+ <isif condition="${pdict.CurrentHttpParameterMap.ShippingBanner.booleanValue != null && pdict.CurrentHttpParameterMap.ShippingBanner.booleanValue && pdict.CurrentHttpParameterMap.isHomeTeamPage.booleanValue == null}"> 
+ 	<div class="home-bannerbottom-promotion">
+ 		 <isslot id="sale-content" context="global" description="Sale Content "/>
+ 	</div>
+ </isif>
+

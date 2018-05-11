@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+   
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+   
+            <attribute-definition attribute-id="MainStreetDomain">
+                <display-name xml:lang="x-default">MainStreet Domain</display-name>
+                <description xml:lang="x-default">The Domain name of the cusotmer who wants to call main street for order status. For example: example.com</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="MainStreetPassword">
+                <display-name xml:lang="x-default">MainStreet Password</display-name>
+                <description xml:lang="x-default">Password which is used to authenticate against the MainStreet service. Example: bUz%3</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="MainStreetUsername">
+                <display-name xml:lang="x-default">MainSteet Username</display-name>
+                <description xml:lang="x-default">The username which is used to authenticate against the MainStreet service. Example: infoserv</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="MainStreetEndpoint">
+                <display-name xml:lang="x-default">MainStreet Endpoint</display-name>
+                <description xml:lang="x-default">The Enpoint URL which will be used to call main street for order status. For example: http://demandware.mainstreetcustomers.com/services/orderhistory/v1/Order.svc</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>http://demandware.mainstreetcustomers.com/services/orderhistory/v1/Order.svc</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="LIT">
+                <display-name xml:lang="x-default">Low Inventory Threshold</display-name>
+                <description xml:lang="x-default">Low Inventory Threshold</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+                <default-value>0</default-value>
+            </attribute-definition>            
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="MainStreet">
+                <display-name xml:lang="x-default">MainStreet</display-name>
+                <attribute attribute-id="MainStreetEndpoint"/>
+                <attribute attribute-id="MainStreetDomain"/>
+                <attribute attribute-id="MainStreetUsername"/>
+                <attribute attribute-id="MainStreetPassword"/>
+                <attribute attribute-id="LIT"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

@@ -1,0 +1,9 @@
+<!--- TEMPLATENAME: versionhash.isml --->
+
+<script data="pixlee-version-hash">
+var versionHash = '380e56d62aa32dd6b4a8ef68cbeaac3d41c0cb19';
+
+function getVersionHash() {
+return versionHash;
+}
+</script>

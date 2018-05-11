@@ -1,0 +1,115 @@
+importPackage( dw.system );
+importPackage( dw.net );
+ 
+importScript("utils/libUrl.ds");
+
+
+ /**
+ *		A utility class, which abstracts the use of FTP Client and Web DAV client of the demandware API in order to allow streamlined processes without worrying about the used protocol.
+ *		The FTP API is master and the WebDAV is bent. 
+ *
+ **/
+function TransferClient(serverType : String, url : String, userName : String, password : String) {
+	/**
+	*	Initializes the underlying system objects and handy library objects	
+	**/
+	this.init = function () {
+		this.serverType = serverType;
+		this.urlObject = parseUri(url);
+		this.urlString = url;
+		
+		this.systemClient = null;
+		if(serverType == "FTP") {
+			this.initFTP();
+		} else if (serverType == "SFTP") {
+			this.initFTP();
+		} else {
+			this.initWebDav();
+		}
+		
+		var path = this.urlObject.path;
+		if (path.substring(path.length-1, path.length) != "/") {
+			this.urlObject.path = this.urlObject.path + "/";
+		}
+
+	};
+	
+	/**
+	*	Initialises the web dav client
+	**/
+	this.initWebDav = function () {
+		if(empty(userName)) {
+			this.systemClient = new WebDAVClient(this.urlObject.protocol + "://" + this.urlObject.host);
+		} else {
+			if (empty(password)) {
+				throw (new Error("Unsupported Configuration: No password provided for username " + userName)); 	
+			}
+			this.systemClient = new WebDAVClient(this.urlObject.protocol + "://" + this.urlObject.host, userName, password);
+		}
+	};	
+	
+	/**
+	*	Initialises the FTP client
+	**/
+	this.initFTP = function () {
+		if (serverType == "FTP") {
+			this.systemClient = new FTPClient();
+		} else {
+			this.systemClient = new SFTPClient();
+		}
+		this.systemClient.setTimeout(1000);
+		
+		if(empty(userName)) {
+			if (this.urlObject.protocol == "SFTP") {
+				throw (new Error("Unsupported Configuration: User-ID and Password are mandatory for SFTP-Connection.")); 	
+			}
+			if (empty(urlObject.port)) {
+				this.systemClient.connect(this.urlObject.host);
+			} else {
+				this.systemClient.connect(this.urlObject.host, this.urlObject.port);
+			}
+		} else {
+			if (empty(password)) {
+				throw (new Error("Unsupported Configuration: No password provided for username " + userName)); 	
+			}
+			if (empty(this.urlObject.port)) {
+				var uo = this.urlObject;
+				var un = userName;
+				var pw = password;
+				this.systemClient.connect(this.urlObject.host, userName, password);
+			} else {
+				this.systemClient.connect(this.urlObject.host, this.urlObject.port, userName, password);
+			} 
+		}
+		//this.systemClient.cd(this.urlObject.path);
+	};	
+	/**
+	*	Proxy for the system client. It will delegate each function call to the respective call on webdav-, ftp- or sftp client.
+	*/
+	this.__noSuchMethod__ = function(id, arguments){
+		// proxy disconnect to void/null as webdav is stateless
+		if (id == "disconnect" && this.serverType == "WEBDAV") {
+			return null;	
+		}
+		// proxy list method to webdavs getproperty method
+		if (id == "list" && this.serverType == "WEBDAV") {
+			var list = arguments[0];
+			return this.systemClient.propfind(arguments[0]);	
+		}
+		// proxy putBinary method to webdavs put method
+		if (id == "putBinary" && this.serverType == "WEBDAV") {
+			
+			return this.systemClient.put(arguments[0], arguments[1]);	
+		}
+		// proxy mkdir method to webdavs mkcol method
+		if (id == "mkdir" && this.serverType == "WEBDAV") {
+			
+			return this.systemClient.mkcol(arguments[0]);	
+		}
+		var newID = id;
+		return this.systemClient[newID].apply(this.systemClient, arguments)
+	};	
+	
+	// run initialization
+	this.init();
+}

@@ -1,0 +1,103 @@
+<script type="text/javascript">
+	function toggleChildren(element,j) {
+		if(	jQuery(element).hasClass('closed')) {
+			jQuery(element).find('.level_'+(j+1)+'').show(); 
+			jQuery(element).removeClass('closed'); jQuery(element).addClass('open')
+		} else {
+			jQuery(element).find('.level_'+(j+1)+'').hide();
+			jQuery(element).removeClass('open'); 
+			jQuery(element).addClass('closed')
+		}
+		return false;
+	}
+	
+	
+	jQuery(document).ready(function() {
+		var anchors = jQuery('.classList a');
+		for (var i = 0; i < anchors.length; i++) {
+			var a = jQuery(anchors[i])
+			var splittedClasses = a.text().split('.');
+			
+			if (splittedClasses.length > 1) {
+				for (var j = 0; j < splittedClasses.length; j++) {							
+					if (jQuery('class_' + splittedClasses[j]).length == 0) {
+						if (jQuery('#namespace_' +splittedClasses[j]).length == 0) {
+							var namespaceselector = '<div id="namespace_' +splittedClasses[j]+ '" class="level_'+j+' open clickable" onclick="toggleChildren(this,' +j+ ');event.cancelBubble = true;" >' + splittedClasses[j] + "</div>";
+							
+							if (j == 0) {
+								jQuery('#filterList').append(namespaceselector);
+								jQuery('#namespace_' +splittedClasses[j]).addClass('rootEntry');
+							} else if (j == splittedClasses.length-1) {
+								jQuery('#namespace_' +splittedClasses[j-1]).append('<div><a href="' + a.attr('href') + '" onclick="event.cancelBubble" class="level_' +j+ '" id="namespace_' +splittedClasses[j]+ '">' + splittedClasses[j] + '</a></div>');						 	
+							} else {	
+								jQuery('#namespace_' +splittedClasses[j-1]).append(namespaceselector);
+							}
+							
+						}
+					}
+					a.hide();
+				}
+			}
+		}
+		
+		var linkBase = '{+ Link.base +}';
+		var elements = jQuery('#filterList a, .classList a');
+		elements.click(function (e) {
+			e.stopPropagation();
+			e.preventDefault();
+			jQuery.ajax({
+			   type: "GET",
+			   url: jQuery(e.target).attr("href"),
+			   dataType: 'html',
+			   success: function(data){	   		
+			   		var resultJQ = jQuery('<div>' + data + '</div>');
+			   		var resultContent = resultJQ.find('#content');
+			   		var resultLinkBase = resultJQ.find('#linkBase').html();
+			   		
+			   		var anchors = resultJQ.find('#content').find('a');
+			   		for (var i = 0; i < anchors.length; i++) {
+			   			var anchor = jQuery(anchors[i]);
+			   			try{
+			   				anchor.attr('href', anchor.attr('href').replace(resultLinkBase, linkBase))
+			   			} catch (exception) {
+			   			}
+			   		}
+			   		
+			   		
+			   		jQuery("#content").empty().html(resultContent.html());
+			   		return false;
+			   },
+			   failure: function(data) {
+			   		alert("${Resource.msg('global.serverconnection','locale',null)}");		
+			   }
+			});
+		
+		});
+		
+		
+	});
+</script>
+
+<div align="center">{+new Link().toFile("index.html").withText("Class Index")+}
+| {+new Link().toFile("pipeletindex.html").withText("Pipelet Index")+}
+| {+new Link().toFile("files.html").withText("File Index")+}</div>
+<hr />
+
+<h2>Classes</h2>
+<div class="filtermenu"><a href="javascript:void(0)" onclick="jQuery(this).parent().parent().find('#filterList .clickable').show(); jQuery(this).parent().parent().find('#filterList .clickable').addClass('open');jQuery(this).parent().parent().find('#filterList .clickable').removeClass('closed');">Expand all</a> | <a href="javascript:void(0)" onclick="jQuery(this).parent().parent().find('#filterList .rootEntry .clickable').hide();jQuery(this).parent().parent().find('#filterList .clickable').addClass('closed');jQuery(this).parent().parent().find('#filterList .clickable').removeClass('open');">Close all</a></div>
+<div id="filterList"> 
+</div>
+<ul class="classList">
+<!-- the bas64 en- and decoding is a very stupid way, to prevent menustructure to be indexed for search --> 
+	<for each="thisClass" in="data">
+	<li>{!
+		if (thisClass.alias == "_global_") {
+			output += "<i>"+new Link().toClass(thisClass.alias)+"</i>";
+		}
+		else {
+			output += new Link().toClass(thisClass.alias);
+		}
+	!}</li>
+	</for>
+</ul>
+<hr />

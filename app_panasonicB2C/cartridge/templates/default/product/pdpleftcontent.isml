@@ -1,0 +1,153 @@
+<isinclude template="util/modules"/>
+<div class="pnsb2c-pdp-left">
+	<div class="pdp-left-holder">
+		<div class="checkdiv desktopBlock">
+		</div>
+		<div id="sidebar1">
+			<div class="productdetailmenu">
+				<div id="stickytop">
+					<div class="mobileTopPDCTDetails">
+						<div class="sticky-menu-head">
+							<iscomment><h1 itemprop="name"><span class="pdp-prod-name">LUMIX FL360L Flash: Wireless Hybrid Flash System with Built-in Video LED</span></h1></iscomment>
+							 <h1 itemprop="name"> 
+								<isif condition="${(date !=null) && new Date(date) >= new Date()}">
+									<span class="pdp-prod-badge">NEW!</span>
+								<iselseif condition="${pdict.Product.custom.isSale}" >
+									<span class="pdp-prod-badge sale">SALE!</span>
+								</isif>
+								<span class="pdp-prod-name"><isprint value="${pdict.Product.shortDescription}" encoding="off" /></span>
+								<span class="product-number">
+									<iscomment>${Resource.msg('product.item','product',null)}</iscomment>
+									<span itemprop="productID"><isprint value="${ pdict.available ? pdict.Product.ID : masterId }"/></span>
+								</span>
+							</h1>
+						</div>
+					</div>
+				
+					<div class="sticky-menu-button"> 
+						<isif condition="${!('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)}">
+							<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.product.addtocart.dynamicHtmlName}" class="pdpForm normalProduct">
+								<isset name="disabledAttr" value="${((('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)) || !(pdict.available&&!pdict.Product.master)) ? true : false }" scope="page"/>
+								<isset name="cartAction" value="add" scope="page"/>
+								<isset name="priceCheck" value="${pdict.Product.getPriceModel().getPrice().value > 0?true:false}" scope="page"/>				
+								<isif condition="${pdict.CurrentHttpParameterMap.uuid.stringValue}">	
+									<input type="hidden" name="uuid" id="uuid" value="${pdict.CurrentHttpParameterMap.uuid.stringValue}" />
+									<isset name="cartAction" value="update" scope="page"/>
+								</isif>
+								<iscomment> PANC-1515 Farhans Dev team 03-11-2015:4:50pm </iscomment>			
+									<input type="hidden" name="productWarranty" id="product-warranty" class="product-warranty" value="" />
+								<iscomment> PANC-1515 END </iscomment>
+								<input type="hidden" name="strandsPids" id="strandspids" value="${!empty(pdict.RespIDS)?pdict.RespIDS:''}"/>
+								<input type="hidden" name="cartAction" id="cartAction" value="${cartAction}" />
+								<input type="hidden" name="pid" id="pid" value="${pdict.Product.ID}" />
+								<input type="hidden" name="Quantity" id="Quantity" class="pdp-left-content-quantity" value="${Number(empty(pdict.CurrentHttpParameterMap.Quantity.stringValue) ? 1 : pdict.CurrentHttpParameterMap.Quantity.stringValue).toFixed()}" />
+								<iscomment> Setting Remote include for condition buy button </iscomment>
+								<isif condition="${Product.custom.soldOnEncompass!=true}"> 
+									<isif condition="${ Product.custom.hideAddtoCart != true}">
+										<isinclude url="${URLUtils.url('Product-GetInventryConditions' , 'pid' , pdict.Product.ID,'plpPage',false,'isQuickView',isQuickView,'buttonTitle',(Resource.msg('global.addtocart','locale','Add to Cart')))}"/>
+									</isif>
+								<iselse/>
+									<isset name="VisitDelearURL" value="${('https://panasonic.encompass.com/search/?part.search.term=').concat(pdict.Product.ID)}" scope="page" />
+									<a href="${VisitDelearURL}" target="_blank" title="Visit Dealer" class="button-blue visit-dealer" value="Visit Dealer" >VISIT DEALER <span class="visit-icon">&nbsp;</span></a>
+								</isif>
+							</form>
+						</isif>
+					</div>
+					<isif condition="${!('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly) }">
+						<div class="topPriceSwactCntr">
+							<div class="clr-price-holder">	
+								<iscomment>Commenting static include and adding remote include for avoiding chache issue PANC-594</iscomment>
+								<iscomment><isinclude template="product/components/variations"/></iscomment>
+								<isset name="priceCheck" value="${pdict.Product.getPriceModel().getPrice().value > 0?true:false}" scope="page"/>
+								<isif condition="${priceCheck && pdict.Product.custom.soldOnEncompass!=true}">
+									<isinclude template="product/components/pricing"/>
+								</isif>
+							</div>
+							<div class="pnsb2c-pdp-clr-pro-price-holder">
+								<div class="clr-price-holder">	
+									<iscomment>Commenting static include and adding remote include for avoiding chache issue PANC-594</iscomment>
+									<iscomment><isinclude template="product/components/variations"/></iscomment>
+									<isinclude url="${URLUtils.url('Product-ShowSwatches' , 'pid' , pdict.Product.ID,'compPage',false,'source',pdict.CurrentHttpParameterMap.source.stringValue)}"/>
+								</div>
+							</div>
+						</div>
+					</isif>
+						<isif condition="${Product.custom.soldOnEncompass!=true}">
+							<div class="product-review-links-sticky">
+							<div class="review-count"></div>
+							</div>
+						</isif>
+					
+				</div>
+					
+	            
+					 
+				<ul class="prod-info-ul desktopBlock">
+					<iscomment>
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-overview">${Resource.msg('product.lefttab1','product',null)}</a>
+						</li>
+					</iscomment>
+					<isif condition="${(!empty(pdict.Product.custom.isGallery) && (pdict.Product.custom.isGallery != 'null') && (pdict.Product.custom.isGallery) )}">								
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-gallery">${Resource.msg('product.gallery','product',null)}</a>
+						</li>
+					</isif>	
+					<isif condition="${!empty(pdict.Product.custom.overview) && pdict.Product.custom.overview != 'null' && !pdict.Product.custom.supportOnly}">	
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-feature">${Resource.msg('product.lefttab2','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${!empty(pdict.Product.custom.technicalSpecAttributes) && pdict.Product.custom.technicalSpecAttributes != 'null'}">
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-specifications">${Resource.msg('product.lefttab3','product',null)}</a>
+						</li>
+					</isif>
+					
+						
+					<isif condition="${!empty(pdict.ProductOwnerImages) && pdict.ProductOwnerImages != 'null'}">
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-awards">${Resource.msg('product.lefttab5','product',null)}</a>
+						</li>
+					</isif>
+						
+					
+					<li class="info-block review-block">
+						<a href="#pdp-reviews-block">${Resource.msg('product.lefttab6','product',null)}</a>
+					</li>
+					
+					<iscomment>Fix for : PANC-676</iscomment>
+					<isif condition="${('enableDWRecommendations' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableDWRecommendations && !empty(pdict.productset) && pdict.productset != 'null') || ('StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled && !empty(pdict.Response) && pdict.Response != 'null')}">
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-accessesories">${Resource.msg('product.lefttab4','product',null)}</a>
+						</li>
+					</isif>
+					
+					<iscomment>*Energy Rating PANC-1309*</iscomment>
+					<iscomment>				
+						<isif condition="${'energyRating' in pdict.Product.custom && !empty(pdict.Product.custom.energyRating) && pdict.Product.custom.energyRating != 'null'}">
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-energyrating">${Resource.msg('product.lefttab10','product',null)}</a>
+						</li>
+						</isif>
+					 </iscomment>	
+					<iscomment> JIRA 909
+					<isif condition="${(!empty(pdict.OwnerShipUrls) && pdict.OwnerShipUrls != 'null') || (!empty(pdict.WarrentyUrls) && pdict.WarrentyUrls != 'null')}">
+						<li class="info-block">
+							<a href="#pnsb2c-pdp-ownership">${Resource.msg('product.lefttab7','product',null)}</a>
+						</li>
+					</isif>
+					</iscomment>
+					
+					<li class="info-block">
+							<a href="#pnsb2c-pdp-support" <isif condition="${('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)}">class="supportproduct"</isif>>${Resource.msg('product.lefttab9','product',null)}</a>
+					</li>					
+				</ul>
+			</div>
+			
+			<div style="display:none;">
+			
+			</div>
+		</div>
+	</div>					
+</div>

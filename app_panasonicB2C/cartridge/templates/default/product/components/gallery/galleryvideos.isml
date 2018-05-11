@@ -1,0 +1,25 @@
+<div id="gallery-product-photos">
+	<div id="gallery-photography-samples-grid">
+		<ul>
+			<isloop items="${pdict.GalleryVideoUrls}" var="videoItemPath" status="vidSmStatus">
+		    	<isscript>
+		        	var videoItem = videoItemPath.trim().split('$');
+		        </isscript>
+		        <isif condition="${!empty(videoItem[0]) && !empty(videoItem[1]) && !empty(videoItem[2])}"> 
+		        	<isif condition="${(vidSmStatus.index%5 == 0)}">
+						<li class="gallry-tile-new gallery-tile thumb">
+					<iselse>
+						<li class="gallery-tile thumb">
+					</isif>
+						<a href="javascript:void(0)" class="thumbnail-link video-link">
+							<!-- <span class="gallery-video-thumb"></span> -->
+							<isset name="tpath" value="${'http://img.youtube.com/vi/'+videoItem[2].trim().split('/')[videoItem[2].trim().split('/').length-1]+'/default.jpg'}" scope="page"/>
+							<img src="${tpath}" data-lgimg='{"url":"${lgImage.getURL()}", "title":"<isprint value="${videoItem[0].trim()}" encoding="on"/>", "alt":"<isprint value="${lgImage.alt}" encoding="on"/>", "hires":"${hi_res}", "videopath":"${videoItem[2].trim()}", "thumbpath":"${tpath}", "is_video":"1"}'/>							 
+							<span class="video-gallery-play-icon"><img src="${URLUtils.absStatic('images/video-play-icon.png')}"></span>
+						</a>
+					</li>
+				</isif>
+			</isloop>
+		</ul>
+	</div>
+</div>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="Website" targetNamespace="http://tempuri.org/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
+	xmlns:tns="http://tempuri.org/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract"
+	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+	xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex">
+	
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://tempuri.org/Imports">
+			<xsd:import
+				schemaLocation="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc?xsd=xsd0"
+				namespace="http://tempuri.org/" />
+			<xsd:import
+				schemaLocation="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc?xsd=xsd1"
+				namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+			<xsd:import
+				schemaLocation="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc?xsd=xsd2"
+				namespace="http://schemas.datacontract.org/2004/07/MainStreet.Demandware.Apps.Soap" />
+			<xsd:import
+				schemaLocation="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc?xsd=xsd3"
+				namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+			<xsd:import
+				schemaLocation="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc?xsd=xsd4"
+				namespace="http://businessflow.mainstreetcommerce.com/impexp/contracts/v1" />
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="IWebsite_GetOrders_InputMessage">
+		<wsdl:part name="parameters" element="tns:GetOrders" />
+	</wsdl:message>
+	<wsdl:message name="IWebsite_GetOrders_OutputMessage">
+		<wsdl:part name="parameters" element="tns:GetOrdersResponse" />
+	</wsdl:message>
+	<wsdl:message name="IWebsite_GetInventoryLevels_InputMessage">
+		<wsdl:part name="parameters" element="tns:GetInventoryLevels" />
+	</wsdl:message>
+	<wsdl:message name="IWebsite_GetInventoryLevels_OutputMessage">
+		<wsdl:part name="parameters" element="tns:GetInventoryLevelsResponse" />
+	</wsdl:message>
+	<wsdl:portType name="IWebsite">
+		<wsdl:operation name="GetOrders">
+			<wsdl:input wsaw:Action="http://tempuri.org/IWebsite/GetOrders"
+				message="tns:IWebsite_GetOrders_InputMessage" />
+			<wsdl:output wsaw:Action="http://tempuri.org/IWebsite/GetOrdersResponse"
+				message="tns:IWebsite_GetOrders_OutputMessage" />
+		</wsdl:operation>
+		<wsdl:operation name="GetInventoryLevels">
+			<wsdl:input wsaw:Action="http://tempuri.org/IWebsite/GetInventoryLevels"
+				message="tns:IWebsite_GetInventoryLevels_InputMessage" />
+			<wsdl:output wsaw:Action="http://tempuri.org/IWebsite/GetInventoryLevelsResponse"
+				message="tns:IWebsite_GetInventoryLevels_OutputMessage" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="WSHttpBinding_IWebsite" type="tns:IWebsite">
+		<wsp:PolicyReference URI="#WSHttpBinding_IWebsite_policy" />
+		<soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetOrders">
+			<soap12:operation soapAction="http://tempuri.org/IWebsite/GetOrders"
+				style="document" />
+			<wsdl:input>
+				<wsp:PolicyReference
+					URI="#WSHttpBinding_IWebsite_GetOrders_Input_policy" />
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<wsp:PolicyReference
+					URI="#WSHttpBinding_IWebsite_GetOrders_output_policy" />
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetInventoryLevels">
+			<soap12:operation soapAction="http://tempuri.org/IWebsite/GetInventoryLevels"
+				style="document" />
+			<wsdl:input> 
+				<wsp:PolicyReference
+					URI="#WSHttpBinding_IWebsite_GetInventoryLevels_Input_policy" />
+				<soap12:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<wsp:PolicyReference
+					URI="#WSHttpBinding_IWebsite_GetInventoryLevels_output_policy" />
+				<soap12:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="Website">
+		<wsdl:port name="WSHttpBinding_IWebsite" binding="tns:WSHttpBinding_IWebsite">
+			<soap12:address
+				location="http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc" />
+			<wsa10:EndpointReference>
+				<wsa10:Address>http://customers.mainstreetcommerce.com/toryburch.com/DemandwareServices/v1/Website.svc</wsa10:Address>
+				<Identity xmlns="http://schemas.xmlsoap.org/ws/2006/02/addressingidentity">
+					<Dns>localhost</Dns>
+				</Identity>
+			</wsa10:EndpointReference>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

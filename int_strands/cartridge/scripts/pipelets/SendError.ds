@@ -1,0 +1,75 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendError.ds
+ *  
+ *	This script tries to send the any error that is received as an input to
+ *	Strands Recommender. In case there is an error during the transmission, 
+ *	it is logged.
+ *
+ *	@input ErrorLevel : String Error level
+ *	@input ErrorMsg : String Error message to send
+ *	@input ErrorCode : String Error code to send
+ *
+ */
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+var sf = require("bc_serviceframework");
+require("../services/SendErrorService");
+
+function execute(pdict) {
+	
+	var SendErrorService = sf.getService('SendErrorService');
+	
+	var service = new SendErrorService();
+	try{
+		var errorLevel : String = "";
+		var errorCode : String = "";
+		var errorMsg : String = "";
+		 
+		var apiID : String = "";  
+		
+		var SendError : Object = new Object();
+		
+		if (!empty(pdict.ErrorLevel))
+			SendError.errorLevel = pdict.ErrorLevel;
+		else 
+			SendError.errorLevel = "5";	
+			
+		if (!empty(pdict.ErrorMsg))
+			SendError.errorMsg = pdict.ErrorMsg;
+		else
+			SendError.errorMsg = "empty";
+			
+		if (!empty(pdict.ErrorCode))
+			SendError.errorCode = pdict.ErrorCode;
+		else
+			SendError.errorCode = "900";
+			 
+		service.call(SendError);	
+		
+	}catch(e){
+		
+		errorCode = '213';
+		errorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) Value returned from the call is not a number-> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+		
+	}
+	
+	if (logLevel < 1 || logLevel > 5) {
+		errorCode = '214';
+		errorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) Invalid value returned from the call-> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+	}
+   
+
+   return PIPELET_NEXT;
+}

@@ -1,0 +1,159 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isset name="DecoratorTemplate" value="checkout/pt_sbcheckout" scope="page"/>
+<isdecorate template="${DecoratorTemplate}">
+<isinclude template="util/modules"/>
+
+<isset name="PageName" value="sb_ReviewPage" scope="page"/>
+
+ 	<iscomment>checkout progress indicator</iscomment>
+    <ischeckoutprogressindicatorsb step="3" rendershipping="true"/>
+    <h1 class="sb-repair-estimate-head">${dw.web.Resource.msg('checkout.reviewsub','sb_forms',null)}</h1>
+	<div class="SB-repair-estimation-page-wrapper">
+		<div class="sb-adressDetails">
+			<iscomment>Display of Shipping address</iscomment>
+			<div class="Sb-shippingAddress">
+				<h3 class="sb-section-header">
+					${Resource.msg('minishipments.shippingaddress','checkout',null)}
+					<a href="${URLUtils.https('SBCheckout-Shipping')}" class="sb-section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+				</h3>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.firstName}" encoding="off" /> <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.lastName}" encoding="off" /><br/>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address1}" encoding="off" /><br/>
+				<isif condition="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address2 != null}" >
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address2}" encoding="off" /><br/>
+				</isif>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.city}" encoding="off" /><br/>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.state}" encoding="off" /><br/>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.postal}" encoding="off" /><br/>
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.phone}" encoding="off" /><br/>
+			</div>
+			<iscomment>Display of Billing address</iscomment>
+			<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty' && pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty'}" >
+				<div class="Sb-billingAddress">
+					<h3 class="sb-section-header">
+						${Resource.msg('minibillinginfo.billingaddress','checkout',null)}
+						<a href="${URLUtils.https('SBCheckout-Billing')}" class="sb-section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+					</h3>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.firstName}" encoding="off" /> <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.lastName}" encoding="off" /><br/>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.address1}" encoding="off" /><br/>
+					<isif condition="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.address2 != null}" >
+						<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.address2}" encoding="off" /><br/>
+					</isif>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.city}" encoding="off" /><br/>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.state}" encoding="off" /><br/>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.postal}" encoding="off" /><br/>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.phone}" encoding="off" /><br/>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.billingAddress.emailAddress}" encoding="off" /><br/>
+				</div>
+				<iscomment>Display of Credit card details</iscomment>
+				<div class="Sb-creditCardInfo">
+					<h3 class="sb-section-header">
+						${Resource.msg('minibillinginfo.paymentmethod','checkout',null)}
+						<a href="${URLUtils.https('SBCheckout-Billing')}" class="sb-section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+					</h3>
+					<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.creditCard.owner}" encoding="off" /><br/>
+					<isset name="cardNumber" value="${pdict.CurrentSession.privacy.serviceBenchObject.creditCard.htmlValue.replace(/\*/g,'X')}" scope="page" />
+					<isprint value="${cardNumber}" encoding="off" /><br/>
+					Exp. <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.creditCard.month}" encoding="off" />/${pdict.CurrentSession.privacy.serviceBenchObject.creditCard.year}<br/>
+				</div>
+			</isif>
+		</div>
+	<div class="repair-request-estimation-blocks">
+	<div class="estimate-topic-block block-1">
+	
+		<span class="block-head column-header">
+			${Resource.msg('servicebench.estimate.prodinfo','account',null)}
+		</span>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.modelNumb','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.mnumber.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.serialNumb','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.snumber.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.purchaseDate','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.month.value}" />/<isprint value="${pdict.CurrentForms.repairsubmit.day.value}" />/<isprint value="${pdict.CurrentForms.repairsubmit.year.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.partsWarrantyStatus','sb_forms',null)}</span>
+			<span class="block-info">
+				<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart != null}" >
+					<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty'}">
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					</isif>
+				<iselse/>
+					<isif condition="${pdict.warrantyStatusPart == 'InWarranty'}">
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					</isif>
+				</isif>
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.laborWarrantyStatus','sb_forms',null)}</span>
+			<span class="block-info">
+				<isif condition="${pdict.CurrentSession.custom.warrantyStatusLabor != null}" >
+					<isif condition="${pdict.CurrentSession.custom.warrantyStatusLabor == 'OutofWarranty'}">
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					</isif>
+				<iselse/>
+					<isif condition="${pdict.warrantyStatusLabor == 'InWarranty'}">
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					</isif>
+				</isif>
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.partsWarrantyExpDate','sb_forms',null)}</span>
+			<isif condition="${pdict.CurrentSession.custom.warrantyEndDatePart != null}" >
+				<isset name="Pyear" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[0]}" scope="page" />
+				<isset name="Pmonth" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[1]}" scope="page" />
+				<isset name="Pday" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[2]}" scope="page" />
+			<iselse/>
+				<isset name="Pyear" value="${pdict.warrantyEndDatePart.split('/')[0]}" scope="page" />
+				<isset name="Pmonth" value="${pdict.warrantyEndDatePart.split('/')[1]}" scope="page" />
+				<isset name="Pday" value="${pdict.warrantyEndDatePart.split('/')[2]}" scope="page" />
+			</isif>
+			<span class="block-info">
+				<isprint value="${dw.util.StringUtils.formatCalendar(new dw.util.Calendar(new Date(Pyear,Pmonth-1,Pday)), 'MM/dd/yyyy')}" />
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.laborWarrantyExpDate','sb_forms',null)}</span>
+			<isif condition="${pdict.CurrentSession.custom.warrantyEndDateLabor != null}" >
+				<isset name="Lyear" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[0]}" scope="page" />
+				<isset name="Lmonth" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[1]}" scope="page" />
+				<isset name="Lday" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[2]}" scope="page" />
+			<iselse/>
+				<isset name="Lyear" value="${pdict.warrantyEndDateLabor.split('/')[0]}" scope="page" />
+				<isset name="Lmonth" value="${pdict.warrantyEndDateLabor.split('/')[1]}" scope="page" />
+				<isset name="Lday" value="${pdict.warrantyEndDateLabor.split('/')[2]}" scope="page" />
+			</isif>
+			<span class="block-info">
+				<isprint value="${dw.util.StringUtils.formatCalendar(new dw.util.Calendar(new Date(Lyear,Lmonth-1,Lday)), 'MM/dd/yyyy')}" />
+			</span>
+		</div>
+	</div>
+	<div class="estimate-description-block block-2">
+		<div class="info-block">
+			<span class="block-head">
+				<h3 class="sb-section-header">
+					${Resource.msg('sb.ProblemDescription','sb_forms',null)}
+					<a href="${URLUtils.https('SBCheckout-Shipping')}" class="sb-section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+				</h3>
+			</span>
+			<span class="block-info"><isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.problemDescription}" encoding="off" /></span>
+		</div>
+	</div> 
+</div>
+	
+</div>
+</isdecorate>

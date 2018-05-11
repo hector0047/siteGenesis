@@ -1,0 +1,51 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="checkout/pt_orderconfirmation">
+<script>
+	var showPolicy = function(){		
+		$("#direct-store-policies").show();
+		 $('html, body').animate({
+		        scrollTop: $("#direct-store-policies").offset().top
+		    }, 2000);
+	}
+
+</script>
+	<isinclude template="util/modules"/>
+	<isinclude template="util/reporting/ReportOrder.isml"/>	
+	<iscomment>
+		This template visualizes the order confirmation page. Note, that it
+		uses a different decorator template.
+		It displays the order related information, such as the order number,
+		creation date, payment information, order totals and shipments of
+		the order.
+	</iscomment>
+	
+		<h1>${Resource.msg('confirmation.thankyou','checkout',null)}</h1>
+		<iscomment><a class="print-page">${Resource.msg('confirmation.print','checkout',null)}</a></iscomment>
+		<span class="order-confirmation-terms desktopBlock">Thank you for placing your order and agreeing to Panasonic's <a id="termsAndCondition" href="#" onclick="javascript:showPolicy();return flase;" ><u>Terms And Conditions.</u></a></span>
+		<div class="confirmation-message">
+			<iscontentasset aid="confirmation-message" />
+			<div class="actions mobileBlock">
+			<a href="${URLUtils.http('Cart-ContinueShopping')}" class="continue button button-blue">
+				${Resource.msg('confirmation.returnshop','checkout',null)}
+			</a>
+		</div>
+		</div>
+		
+		<div class="order-confirmation-details">
+			<isconfirmationorderdetails order="${pdict.Order}"/>
+		</div>
+		
+		<div class="actions">
+			<a href="${URLUtils.http('Cart-ContinueShopping')}" class="continue button button-blue">
+				${Resource.msg('confirmation.returnshop','checkout',null)}
+			</a>
+		</div>
+		<div style="clear:both"></div>	
+		<div style="display:none;" id="direct-store-policies">
+			<iscontentasset aid="pna-direct-store-policies"/>
+		</div>
+		<iscomment>Include the ChannelAdvisor Order Pixel</iscomment>
+		<isinclude template="ChannelAdvisor/Checkout"/>
+</isdecorate>
+<iscomment>Pixlee End Checkout Analytics</iscomment>
+<isinclude template="checkout/endcheckout"/>

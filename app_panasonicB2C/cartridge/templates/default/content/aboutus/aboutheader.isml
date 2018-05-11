@@ -1,0 +1,173 @@
+<!--- TEMPLATENAME: aboutheader.isml --->
+
+<isscript>	
+	importScript( "util/ViewHelpers.ds" );
+</isscript>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i,700,700i,900,900i" rel="stylesheet"> 
+<isset name="aboutFolder" value="${dw.content.ContentMgr.getFolder('about-us')}" scope="page" />
+
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<div id="browser-cookie-check"></div>
+<div id="header" role="banner">
+		<!--  branding logo -->
+<div class="headerlogoWithMenu">
+		<div class="primary-logo pnsb2c-header-left">
+			<a href="${URLUtils.url('Home-Show')}" title="${Resource.msg('global.storename','locale',null)}">
+				<span>${Resource.msg('global.storename','locale',null)}</span>
+			</a>
+		</div>
+	
+		<a href="#main" class="visually-hidden">Skip to content</a>
+<div class="pnsb2c-header-right desktopBlock">
+	<div class="pnsb2c-header-top">
+		    		<!-- utility menu -->
+		    		<ul class="menu-utility aboutusheader"> 
+						<li>
+							<a href="${URLUtils.url('Home-Show')}" title="${Resource.msg('global.storename','locale',null)}" id="AboutUsheader"class="consumer_link">
+								Consumer
+							</a>
+						</li>
+						<li>
+							<a href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontBusinessSiteURL')}" title="" class="business_link">
+								${Resource.msg('header.business','components',null)}
+							</a>
+						</li>
+						<li class="last">
+							<a href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontIndustrialSiteURL')}" title="">
+								${Resource.msg('header.industry','components',null)}
+							</a>
+						</li>
+					 	
+					</ul> 
+			    
+		    
+		    		<div class="header-search global-search">
+						<isinclude template="search/simplesearch"/>
+						<span class="ico-search"></span>
+					</div>
+		    
+				    <iscomment>
+				    	SLOT CONFIGURATION:  SLOT/ID: header-banner
+		    <div class="header-banner">
+		    	<isslot id="header-banner" description="Header banner within the header, between the logo and search bar, width XXXpx by height XXpx." context="global" />
+		    </div>
+					</iscomment>
+	</div>
+
+		
+</div>
+<div id="navigation" role="navigation" class="desktopBlock pnsb2c-header-bottom pnsb2c-header-dropdown">
+		<nav>
+	
+			<span class="visually-hidden navigation-header">About Us Navigation</span>
+			
+			<!--  about navigation -->
+			<iscomment>INCLUDE: about menu
+			Farhans Dev Team : 30-03-2016 2:00PM PANC-1800</iscomment>
+			<ul class="menu-category level-1  aboutheader level-dropdown clearfix">	
+				<isloop items="${aboutFolder.getOnlineSubFolders()}" var="folder" status="folderstatus">
+					<isif condition="${currentFolder && currentFolder.ID == folder.ID}">
+						<isset name="activeTabClass" value="active" scope="page" />
+					<iselse>
+						<isset name="activeTabClass" value="" scope="page" />
+					</iselse>
+					</isif>
+	
+					<li class="aboutUsNavList" ${folderstatus.first ? 'class=first' : ''}>
+						<a href="<isprint value="${MainNavigationUtilities.getContentFolderUrl(folder)}" encoding="off"/>" class="<isprint value="${activeTabClass}" encoding="off"/> aboutUsNav"><isprint value="${folder.getDisplayName()}"/></a>
+					</li>
+				</isloop>
+					<li class="last"><a href="http://www.panasonic.com/global/corporate/ir.html" class="aboutUsNav" target="_blank">Investor Relations</a></li>
+			</ul>
+			<iscomment>PANC-1800 END </iscomment>
+		</nav>
+	
+	</div><!-- /navigation -->		
+<div class="mobileBlock">
+	<div class="mobilemainNav" style="float:right;">
+		 <div class="pnsb2c-header-top pnsb2c-header-dropdown">
+	   		<!-- utility menu -->
+			<iscomment>INCLUDE: Mini-cart, do not cache</iscomment>
+		      <div class="mobnav mobTabMainMenu">
+		    	<span></span>
+		   </div>
+		</div>
+	</div>
+	<div id="mobileMenuWrpper" style="display:none;">
+				<div class="pnsb2c-header-right mobileMenu">
+	<div class="pnsb2c-header-top">
+   		<!-- utility menu -->
+   		<div class="SmalSearch nav-search">
+				<div class="header-search global-search">
+					<isinclude template="search/simplesearch"/>
+					<span class="ico-search"></span>
+			</div>
+		</div>
+	</div>
+	<iscomment>
+		SLOT CONFIGURATION:  SLOT/ID: header-banner
+	    <div class="header-banner">
+	    	<isslot id="header-banner" description="Header banner within the header, between the logo and search bar, width XXXpx by height XXpx." context="global" />
+	    </div>
+	</iscomment>
+
+	<div id="navigation" role="navigation" class="pnsb2c-header-bottom pnsb2c-header-dropdown">
+		<nav>
+	
+			<span class="visually-hidden navigation-header">About Us Navigation</span>
+			
+			<!--  about navigation -->
+			<iscomment>INCLUDE: about menu
+			Farhans Dev Team : 30-03-2016 2:00PM PANC-1800</iscomment>
+			<ul class="menu-category level-1  aboutheader level-dropdown clearfix">	
+				<isloop items="${aboutFolder.getOnlineSubFolders()}" var="folder" status="folderstatus">
+					<isif condition="${currentFolder && currentFolder.ID == folder.ID}">
+						<isset name="activeTabClass" value="active" scope="page" />
+					<iselse>
+						<isset name="activeTabClass" value="" scope="page" />
+					</iselse>
+					</isif>
+	
+					<li class="aboutUsNavList" ${folderstatus.first ? 'class=first' : ''}>
+						<a href="<isprint value="${MainNavigationUtilities.getContentFolderUrl(folder)}" encoding="off"/>" class="<isprint value="${activeTabClass}" encoding="off"/> aboutUsNav"><isprint value="${folder.getDisplayName()}"/></a>
+					</li>
+				</isloop>
+					<li class="last"><a href="http://www.panasonic.com/global/corporate/ir.html" class="aboutUsNav" target="_blank">Investor Relations</a></li>
+			</ul>
+			<iscomment>PANC-1800 END </iscomment>
+		</nav>
+	
+	</div><!-- /navigation -->	
+	<ul class="menu-utility aboutusheader"> 
+		<li>
+			<a href="${URLUtils.url('Home-Show')}" title="${Resource.msg('global.storename','locale',null)}" id="AboutUsheader"class="consumer_link">
+				Consumer
+			</a>
+		</li>
+		<li>
+			<a href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontBusinessSiteURL')}" title="" class="business_link">
+				${Resource.msg('header.business','components',null)}
+			</a>
+		</li>
+		<li class="last">
+			<a href="${dw.system.Site.getCurrent().getCustomPreferenceValue('storeFrontIndustrialSiteURL')}" title="">
+				${Resource.msg('header.industry','components',null)}
+			</a>
+		</li>
+	 	
+	</ul> 		
+	</div></div>
+		
+<iscomment>Mobile-Search-Start</iscomment>
+<div class="SmalSearch headerSmalSearch">
+<div class="header-search global-search">
+	<isinclude template="search/simplesearch"/>
+	<span class="ico-search"></span>
+</div>
+</div>
+<iscomment>Mobile-Search-Start</iscomment>	
+		</div>
+		
+		 </div>
+</div><!-- /header -->

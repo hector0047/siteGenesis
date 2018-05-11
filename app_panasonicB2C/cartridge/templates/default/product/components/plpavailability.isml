@@ -1,0 +1,26 @@
+<isset name="Product" value="${pdict.Product}" scope="page" />
+
+<isif condition="${Product.master}">
+	<isset name="defaultVarient" value="${Product.getVariationModel().getDefaultVariant()}" scope="page" />
+</isif>
+<isif condition="${Product.availabilityModel != null && Product.master}">
+	<isif condition="${defaultVarient.custom.hideAddtoCart!=true}"> 
+		<isif condition="${defaultVarient.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER && ('isPreOrderable' in defaultVarient.custom) && (defaultVarient.custom.isPreOrderable)}" >
+			<span class="panb2c-tile-inventory"><isprint value="${dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER.replace('_',' ').toLowerCase()}" /></span>
+		<iselse>
+			<span class="panb2c-tile-inventory"><isprint value="${defaultVarient.availabilityModel.availabilityStatus.replace('_',' ').toLowerCase()}" /></span>
+		</isif>
+	<iselse/>
+		<span class="panb2c-tile-inventory"> Not Available</span>
+	</isif>
+<iselseif condition="${Product.availabilityModel != null}" >
+	<isif condition="${Product.custom.hideAddtoCart!=true}"> 
+		<isif condition="${Product.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER && ('isPreOrderable' in Product.custom) && (Product.custom.isPreOrderable)}" >
+			<span class="panb2c-tile-inventory"><isprint value="${dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER.replace('_',' ').toLowerCase()}" /></span>
+		<iselse>
+			<span class="panb2c-tile-inventory"><isprint value="${Product.availabilityModel.availabilityStatus.replace('_',' ').toLowerCase()}" /></span>
+		</isif> 
+	<iselse/>
+		<span class="panb2c-tile-inventory"> Not Available</span>
+	</isif>
+</isif>

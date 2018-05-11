@@ -1,0 +1,14 @@
+function CreateSubscription() {}
+
+CreateSubscription.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};
+	},	
+	
+	dummy: function() {
+		
+	}
+}
+module.exports = CreateSubscription;

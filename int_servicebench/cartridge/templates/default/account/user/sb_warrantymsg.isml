@@ -1,0 +1,10 @@
+<div class="SB-repair-request-warranty">
+	<span class="warranty-data part-1">
+		If you have purchased an extended protection plan, please click "cancel" to cancel this request and contact Square Trade at 877-927-7268.
+	</span>
+	<a href="javascript:void(0)" class="button-blue warranty-cancel sb-waranty-dlg-btn"><span>CANCEL</span></a>
+	<span class="warranty-data part-2">
+		If you have not purchased an extended protection plan, click "continue" to complete an online repair request.
+	</span>
+	<a href="${URLUtils.url('SBRepairRequest-ShowEstimation')}" class="button-blue warranty-continue sb-waranty-dlg-btn"><span>CONTINUE</span></a>
+</div>				 	

@@ -1,0 +1,47 @@
+/**
+ *	Pipelet script to merge DW orders with service orders.
+ * 	Returns a collection of orders which exist in the pnasonic back-end plus any orders which only exist in DW (not yet exported).
+ *  @input CustomerNo : String Current Customer No.
+ *	@input ServiceOrders	: dw.util.ArrayList list of orders received from the order history service
+ *  @output MergedOrders : Object List of merged orders. This contains all orders from the order history service plus any orders which only exist in DW.
+ *	@output MergedOrdersCount : Number total order count
+ */
+importPackage(dw.system);
+importPackage(dw.util);
+
+function execute(args : PipelineDictionary) : Number {
+	// intialize vars
+	var customerNo : String = args.CustomerNo;
+	var newOrdersList : dw.util.ArrayList = args.MergedOrders = new ArrayList();
+	args.MergedOrdersCount = 0;
+	
+	// create order query string to fetch the orders which are NOT part of the service orders list
+	var orderQuery = "customerNo={0} AND status!={1} AND status!={2} AND exportStatus != {3}";
+		
+	// get the list of orders excluding received from the service
+	var orderIt : dw.util.SeekableIterator = dw.order.OrderMgr.queryOrders(orderQuery, "creationDate desc", customerNo, dw.order.Order.ORDER_STATUS_REPLACED, dw.order.Order.ORDER_STATUS_FAILED, dw.order.Order.EXPORT_STATUS_EXPORTED);
+	
+	// add DW orders
+	if (orderIt.count > 0) {
+		newOrdersList.addAll(orderIt.asList());
+	}
+	
+	//Closing the Iterator
+	orderIt.close();
+			
+	// add service orders
+	if (args.ServiceOrders != null && args.ServiceOrders.length > 0) {
+		Logger.info("MergeOrderHistory.ds merging service orders .. service order count: "+ args.ServiceOrders.length);
+		newOrdersList.addAll(args.ServiceOrders);
+		newOrdersList.sort( new PropertyComparator("creationDate", false ) );		
+	}else{
+		Logger.info("MergeOrderHistory.ds merging service orders .. service order count: 0  ");	
+	}
+	
+	if (newOrdersList.length > 0) {
+		args.MergedOrders = newOrdersList;
+		args.MergedOrdersCount = newOrdersList.length;
+	}	
+	
+	return PIPELET_NEXT;
+}

@@ -1,0 +1,165 @@
+/**
+* 
+*
+* For example:
+*
+*   @input siteID : String siteID to use as asset prefix
+*	@input CurrentWorkflowComponentInstance : Object The current workflow component instanceile objects
+*   @ if mset is not exits on DAM then remove
+*   @ if /skip it
+*   @ if it matches skip it
+*   @ exclude videos
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.customer );
+importPackage( dw.io );
+importPackage( dw.svc );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.campaign );
+importPackage( dw.web );
+importPackage( dw.crypto );
+importScript("int_dis:product/ProductImageSO.ds");
+importScript("util/GetAmplienceImageUrl.ds");
+
+var uri : String = "http://www.demandware.com/xml/impex/library/2006-10-31";
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	var siteID : String = args.siteID;
+	var CurrentWorkflowComponentInstance : Object = args.CurrentWorkflowComponentInstance;
+	var cat : Catalog = dw.catalog.CatalogMgr.siteCatalog;
+	var productList : SeekableIterator = dw.catalog.ProductMgr.queryProductsInCatalogSorted(cat);
+	
+	
+	
+	
+	try{
+		
+		var file_path : Boolean = CurrentWorkflowComponentInstance.getParameterValue('filePath');
+		
+		var calendar : Calendar = new Calendar();
+		calendar.timeZone = "GMT";
+		var dateString : String = dw.util.StringUtils.formatCalendar(calendar, "yyyyMMddhmm");
+		
+		// variables for CSV details 
+		var csvpath : String = File.IMPEX + File.SEPARATOR + file_path + dateString + ".csv";
+		var csvfile : File = new File(csvpath);
+		var csvfileWriter : FileWriter = new FileWriter(csvfile);
+		var csw : CSVStreamWriter = new CSVStreamWriter(csvfileWriter, ",");
+		var csvheadArray : Array = new Array("Sr", "ProductID", "Missing Image ID");
+		csw.writeNext(csvheadArray);
+		
+		
+		// variables for Catalog file
+		var catalogFileName : String = "shop-pna-master-catalog_" + dateString;
+	
+		var catalogFile : File  = new File(File.IMPEX + File.SEPARATOR + catalogFileName + ".xml");	
+		var catalogFileWriter : FileWriter = new FileWriter(catalogFile, "UTF-8"); 		
+	 	var catalogXMLStreamWriter : XMLStreamWriter = new XMLStreamWriter(catalogFileWriter);
+	 	catalogXMLStreamWriter.writeRaw('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
+		catalogXMLStreamWriter.writeStartElement("catalog");
+			catalogXMLStreamWriter.writeDefaultNamespace("http://www.demandware.com/xml/impex/catalog/2006-10-31");
+	    	catalogXMLStreamWriter.writeAttribute("catalog-id","shop-pna-master-catalog");
+	 	
+	 	
+		
+		
+		var count : Number = 1;
+		
+		var productID : String;
+		var product : Product;
+		
+		var isCarouselImages : Boolean;
+		
+		
+	    	
+		while(productList.hasNext()) {	
+			product = productList.next();
+			productID = product.ID;
+			isCarouselImages = false;
+			
+			if((productID.indexOf("/") < 0) && (checkAssetOnAmplience("http://i1.adis.ws/s/pcec/" + productID + "_MSET" + ".json"))) {
+				caruselImagesString ="";	
+				
+					var carouselImagesObject : Object = new Object;
+					carouselImagesObject = getCarouselImages(product);
+					var carouselImagesReferenceArray : Array = new Array();
+					if(carouselImagesObject != null) {
+						for(var i = 0; i < carouselImagesObject.items.length; i++) {
+							carouselImagesReferenceArray[i] = carouselImagesObject.items[i].imagereference;
+						}
+					}
+					
+					
+					var mediaSetObject : Object = getMediaSetObject(productID + "_MSET");
+					if(mediaSetObject!=null) {
+						
+						for(var i = 0; i < mediaSetObject.items.length; i++) {
+							if(carouselImagesObject == null) { 							
+								isCarouselImages = true;
+								break;
+							} else if((carouselImagesReferenceArray.indexOf(mediaSetObject.items[i].imagereference) == -1) && (!ItemIsYoutubeVideo(mediaSetObject.items[i]))) {
+								isCarouselImages = true;
+								break;
+							}																
+						}
+						
+						if(isCarouselImages) {
+							catalogXMLStreamWriter.writeStartElement("product");
+								catalogXMLStreamWriter.writeAttribute("product-id",productID);
+								catalogXMLStreamWriter.writeStartElement("images");
+							for(var i = 0; i < mediaSetObject.items.length; i++) {
+								if(!ItemIsYoutubeVideo(mediaSetObject.items[i])) {
+									
+									if(caruselImagesString == "") {
+										caruselImagesString = mediaSetObject.items[i].imagereference;
+									} else {
+										caruselImagesString = caruselImagesString + "|" + mediaSetObject.items[i].imagereference;
+									}
+									
+									catalogXMLStreamWriter.writeStartElement("image-group");
+										catalogXMLStreamWriter.writeAttribute("view-type","carouselImage");
+										catalogXMLStreamWriter.writeStartElement("image");
+											catalogXMLStreamWriter.writeAttribute("path",mediaSetObject.items[i].imagereference);
+											catalogXMLStreamWriter.writeStartElement("alt");
+												catalogXMLStreamWriter.writeAttribute("xml:lang","x-default");
+											catalogXMLStreamWriter.writeEndElement();
+											catalogXMLStreamWriter.writeStartElement("title");
+												catalogXMLStreamWriter.writeAttribute("xml:lang","x-default");
+											catalogXMLStreamWriter.writeEndElement();
+										catalogXMLStreamWriter.writeEndElement();
+									catalogXMLStreamWriter.writeEndElement();
+									
+								}								
+							}
+								catalogXMLStreamWriter.writeEndElement();
+							catalogXMLStreamWriter.writeEndElement();
+						}
+						
+						
+						if(caruselImagesString != "") {
+							csvheadArray = new Array(count, productID,caruselImagesString);	
+							csw.writeNext(csvheadArray);	
+							count++;
+						}
+						
+					}					
+										
+			}		
+		}			
+		csw.close();
+		csvfileWriter.close();	
+		catalogXMLStreamWriter.writeEndElement();
+		catalogXMLStreamWriter.close();
+		catalogFileWriter.close();
+	} catch(ex) {
+		Logger.error("[callParsePriceSpiderService.ds] Error in file ( {0} )",ex.message);
+		return PIPELET_ERROR;
+	}
+	return PIPELET_NEXT;
+}

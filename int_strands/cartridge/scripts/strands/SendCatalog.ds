@@ -1,0 +1,95 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendCatalog.ds
+ *  
+ *	This script tries to send the catalog contained in File to 
+ *	Strands Recommender. In case an error occurs, it will output
+ * 	the corresponding error.
+ *
+ * @input File : dw.io.File File where the catalog has been exported
+ * @input RecFile : dw.io.File
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Level
+ *
+ */
+
+importPackage( dw.web ); 
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	if ( ! ('StrandsLogin' in Site.current.preferences.custom) || empty(Site.current.preferences.custom.StrandsLogin)) {
+		pdict.ErrorCode = '103';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Catalog Upload) Strands Login is either not present or field is empty");
+		return PIPELET_ERROR;
+	} 
+	
+	if ( ! ('StrandsPassword' in Site.current.preferences.custom) || empty(Site.current.preferences.custom.StrandsPassword)) {
+		pdict.ErrorCode = '104';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Catalog Upload) Strands Password is either not present or field is empty");
+		return PIPELET_ERROR;
+	}
+	
+	var ftpSite : String = "recommender.strands.com";
+	var ftpPath : String = 'catalog/complete/';
+	var ftpFile : String = 'catalog.xml';
+	var ftprecpath : String = 'greenlists/access/delta/';
+	var ftprecfile : String = 'productrecommendations.csv'; 
+
+
+	var ftp : FTPClient = new FTPClient();
+	
+	ftp.setTimeout(120000);
+	
+
+	try {
+		if (ftp.connect(ftpSite, Site.current.preferences.custom.StrandsLogin, Site.current.preferences.custom.StrandsPassword)) {
+			if (!ftp.putBinary(ftpPath+ftpFile, pdict.File)) {
+				Logger.error("(Strands Catalog Upload) Could not upload "+pdict.File.name+" to "+ftpSite+ftpPath+ftpFile);
+				pdict.ErrorLevel = '5';
+				pdict.ErrorCode = '303';
+				return PIPELET_ERROR;
+			} else {
+				var timeUC : Calendar = new Calendar();
+				
+				var catPath : String = '/src/strands/';
+				var catName : String = 'catalog_uploads.txt';	
+				var file : File = new dw.io.File(dw.io.File.IMPEX + catPath + catName);
+				var exportFileWriter : FileWriter = new FileWriter(file, true);
+				exportFileWriter.writeLine(timeUC.getTime().toUTCString());
+				exportFileWriter.flush();	
+				exportFileWriter.close();
+				
+			}
+			if (!ftp.putBinary(ftprecpath+ftprecfile, pdict.RecFile)) {
+				Logger.error("(Strands Catalog Upload) Could not upload "+pdict.File.name+" to "+ftpSite+ftpPath+ftpFile);
+				pdict.ErrorLevel = '5';
+				pdict.ErrorCode = '303';
+				return PIPELET_ERROR;
+			}
+			ftp.disconnect();
+		} else {
+			Logger.error("(Strands Catalog Upload) Impossible to connect to "+ftpSite);
+			pdict.ErrorLevel = '5';
+			pdict.ErrorCode = '302';
+			return PIPELET_ERROR;
+		}
+	} catch(e) {
+		Logger.error("(Strands Catalog Upload) Error uploading catalog -> {0}", e.message);
+		pdict.ErrorLevel = '5';
+		pdict.ErrorCode = '301';
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

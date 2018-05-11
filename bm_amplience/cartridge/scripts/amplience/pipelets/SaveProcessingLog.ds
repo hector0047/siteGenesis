@@ -1,0 +1,70 @@
+/**
+*
+* Params:
+*
+* @input ProcessingLog : dw.util.Map
+* @output GeneratedLogFileName : String
+* @output ErrorMsg : String
+* @output Errors : Number
+* @output Warnings : Number
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.io );
+
+function execute( args : PipelineDictionary ) : Number {
+	var errorRegExp : RegExp = /^ERROR: /;
+	var warningRegExp : RegExp = /^WARNING: /;
+	
+	var errorsCount : Number = 0;
+	var warningsCount : Number = 0;
+	
+	try {
+		var processingLog : Map = args.ProcessingLog;
+		if(!processingLog) throw new Error("ProcessingLog cannot be null");
+		
+		var logFolder : String = dw.io.File.IMPEX + dw.io.File.SEPARATOR + "customLogs";
+		if(!checkPathExists(logFolder)) throw new Error("Log folder does not exist: " + logFolder);
+		
+		var logFileName : String = "sync_amplience_images_" + StringUtils.formatCalendar(new Calendar(), 'YYYYMMddhhmmss') + ".log";
+		
+		var fullFileName : String = logFolder + File.SEPARATOR + logFileName;
+		
+		var file : File = new File(fullFileName);
+		
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		
+		for each(var productID : String in processingLog.keySet()) {
+			fileWriter.writeLine("Style: " + productID);
+			
+			for each(var message: String in processingLog.get(productID)) {
+				fileWriter.writeLine("\t" + message);
+				
+				if(errorRegExp.test(message)) errorsCount++;
+				else if(warningRegExp.test(message)) warningsCount++;
+			}
+		}
+		
+		fileWriter.close();
+		
+		args.Errors = errorsCount;
+		args.Warnings = warningsCount;
+		args.GeneratedLogFileName = fullFileName;
+	}
+	catch(e) {
+		var errMsg : String = "SaveProcessingLog.ds : " + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}
+
+function checkPathExists(path : String) : Boolean {
+	var file : File = new File(path);
+	
+	return file.directory && file.exists();
+}
+

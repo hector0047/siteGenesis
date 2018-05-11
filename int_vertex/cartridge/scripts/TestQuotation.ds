@@ -1,0 +1,150 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*-   @input ExampleIn : String This is a sample comment.
+*-   @output ExampleOut : Number
+*
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.util );
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+  	var webref : WebReference = webreferences.vt;
+   	var service : Stub = webref.getDefaultService();
+    
+  	var login = new webref.LoginType();
+  	login.setUserName("demandware");
+  	login.setPassword("vertex");
+  	
+  	var quotationRequestType = new webref.QuotationRequestType();
+  	
+  	
+  	var sellerType = new webref.SellerType();
+  	var physicalOrigin = new webref.LocationType();
+  	physicalOrigin.setLocationCode("4941");
+  	sellerType.company="11000";
+  	sellerType.setPhysicalOrigin(physicalOrigin);
+  	
+  	var customer = new webref.CustomerType();
+  	var destination = new webref.LocationType(); 
+  	destination.streetAddress1="100 Pier 1 Place";
+  	destination.city="Fort Worth";
+  	destination.mainDivision="TX";
+  	destination.postalCode="76102";
+  	destination.country="UNITED STATES";
+  	customer.setDestination(destination);
+  	
+  	
+  	var lineitem = new webref.LineItemQSIType();
+  	var product = new webref.Product("Test");
+  	product.setProductClass("100");
+  	lineitem.setProduct(product);
+  	
+  	var extendedPrice = new webref.AmountType();
+  	extendedPrice.set_value(1000);
+  	lineitem.setExtendedPrice(extendedPrice);
+  	
+  	
+  	
+  	quotationRequestType.setTransactionType(webref.SaleTransactionType.fromString("SALE"));
+  	quotationRequestType.setSeller(sellerType)
+  	quotationRequestType.setCustomer(customer);
+  	quotationRequestType.setLineItem([lineitem]);
+  	//quotationRequestType.returnAssistedParametersIndicator=true;
+  	
+  	var envelope = new webref.VertexEnvelope();
+  	envelope.setLogin(login);
+  	envelope.setQuotationRequest(quotationRequestType);
+	
+
+	//var data =new webref.VertexEnvelopeApplicationData();
+	//envelope.setApplicationData(data);
+	
+	Logger.error(new Date());
+	var envret = service.calculateTax60(envelope);
+	Logger.error(new Date());
+	Logger.error(envret.getQuotationResponse().getTotalTax().get_value() );
+	Logger.error(envret.getQuotationResponse().getLineItem()[0].getFairMarketValue().get_value() );
+	Logger.error(envret.getQuotationResponse().getLineItem()[0].getTaxes()[2].getTaxRuleId().get_value());
+	
+
+
+    return PIPELET_NEXT;
+}
+
+
+
+/*
+
+<QuotationResponse documentDate="2012-03-23" transactionType="SALE"><Seller><Company>11000</Company>
+<PhysicalOrigin taxAreaId="444391035" locationCode="4941"><StreetAddress1>2200 Heritage Parkway</StreetAddress1>
+<City>Mansfield</City>
+<MainDivision>TEXAS</MainDivision>
+<SubDivision>TARRANT</SubDivision>
+<PostalCode>76063</PostalCode>
+</PhysicalOrigin>
+</Seller>
+<Customer><Destination taxAreaId="444391090"><StreetAddress1>100 Pier 1 Place</StreetAddress1>
+<City>Fort Worth</City>
+<MainDivision>TX</MainDivision>
+<PostalCode>76102</PostalCode>
+<Country>UNITED STATES</Country>
+</Destination>
+</Customer>
+<SubTotal>1000.0</SubTotal>
+<Total>1082.5</Total>
+<TotalTax>82.5</TotalTax>
+<LineItem><Product productClass="100">webreferences.vt.Product@bdf2</Product>
+<Quantity>1.0</Quantity>
+<FairMarketValue>1000.0</FairMarketValue>
+<ExtendedPrice>1000.0</ExtendedPrice>
+<Taxes taxResult="TAXABLE" taxType="SALES" situs="DESTINATION" taxCollectedFromParty="BUYER"><Jurisdiction jurisdictionLevel="STATE" jurisdictionId="35763">TEXAS</Jurisdiction>
+<CalculatedTax>62.5</CalculatedTax>
+<EffectiveRate>0.0625</EffectiveRate>
+<Taxable>1000.0</Taxable>
+<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+<TaxRuleId>18653</TaxRuleId>
+</Taxes>
+<Taxes taxResult="TAXABLE" taxType="SALES" situs="DESTINATION" taxCollectedFromParty="BUYER"><Jurisdiction jurisdictionLevel="CITY" jurisdictionId="77875">FORT WORTH</Jurisdiction>
+<CalculatedTax>10.0</CalculatedTax>
+<EffectiveRate>0.01</EffectiveRate>
+<Taxable>1000.0</Taxable>
+<Imposition impositionType="General Sales and Use Tax">Local Sales and Use Tax</Imposition>
+<TaxRuleId>26278</TaxRuleId>
+</Taxes>
+<Taxes taxResult="TAXABLE" taxType="SALES" situs="DESTINATION" taxCollectedFromParty="BUYER"><Jurisdiction jurisdictionLevel="SPECIAL_PURPOSE_DISTRICT" jurisdictionId="78124">FORT WORTH CRIME CONTROL DISTRICT</Jurisdiction>
+<CalculatedTax>5.0</CalculatedTax>
+<EffectiveRate>0.005</EffectiveRate>
+<Taxable>1000.0</Taxable>
+<Imposition impositionType="General Sales and Use Tax">Local Sales and Use Tax</Imposition>
+<TaxRuleId>26653</TaxRuleId>
+</Taxes>
+<Taxes taxResult="TAXABLE" taxType="SALES" situs="DESTINATION" taxCollectedFromParty="BUYER"><Jurisdiction jurisdictionLevel="TRANSIT_DISTRICT" jurisdictionId="78125">FORT WORTH METROPOLITAN TRANSIT AUTHORITY</Jurisdiction>
+<CalculatedTax>5.0</CalculatedTax>
+<EffectiveRate>0.005</EffectiveRate>
+<Taxable>1000.0</Taxable>
+<Imposition impositionType="General Sales and Use Tax">Local Sales and Use Tax</Imposition>
+<TaxRuleId>26657</TaxRuleId>
+</Taxes>
+<TotalTax>82.5</TotalTax>
+</LineItem>
+</QuotationResponse>
+
+*/

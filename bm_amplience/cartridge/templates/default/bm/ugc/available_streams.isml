@@ -1,0 +1,104 @@
+<!--- TEMPLATENAME: available_streams.isml --->
+
+<isinclude template="util/modules"/>
+
+<isdecorate template="bm/ugc/ugc_table_decorator">
+<isif condition="${empty(pdict.ErrorMsg)}">
+	
+	<form class="available-streams-form">
+		<table class="available-streams-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<thead>
+				<tr>
+					<th class="table_header stream-select center w e s n"><isprint value="${Resource.msg('ugc.itemstable.select', 'locale', null)}" /></th>
+					<th class="table_header stream-preview e s n"><isprint value="${Resource.msg('ugc.itemstable.preview', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('ugc.itemstable.name', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('ugc.itemstable.lastpublisheddate', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('ugc.itemstable.startdate', 'locale', null)}" /></th>
+					<th class="table_header stream-tags s e n"><isprint value="${Resource.msg('ugc.itemstable.tags', 'locale', null)}" /></th>
+				</tr>
+			</thead>
+			
+			<tfoot>
+				<tr>
+					<td colspan="6" align="left" class="w e s">
+						<button class="button streams-import">
+							<isprint value="${Resource.msg('ugc.itemstable.import', 'locale', null)}" />
+						</button>
+						
+						<button class="button streams-edit">
+							<isprint value="${Resource.msg('ugc.itemstable.edit', 'locale', null)}" />
+						</button>
+						
+						<button class="button streams-refresh">
+							<isprint value="${Resource.msg('ugc.itemstable.refresh', 'locale', null)}" />
+						</button>
+					</td>
+				</tr>
+			</tfoot>
+			
+			<tbody>
+				<isif condition="${pdict.UgcPagingResult.getCount() > 0}">
+				
+					<isloop items="${pdict.UgcPagingResult.getPageElements()}" var="item" status="loopstate">
+						
+						<isscript>
+							var streamId = item.id;
+							var streamName = item.label;
+							var createdDate = new Date(item.createdDate).toUTCString();
+							var lastPublished = new Date(item.timestamp).toUTCString();
+							var thumbURL = !empty(item.thumbURL) ? decodeURI(item.thumbURL) + '?w=220' : '';
+							var tags = !empty(item.tags) ? item.tags.join(', ') : '';
+						</isscript>
+						
+						<tr>
+							<td class="table_detail w e s middle center">
+								<input type="radio" class="stream-id" value="${streamId}" name="stream-id" data-stream-name="${streamName}">							
+							</td>
+							<td class="table_detail e s middle thumb-container">
+								<isif condition="${!empty(thumbURL)}">
+									<img class="thumb-img" src="${thumbURL}" />
+								</isif>
+							</td>
+							<td class="table_detail e s middle">${streamName}</td>
+							<td class="table_detail date-container e s middle">${lastPublished}</td>
+							<td class="table_detail date-container e s middle">${createdDate}</td>
+							<td class="table_detail tags-container e s middle">${tags}</td>
+						</tr>
+						
+					</isloop>
+					
+				<iselse>
+					
+					<tr>
+						<td class="table_detail empty-table middle w e s" colspan="6">
+							<isprint value="${Resource.msg('ugc.noavailableitems', 'locale', null)}"/>
+						</td>
+					</tr>
+				
+				</isif>	
+			</tbody>
+
+		</table>
+	</form>
+	
+	<iscomment> URL to re-execute the exact same query. </iscomment>
+	<isset name="PageSearchURL" value="${pdict.UgcClient.constructsSearchURL(pdict.TabsHelper.getAbsPageURL())}" scope="page" />
+	
+	<div class="amp-module-pagination clearfix">
+		
+		<isitemsinfo pagingmodel="${pdict.UgcPagingResult}"/>
+		
+		<ispagingbar pagingmodel="${pdict.UgcPagingResult}" pageurl="${PageSearchURL}"/>
+		
+		<isitemsperpage pagingmodel="${pdict.UgcPagingResult}" pageurl="${PageSearchURL}"/>
+		
+	</div>
+	
+<iselse>
+
+	<div class="page-error-container">
+		<isprint value="${Resource.msg('ugc.pageerror', 'locale', null)}" />
+	</div>
+	
+</isif>
+</isdecorate>

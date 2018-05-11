@@ -1,0 +1,30 @@
+body{margin:0;}
+ul, li{margin:0;padding:0;list-style: none;}
+#main{padding-bottom:10px;background-color:#fff;}
+.viewer{
+
+padding:10px;
+}
+#nav {position:relative;margin-top:8px;}
+#nav .amp-slide{width:12.5%;height:80px;border:5px solid #ffffff;-moz-box-sizing: border-box;-webkit-box-sizing: border-box;box-sizing: border-box;background:#fff;}
+#nav .amp-slide .amp-slide{padding:0;}
+/*#nav .next, #nav .prev{height:60px;opacity:0.8;width:2%;font-size:20px;line-height:60px;vertical-align:middle;position:absolute;color:#D61B5C;-moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;}
+#nav .next{right:0;text-align:left;}
+#nav .prev{left:0;text-align:right;}
+*/
+#nav .other{clear:both;height:60px;margin-bottom:8px;}
+#nav .message{opacity:0.8;width:96%;height:60px;line-height:60px;left:2%;position:absolute;vertical-align:middle;color:#D61B5C;text-align:center;font-size:12px;font-weight:bolder;font-family:sans-serif;}
+.button-container{position:absolute;right:40px;top:40px;}
+.button{background-color:#D61B5C;color:#fff;opacity:0.9;font-family:sans-serif;font-size:12px;position:relative;margin-bottom:10px;cursor:pointer;border-radius:2px;display:none;}
+.spin-overlay{font-size:12px;width:40px;height:40px;border-radius:20px;background-color:#ebebeb;-webkit-box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);box-shadow: 0 0 3px rgba(0, 0, 0, 0.35);opacity:.5;text-align:center;line-height:40px;top:15px;left:15px;position:absolute;}
+#nav img{width:100%;top:0;bottom:0;margin:auto;}
+#viewer_main ul.amp.amp-carousel {height: 300px !important;}
+.zoom {background: url("../../images/pnsb2c-sprite-img.png") -53px -89px no-repeat transparent;border: 0 none;height: 20px;padding: 0;text-indent: -999em;width: 20px;margin-top: 4px;outline: none;margin-right: 3px; display:blok !important;}
+.pdpcursolicn { background: url("../../images/carousel-arrows.png") -19px 2px no-repeat transparent;position: absolute;right: 0;top: 21px;text-indent: -999px;width:16px;height: 42px;cursor: pointer;}
+#nav .amp-slide { width:33.5% !important; }
+.pdpcursol-left { left: 0px;background-position: 0px 0px; z-index: 999;}  
+.pdpcursol-right {}
+#nav .amp.amp-carousel {width: 90%;margin: 0px 17px;}
+.pdp-zoom-container {float: right;margin: -36px 6px 0px 0px;position: relative;}
+
+.ui-dialog.ui-widget .ui-dialog-titlebar.ui-widget-header button{ background: none;border: none;padding: 0px;margin: 0px;top: 0px;width: 20px;min-width: 31px;}

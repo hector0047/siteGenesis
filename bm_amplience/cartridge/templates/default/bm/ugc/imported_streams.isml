@@ -1,0 +1,184 @@
+<!--- TEMPLATENAME: imported_streams.isml --->
+
+<isinclude template="util/modules"/>
+<isscript>
+	importPackage( dw.content );
+	importPackage( dw.util );
+</isscript>
+
+<isdecorate template="bm/ugc/ugc_table_decorator">
+<isif condition="${empty(pdict.ErrorMsg)}">
+
+	<isset name="LoadedStreamsMap" value="${pdict.LoadedStreamsMap}" scope="page" />
+	<isset name="OfflineStreams" value="${pdict.OfflineStreams}" scope="page" />
+	<isset name="GoOnlineStreamsList" value="${pdict.GoOnlineStreamsList}" scope="page" />
+	
+	<isif condition="${GoOnlineStreamsList.length > 0}">
+	<div class="auto-update-to-online">
+		<p class="auto-update-to-online-message">
+		<isif condition="${pdict.SetAssetToOnline}">
+			<isprint value="${Resource.msg('ugc.assetssettoonlinemessage', 'locale', null)}" />
+		<iselse>
+			<isprint value="${Resource.msg('ugc.autosetonlinemessage', 'locale', null)}" />
+		</isif>
+		</p>
+		<p class="go-online-streams-list">
+			<span><isprint value="${Resource.msg('ugc.autosetonlineassetsids', 'locale', null)}" /></span>
+			<isprint value="${GoOnlineStreamsList.join(', ')}"/>
+		</p>
+	</div>
+	</isif>
+	
+	<isif condition="${OfflineStreams.size() > 0}">
+	<div class="offline-streams">
+		<p class="offline-streams-message">
+			<isprint value="${Resource.msg('ugc.offlinestreamsmessage', 'locale', null)}" />
+		</p>
+		
+		<table class="offline-streams-list" width="50%" cellspacing="0" cellpadding="0" border="0">
+			<thead>
+				<tr>
+					<th class="table_header stream-select center"><a href="#" class="select-all-streams"><isprint value="${Resource.msg('ugc.viewerstable.selectall', 'locale', null)}" /></a></th>
+					<th class="table_header"><isprint value="${Resource.msg('ugc.offlinetable.assetid', 'locale', null)}" /></th>
+					<th class="table_header"><isprint value="${Resource.msg('ugc.offlinetable.streamname', 'locale', null)}" /></th>
+					<th class="table_header"><isprint value="${Resource.msg('ugc.offlinetable.viewerid', 'locale', null)}" /></th>
+				</tr>
+			</thead>
+			
+			<tfoot>
+				<tr>
+					<td colspan="4" align="left" class="">
+						<button class="button offline-streams-delete">
+							<isprint value="${Resource.msg('ugc.itemstable.delete', 'locale', null)}" />
+						</button>
+					</td>
+				</tr>
+			</tfoot>
+			
+			<tbody>
+				<isloop items="${OfflineStreams}" var="item">
+					<isscript>
+						var ampConfig = JSON.parse(item.custom.ampConfig);
+						var streamId = ampConfig.stream;
+						var viewerId = ampConfig.viewer;
+						var streamName = item.name;
+						var assetId = item.ID;
+					</isscript>
+					<tr>
+						<td class="table_detail middle center">
+							<input type="checkbox" value="${streamId}" name="offline-stream-id" class="offline-stream-id" data-imported-stream-id="${assetId}">
+						</td>
+						<td class="table_detail middle">${assetId}</td>
+						<td class="table_detail middle">${streamName}</td>
+						<td class="table_detail middle">${viewerId}</td>
+					</tr>
+				</isloop>
+			</tbody>
+		</table>
+	</div>
+	</isif>
+
+	<form class="imported-streams-form">
+		<table class="imported-streams-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<thead>
+				<tr>
+					<th class="table_header stream-select center w e s n"><a href="#" class="select-all-streams"><isprint value="${Resource.msg('ugc.viewerstable.selectall', 'locale', null)}" /></a></th>
+					<th class="table_header stream-preview e s n"><isprint value="${Resource.msg('ugc.itemstable.preview', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('ugc.itemstable.name', 'locale', null)}" /></th>
+					<th class="table_header s e n"></th>
+					<th class="table_header stream-date s e n"><isprint value="${Resource.msg('ugc.itemstable.lastpublisheddate', 'locale', null)}" /></th>
+					<th class="table_header stream-date s e n"><isprint value="${Resource.msg('ugc.itemstable.startdate', 'locale', null)}" /></th>
+					<th class="table_header stream-tags s e n"><isprint value="${Resource.msg('ugc.itemstable.tags', 'locale', null)}" /></th>
+				</tr>
+			</thead>
+			
+			<tfoot>
+				<tr>
+					<td colspan="7" align="left" class="w e s">
+						<button class="button streams-delete">
+							<isprint value="${Resource.msg('ugc.itemstable.delete', 'locale', null)}" />
+						</button>
+					</td>
+				</tr>
+			</tfoot>
+			
+			<tbody>
+				<isif condition="${pdict.PagingResult.count > 0}">
+					
+					<isloop items="${pdict.PagingResult.pageElements}" var="item" status="loopstate">
+						
+						<isscript>
+							var ampConfig = JSON.parse(item.custom.ampConfig);
+							var streamId = ampConfig.stream;
+							var viewerId = ampConfig.viewer;
+						</isscript>
+						
+						<isif condition="${LoadedStreamsMap.containsKey(streamId)}">
+							<isscript>
+								var stream = LoadedStreamsMap.get(streamId);
+								var streamName = stream.label;
+								var createdDate = new Date(stream.createdDate).toUTCString();
+								var lastPublished = new Date(stream.timestamp).toUTCString();
+								var thumbURL = !empty(stream.thumbURL) ? decodeURI(stream.thumbURL) + '?w=220' : '';
+								var tags = !empty(stream.tags) ? stream.tags.join(', ') : '';
+								var importedContentAssetId = item.ID;
+								var importedContentAssetUUID = item.getUUID();
+							</isscript>
+							
+							<tr>
+								<td class="table_detail w e s middle center">
+									<input type="checkbox" class="stream-id" value="${streamId}" name="stream-id" data-imported-stream-id="${importedContentAssetId}">
+								</td>
+								<td class="table_detail e s middle thumb-container">
+									<isif condition="${!empty(thumbURL)}">
+										<img class="thumb-img" src="${thumbURL}" />
+									</isif>
+								</td>
+								<td class="table_detail e s middle">
+									<a href="${URLUtils.url('ViewLibraryContent_52-Start', 'ContentUUID', importedContentAssetUUID )}" title="${streamName}">${streamName}</a>
+								</td>
+								<td class="table_detail e s middle viewer-information">
+									<p><span>${Resource.msg('ugc.itemstable.viewerid', 'locale', null)}:</span> ${viewerId}</p>
+									<p><span>${Resource.msg('ugc.itemstable.assetid', 'locale', null)}:</span> ${importedContentAssetId}</p>
+								</td>
+								<td class="table_detail date-container e s middle">${lastPublished}</td>
+								<td class="table_detail date-container e s middle">${createdDate}</td>
+								<td class="table_detail tags-container e s middle">${tags}</td>
+							</tr>
+						</isif>
+					</isloop>
+					
+				<iselse>
+				
+					<tr>
+						<td class="table_detail empty-table middle w e s" colspan="7">
+							<isprint value="${Resource.msg('ugc.notimporteditems', 'locale', null)}"/>
+						</td>
+					</tr>
+					
+				</isif>
+			</tbody>
+		</table>
+	</form>
+	
+	<iscomment> URL to re-execute the exact same query. </iscomment>
+	<isset name="PageSearchURL" value="${!empty(pdict.SearchResult) ? pdict.SearchResult.url(pdict.TabsHelper.getAbsPageURL()) : pdict.TabsHelper.getAbsPageURL()}" scope="page" />
+	
+	<div class="amp-module-pagination clearfix">
+		
+		<isitemsinfo pagingmodel="${pdict.PagingResult}"/>
+		
+		<ispagingbar pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+		
+		<isitemsperpage pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+		
+	</div>
+	
+<iselse>
+
+	<div class="page-error-container">
+		<isprint value="${Resource.msg('ugc.pageerror', 'locale', null)}" />
+	</div>
+	
+</isif>
+</isdecorate>

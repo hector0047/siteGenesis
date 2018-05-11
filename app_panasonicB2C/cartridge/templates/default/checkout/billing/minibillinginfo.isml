@@ -1,0 +1,81 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	This template renders the billing address and a list of all payment
+	methods (more precessively payment instruments) used for the payment
+	of the basket. It is displayed in the order summary at the right hand
+	side in the checkout process.
+</iscomment>
+<isset name="billingAddress" value="${pdict.Basket.billingAddress}" scope="page"/>
+<isset name="paymentInstruments" value="${pdict.Basket.paymentInstruments}" scope="page"/>
+
+<isif condition="${!empty(billingAddress) && billingAddress.address1 != null}">
+	<div class="mini-billing-address  order-component-block">
+
+		<h3 class="section-header">
+			${Resource.msg('minibillinginfo.billingaddress','checkout',null)}
+			<a href="${URLUtils.https('COBilling-Start')}" class="section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+		</h3>
+
+		<div class="details">
+			<div><isprint value="${billingAddress.firstName}"/> <isprint value="${billingAddress.lastName}"/></div>
+			<div><isprint value="${billingAddress.address1}"/></div>
+			<isif condition="${!empty(billingAddress.address2)}">
+				<div><isprint value="${billingAddress.address2}"/></div>
+			</isif>
+			<div><isprint value="${billingAddress.city}"/>, <isprint value="${billingAddress.stateCode}"/> <isprint value="${billingAddress.postalCode}"/></div> 
+			
+			<iscomment>Start JIRA PREV-35: Phone Number is missing in Billing section. Added isprint tag</iscomment>			
+				<isscript>  
+		        var originalNum: String = address.phone;  
+		        var formattedNum: String = '';  
+		          formattedNum = originalNum.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');        
+		       </isscript> 
+		       <div><isprint value="${formattedNum}"/></div>
+			<iscomment>End JIRA PREV-35</iscomment>
+			<isif condition="${!empty(paymentInstruments)}"> 
+				<div class="mobileBlock"><isprint value="${pdict.CurrentForms.billing.billingAddress.email.emailAddress.value}" /></div>
+			</isif> 
+			
+			<iscomment> <div><isprint value="${billingAddress.countryCode}"/></div>  </iscomment>
+		</div>
+
+	</div>
+</isif>
+
+<isif condition="${!empty(paymentInstruments)}">
+	<iscomment>render a box per payment instrument</iscomment>
+	<isloop items="${paymentInstruments}" var="paymentInstr" status="loopstate">
+		<div class="mini-payment-instrument order-component-block <isif condition="${loopstate.first}"> first <iselseif condition="${loopstate.last}"> last</isif>">
+
+			<h3 class="section-header">
+				<isif condition="${loopstate.first}"><span>${Resource.msg('minibillinginfo.paymentmethod','checkout',null)}</span></isif>
+				<a href="${URLUtils.https('COBilling-Start')}"  class="section-header-note">${Resource.msg('global.edit','locale',null)}</a>
+			</h3>
+
+			<div class="details">
+				<iscomment>
+					dynamically render the detail section depending on the type of the payment instrument
+				</iscomment>
+				<isif condition="${dw.order.PaymentInstrument.METHOD_GIFT_CERTIFICATE.equals(paymentInstr.paymentMethod)}">
+					<div>${dw.order.PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).name}: <isprint value="${paymentInstr.maskedGiftCertificateCode}"/></div>
+					<div>${Resource.msg('minibillinginfo.amount','checkout',null)}: 
+						<iscomment>JIRA PREV-149:Added condition to check !empty(paymentInstr)</iscomment>
+						<isif condition="${!empty(paymentInstr) && !empty(paymentInstr.paymentTransaction)}">
+							<isprint value="${paymentInstr.paymentTransaction.amount}"/>
+						</isif>
+					</div>
+				<iselse/>	
+					<div><isprint value="${dw.order.PaymentMgr.getPaymentMethod(paymentInstr.paymentMethod).name}" /></div>
+					<isminicreditcard p_card="${paymentInstr}" p_show_expiration="${true}"/>						
+					<div>
+						${Resource.msg('minibillinginfo.amount','checkout',null)}: 
+							<iscomment>JIRA PREV-149:Added condition to check !empty(paymentInstr)</iscomment>
+							<isif condition="${!empty(paymentInstr) && !empty(paymentInstr.paymentTransaction)}">
+								<isprint value="${paymentInstr.paymentTransaction.amount}"/>
+							</isif>
+					</div><!-- END: payment-amount -->
+				</isif>
+			</div>
+		</div>
+	</isloop>
+</isif>

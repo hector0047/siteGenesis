@@ -1,0 +1,25 @@
+var sf = require("bc_serviceframework");
+
+var ECBRates = require("../objects/ECBRates");
+
+// Hack, because vars cannot be imported in DW, only functions.
+
+var ECBRateService = sf.getService('AbstractXMLBaseService').extend (
+/** @lends ECBRateService.prototype */ 
+{
+	/**
+	 * @constructs ECBRateService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("ECBRate", new ECBRates()); 	
+		this.requestType = 'GET';
+	},
+	
+	//Creates the request data - this is a required method - even if there is no request data 
+	createRequest: function(){
+		return null;
+	}	
+});
+
+sf.registerService("ECBRateService", ECBRateService);

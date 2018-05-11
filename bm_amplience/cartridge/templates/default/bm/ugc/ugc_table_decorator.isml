@@ -1,0 +1,42 @@
+<!--- TEMPLATENAME: ugc_table_decorator.isml --->
+
+<isset name="TabsHelper" value="${pdict.TabsHelper}" scope="page" />
+
+<isset name="Decorator" value="application/menu_frame" scope="page" />
+<isif condition="${TabsHelper != null}">
+	<isset name="Decorator" value="${TabsHelper.getPageDecorator()}" scope="page" />
+</isif>
+
+<isdecorate template="${Decorator}">
+	<div class="amp-module-container">
+		
+		<div class="amp-module-header">
+		</div>
+		
+		<div class="amp-module-navigation">
+			<ul class="tabs-container clearfix">
+				<isif condition="${TabsHelper != null}">
+					<isloop items="${TabsHelper.getPageTabs()}" var="tab">
+						<li class="${(TabsHelper.getActiveTab() == tab.id) ? 'selected' : ''}">
+							<a href="${tab.url}">${tab.displayName}</a>
+						</li>
+					</isloop>
+				</isif>
+			</ul>
+		</div>
+		
+		<div class="amp-module-body">
+			
+			<isinclude template="bm/ugc/simple_search" />
+			
+			<div class="table-container">
+				<isreplace/>
+			</div>
+		</div>
+		
+	</div>
+	
+	<script src="${URLUtils.absStatic('/js/jquery-ui.min.js')}" type="text/javascript"></script>
+	<script src="${URLUtils.absStatic('/js/amp.js')}" type="text/javascript"></script>
+	<script type="text/javascript"><isinclude template="resources/ampresources"/></script>
+</isdecorate>

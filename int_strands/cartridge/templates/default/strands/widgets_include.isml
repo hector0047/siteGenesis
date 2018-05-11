@@ -1,0 +1,223 @@
+<iscontent type="text/html" charset="UTF-8" compact="true" />
+<!--
+Strands Recommender v1.0
+
+Using Strands Recommender Library Version sbsLib-1.0.min.js
+Based on SiteGenesis version 2.10.4
+Created By: Strands Labs Madrid
+Last Modified On: 7/16/2010
+-->
+
+<isif condition="${'StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled}">
+
+	<!-- Get "user" parameter -->
+	<isset name="strandsUser" value="" scope="page">
+	<isif condition="${session.isCustomerAuthenticated()}">
+		<isset name="strandsUser" value="${session.getCustomer().getID()}" scope="page">
+	</isif>
+
+	<!-- Get the current pipeline name in order to know the current page  -->
+	<isif condition="${'last' in pdict.CurrentSession.clickStream && !empty(pdict.CurrentSession.clickStream.last.pipelineName)}">
+		<!-- <h2>Recommendation widget by ${pdict.CurrentSession.clickStream.last.pipelineName}</h2> -->
+		<!-- HOMEPAGE -->
+		<isif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Default-Start'}">
+			<!-- Storefront widget -->
+			<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplStorefront}" item="">
+				<img src="${URLUtils.staticURL('/images/loading-small.gif')}" style="margin-top:15px; margin-left:90px; padding-bottom:50px;" />
+			</div>
+			<!--  End of Storefront widget -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Home-Show'}">
+			<!-- Storefront widget -->
+			<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplStorefront}" item="">
+				<img src="${URLUtils.staticURL('/images/loading-small.gif')}" style="margin-top:15px; margin-left:90px; padding-bottom:50px;" />
+			</div>
+			<!--  End of Storefront widget -->
+
+		<!-- PRODUCT PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Product-Show' || pdict.CurrentSession.clickStream.last.pipelineName == 'Product-ShowInCategory'}">
+			<isif condition="${!empty(pdict.Product.ID)}">
+				<isset name="strandsPid" value="" scope="page">
+				<isif condition="${!pdict.Product.variant}">
+					<isset name="strandsPid" value="${pdict.Product.ID}" scope="page">
+				<iselseif condition="${'masterProduct' in pdict.Product}">
+					<isset name="strandsPid" value="${pdict.Product.masterProduct.ID}" scope="page">
+				</isif>
+
+				<isif condition="${pdict.CurrentHttpParameterMap.source.stringValue == 'quickview'}">
+				<!-- QuickView widget -->
+					<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplQuickView}" item="${strandsPid}"></div>
+					<script type="text/javascript">
+						if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+						strandsMandatoryTpls=[];
+						strandsMandatoryTpls.push("${dw.system.Site.current.preferences.custom.TplQuickView}");
+						try{ SBS.Worker.update(strandsMandatoryTpls); } catch (e){};
+					</script>
+				<!-- End of QuickView widget -->
+				<iselse>
+				<!-- Product widget -->
+					<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplProduct}" item="${strandsPid}"></div>
+				<!-- End of Product widget -->
+				</isif>
+
+				<isif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.JavaScriptEnabled}">
+					<isif condition="${!empty(pdict.CurrentHttpParameterMap.q.stringValue)}">
+						<!-- Searched Tracking -->
+						<script type="text/javascript">
+							if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+
+							StrandsTrack.push({
+								event:"searched",
+								user: "${strandsUser}",
+								item: "${strandsPid}",
+								searchstring: "${pdict.CurrentHttpParameterMap.q.stringValue}"
+							});
+
+						</script>
+						<!-- End of Searched Tracking -->
+					</isif>
+
+					<!-- Visited Tracking -->
+					<script type="text/javascript">
+						if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+
+						StrandsTrack.push({
+									event:"visited",
+									user: "${strandsUser}",
+   									item: "${strandsPid}"
+						});
+
+					</script>
+					<!-- End of Visited Tracking -->
+
+				<iselseif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom}">
+					<isif condition="${!empty(pdict.CurrentHttpParameterMap.q.stringValue)}">
+						<iscomponent pipeline="Strands-TrackingSearched" productid="${pdict.Product.ID}" searchstr="${pdict.CurrentHttpParameterMap.q.stringValue}">
+					</isif>
+					<iscomponent pipeline="Strands-TrackingVisited" productid="${pdict.Product.ID}">
+
+				</isif>
+			</isif>
+
+		<!-- SHOPPING CART PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Cart-Show'}">
+			<isscript>
+				var prodsList : String = "";
+				if (!empty(pdict.Basket) && !pdict.Basket.allProductLineItems.isEmpty()) {
+					var counter : Number = 0;
+					for each(var item : Product in pdict.Basket.allProductLineItems) {
+						if (item.product){
+							if (!item.product.variant){
+								prodsList += item.productID;
+							} else if (item.product.masterProduct){
+								prodsList += item.product.masterProduct.ID;
+							} else {
+								continue;
+							}
+
+							if (++counter < pdict.Basket.allProductLineItems.length){
+								prodsList += '_._';
+							}
+						}
+					}
+				}
+			</isscript>
+			<!-- Basket widget -->
+			<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplBasket}" item="${prodsList}"></div>
+			<!-- End of Basket widget -->
+
+		<!-- ORDER CONFIRMATION PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'COSummary-Submit'}">
+			<isscript>
+				var prodsList : String = "";
+				if (!empty(pdict.Order) && !pdict.Order.allProductLineItems.isEmpty()) {
+					var counter : Number = 0;
+					for each(var item : Product in pdict.Order.allProductLineItems) {
+						if (item.product){
+							if (!item.product.variant){
+								prodsList += item.productID;
+							} else if (item.product.masterProduct){
+								prodsList += item.product.masterProduct.ID;
+							} else {
+								continue;
+							}
+
+							if (++counter < pdict.Order.allProductLineItems.length){
+								prodsList += '_._';
+							}
+						}
+					}
+				}
+			</isscript>
+			<!-- Invoice widget -->
+			<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplInvoice}" item="${prodsList}"></div>
+			<!-- End of Invoice widget -->
+
+		<!-- CATEGORY PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Search-Show'}">
+			<!-- Category widget -->
+			<isif condition="${!empty(pdict.CurrentHttpParameterMap.cgid.stringValue)}">
+				<isif condition="${'category' in pdict.ProductSearchResult && !empty(pdict.ProductSearchResult.category)}">
+					<isscript>
+						var cat : Category = pdict.ProductSearchResult.category;
+						var catStr : String = "cat";
+						var catDepth : Numero = 0;
+						var catName = cat.ID;
+						if ('parent' in cat && !empty(cat.parent)) {
+							var parentCat : Category = cat.parent;
+							while (!parentCat.root) {
+								catDepth++;
+								if ('parent' in parentCat && !empty(parentCat.parent)) {
+									parentCat = parentCat.parent;
+								}
+							}
+						}
+						catStr += catDepth + "::" + catName;
+
+					</isscript>
+				<iselse>
+					<isscript>
+						var catStr = "category::";
+						catStr += pdict.CurrentHttpParameterMap.cgid.stringValue;
+					</isscript>
+				</isif>
+				<isif condition="${pdict.CurrentHttpParameterMap.cgid.stringValue == 'giggle'}">
+					<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplStorefront}" item="" dfilter="${catStr}"><img src="${URLUtils.staticURL('/images/loading-small.gif')}" style="margin-top:15px; margin-left:90px; padding-bottom:50px;" /></div>
+				<iselse>
+					<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplCategory}" item="" dfilter="${catStr}"></div>
+				</isif>
+			</isif>
+			<!-- End of Category widget -->
+
+		<!-- WISHLIST PAGE -->
+	 	<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Wishlist-Add' || pdict.CurrentSession.clickStream.last.pipelineName == 'Wishlist-Show'}">
+			<isscript>
+				var prodsList : String = "";
+				if (!pdict.ProductList.items.isEmpty()) {
+					var counter : Number = 0;
+					for each(var item : Product in pdict.ProductList.items) {
+						if (item.product){
+							if (!item.product.variant){
+								prodsList += item.productID;
+							} else if (item.product.masterProduct){
+								prodsList += item.product.masterProduct.ID;
+							} else {
+								continue;
+							}
+
+							if (++counter < pdict.ProductList.items.length){
+								prodsList += '_._';
+							}
+						}
+					}
+				}
+			</isscript>
+			<!-- Wishlist widget -->
+			<div class="strandsRecs" user="${strandsUser}" tpl="${dw.system.Site.current.preferences.custom.TplWishlist}" item="${prodsList}"></div>
+	 		<!-- End of Wishlist widget -->
+
+		</isif>
+
+	</isif>
+
+</isif>
+

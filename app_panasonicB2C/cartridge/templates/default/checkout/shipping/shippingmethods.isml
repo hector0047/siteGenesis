@@ -1,0 +1,364 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<div class="pnsb2c-shipping-methods-wrapper">
+<iscomment>
+	This template renders the shipping methods that a customer may choose from.
+	It renders a form for the shipping method selection.  This template is 
+	dynamically loaded using AJAX and may get reloaded as the customer enters
+	shipping address information depending on the configured shipping method
+	address exclusions.
+</iscomment>
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	importScript("checkout/PreCalculateShipping.ds");
+	importScript("util/DateUtils.ds");
+	importScript("checkout/Utils.ds");
+</isscript>
+
+<isset name="DiscountPlan" value="${dw.campaign.PromotionMgr.getDiscounts(pdict.Basket)}" scope="page" />
+<isif condition="${empty( pdict.ErrorCode )}">
+	<div class="mobileBlock mobilesectionHdr">SHIPPING OPTIONS</div>
+	<iscomment>
+	<div class="desktopBlock"><div class="shipment-method-head">
+		${Resource.msg('singleshipping.shippingmethodheader','checkout',null)} 
+		<span class="tootltip-icon"></span>
+		<div class="tooltip-content-shipment">
+			<div class="desc-part block-1">
+				<div class="topic-head">
+					<span class="label-txt">${Resource.msg('checkout.stdLable','checkout',null)}</span>
+					<!-- <span class="label-val">3-5 Business days</span>-->	
+				</div>
+				<div class="desc-content">
+					${Resource.msg('checkout.stdDetails','checkout',null)}
+				</div>
+			</div>
+			<div class="desc-part block-2">
+				<div class="topic-head">
+					<span class="label-txt">${Resource.msg('checkout.secondLable','checkout',null)}</span>
+					<!-- <span class="label-val">2-3 Business days</span>	-->
+				</div>
+				<div class="desc-content">
+					${Resource.msg('checkout.secondDetails','checkout',null)}
+				</div>
+			</div>
+			<div class="desc-part block-3">
+				<div class="topic-head">
+					<span class="label-txt">${Resource.msg('checkout.overnightLable','checkout',null)}</span>
+					<!--  <span class="label-val">1-2 Business days</span>	-->
+				</div>
+				<div class="desc-content">
+					${Resource.msg('checkout.overnightDetails','checkout',null)}
+				</div>
+			</div>
+		</div>
+	</div></div></iscomment>
+	<isscript>
+		var sortedBasketShipments = SortShipments( pdict.Basket.getShipments() , pdict.ShippingMethodsForEachShipmentMap );
+		var haveOnlyStandardShipmentMap = haveOnlyStandardShipmentMap(pdict.ShippingMethodsForEachShipmentMap);
+	</isscript>
+	<isloop items="${sortedBasketShipments}" var="shipments" status="status" >
+	<isset name="shipment" value="${pdict.Basket.getShipment(shipments.ID)}" scope="page" />
+	<isset name="leastoneinstock" value="${false}" scope="page" />
+	<div class="prod-info-shipment-method-wrapper" id="shipment-prodinfo-holder-${status.count}" data-shipmentid="${shipments.ID}">
+			<div class="product-info-wrapper">
+			<isloop items="${shipment.productLineItems}" var="pli" status="status2" >
+					<isset name="product" value="${dw.catalog.ProductMgr.getProduct(pli.productID)}" scope="page" />
+					<isset name="instock" value="${true}" scope="page" />
+					<isif condition="${product.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER || (product.custom.isPreOrderable && product.availabilityModel.availabilityStatus!=dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK)}" >
+						<isset name="instock" value="${false}" scope="page" />
+					<iselseif condition="${product.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER}" >
+						<isset name="instock" value="${false}" scope="page" />
+					</isif>
+					<isif condition="${status2.first}"> 
+							<div class="instockblock">
+					</isif>
+					<isif condition="${pli.custom.recycleLineItem!=true}">	
+						<isif condition="${instock}"> 
+							<isset name="leastoneinstock" value="${true}" scope="page" />
+							<div class="pnsb2c-mcart-prod-info">
+								<div id="prods-${status.count}" class="products prod-img">
+									<isset name="image" value="${new ProductImage('image150X150',product,0)}" scope="page"/>
+						 			<img src="${image.getURL()}" alt="${image.alt}" title="${image.title}"/>
+								</div>
+								<div class="product-info-holder">
+									<div class="mini-cart-name">
+									<isprint value="${product.shortDescription}" encoding="off"/>
+								</div>
+								<div class="mini-cart-attributes">
+									<isdisplayvariationvalues product="${product}"/>
+								</div>
+								<div class="pnsb2c-mcart-qty">
+									<span class="label hide">${Resource.msg('global.qty','locale',null)}:</span>
+									<span class="label checkoutqty">${Resource.msg('global.quantity','locale',null)}:</span>
+								    <span class="value"><isprint value="${pli.quantity}"></span>
+								</div>
+								<isdisplayproductavailability p_productli="${pli}" p_displayinstock="${true}" p_displaypreorder="${true}" p_displaybackorder="${true}" p_hidedates="${true}"/>
+								<div class="mini-cart-pricing mini-summary-pricing">
+								    <isif condition="${pli.bonusProductLineItem}">
+									    ${Resource.msg('global.bonus','locale',null)}
+								    <iselse/>
+								    	<isset name="productTotal" value="${pli.adjustedPrice}" scope="page"/>
+								    	<isif condition="${pli.optionProductLineItems.size() > 0}">
+											<isloop items="${pli.optionProductLineItems}" var="optionLI">
+												<isset name="productTotal" value="${productTotal.add(optionLI.adjustedPrice)}" scope="page"/>
+											</isloop>
+										</isif>
+										<span class="label checkoutprice">${Resource.msg('cart.itemtotal','checkout',null)}:</span>
+									    <span class="mini-cart-price"><isprint value="${productTotal}"/></span>
+								    </isif>
+								</div>
+								</div>
+
+							</div>
+						</isif>
+					</isif>
+					<isif condition="${status2.last}"> 
+						</div>
+					</isif>
+				
+			</isloop>
+			
+			<isloop items="${shipment.productLineItems}" var="pli" status="status2" >
+					<isset name="product" value="${dw.catalog.ProductMgr.getProduct(pli.productID)}" scope="page" />
+					<isset name="instock" value="${true}" scope="page" />
+					<isif condition="${product.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER || (product.custom.isPreOrderable && product.availabilityModel.availabilityStatus!=dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK)}" >
+						<isset name="instock" value="${false}" scope="page" />
+						<div class="back-order-shippingmsg bckorder-msg-shpmntmthods">
+							${Resource.msg('checkout.shipmentpreorder','checkout',null)}
+						</div> 
+					<iselseif condition="${product.availabilityModel.availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER && !(product.custom.isPreOrderable)}" >
+						<isset name="instock" value="${false}" scope="page" />
+						<div class="back-order-shippingmsg bckorder-msg-shpmntmthods">
+							${Resource.msg('checkout.shipmentbackorder','checkout',null)}
+						</div>
+					</isif>
+					<isif condition="${status2.first}"> 
+						<div class="backpreorder-block">
+					</isif>
+					<isif condition="${pli.custom.recycleLineItem!=true}">	
+						<isif condition="${!instock}"> 
+							<div class="pnsb2c-mcart-prod-info">
+								<div id="prods-${status.count}" class="products prod-img">
+									<isset name="image" value="${new ProductImage('image150X150',product,0)}" scope="page"/>
+						 			<img src="${image.getURL()}" alt="${image.alt}" title="${image.title}"/>
+								</div>
+								<div class="product-info-holder">
+									<div class="mini-cart-name">
+									<isprint value="${product.shortDescription}" encoding="off"/>
+								</div>
+								<div class="mini-cart-attributes">
+									<isdisplayvariationvalues product="${product}"/>
+								</div>
+								<div class="pnsb2c-mcart-qty">
+									<span class="label hide">${Resource.msg('global.qty','locale',null)}:</span>
+									<span class="label checkoutqty">${Resource.msg('global.quantity','locale',null)}:</span>
+								    <span class="value"><isprint value="${pli.quantity}"></span>
+								</div>
+								<isdisplayproductavailability p_productli="${pli}" p_displayinstock="${true}" p_displaypreorder="${true}" p_displaybackorder="${true}" p_hidedates="${true}"/>
+								<div class="mini-cart-pricing mini-summary-pricing"> 
+								    <isif condition="${pli.bonusProductLineItem}">
+									    ${Resource.msg('global.bonus','locale',null)}
+								    <iselse/>
+								    	<isset name="productTotal" value="${pli.adjustedPrice}" scope="page"/>
+								    	<isif condition="${pli.optionProductLineItems.size() > 0}">
+											<isloop items="${pli.optionProductLineItems}" var="optionLI">
+												<isset name="productTotal" value="${productTotal.add(optionLI.adjustedPrice)}" scope="page"/>
+											</isloop>
+										</isif>
+										<span class="label checkoutprice">${Resource.msg('cart.itemtotal','checkout',null)}:</span>
+									    <span class="mini-cart-price"><isprint value="${productTotal}"/></span>
+								    </isif>
+								</div>
+								</div>
+							</div>
+						</isif>
+					</isif>
+					<isif condition="${status2.last}"> 
+						</div>
+					</isif>
+			</isloop>
+			</div>
+			<div id="shipment-${status.count}" class="shipment-method-holder <isif condition="${(shipment.productLineItems.size()==1 && shipment.productLineItems[0].custom.recycleLineItem ==true) || shipment.productLineItems.size() == 0 }">hide </isif>"> 
+			<isscript>
+				var shipment : dw.order.Shipment = shipment;
+				var shippingModel : dw.order.ShipmentShippingModel = dw.order.ShippingMgr.getShipmentShippingModel( shipment );
+			</isscript>
+				<isif condition="${leastoneinstock}">
+					<isloop items="${pdict.ShippingMethodsForEachShipmentMap.get(shipments.UUID)}" var="shippingMethod" status="loopstate">
+						<isset name="shippingCost" value="${pdict.ShippingCosts.get(shippingMethod.ID)}" scope="page"/>
+							<div class="form-row form-indent label-inline shipment-mthd-frm-row <isif condition="${!(!haveOnlyStandardShipmentMap.get(shipments.UUID) || ( haveOnlyStandardShipmentMap.get(shipments.UUID) && status.count==1))}"> hide</isif>">
+							 		<div class="selectshiping-radio">
+										<label class="custome-radio" for="${shipments.ID}-${shippingMethod.ID}"></label>
+										<input type="radio" class="shipmethodradio" id="${shipments.ID}-${shippingMethod.ID}" name="shipping-method-${shipments.ID}" data-shipmentid="${shipments.ID}" value="${shippingMethod.ID}" <isif condition="${shipments.shippingMethodID == shippingMethod.ID}">checked="checked"</isif>/>
+									<span class="custome-radio"></span></div>
+								<isif condition="${!haveOnlyStandardShipmentMap.get(shipments.UUID ) || ( haveOnlyStandardShipmentMap.get(shipments.UUID) && status.count==1)}">
+					    			<label for="shipping-method-${shippingMethod.ID}">
+					    				<span class="shipment-mthd-name">
+					    				<isprint value="${shippingMethod.displayName}"/> : 
+					    				</span>
+				    				<iscomment>PANC-984 </iscomment>
+				    				<isif condition="${shippingCost.shippingPriceAdjustmentsTotal != 0}">
+										<span>
+					    					<isif condition="${shippingModel.getShippingCost(shippingMethod).amount > 0}" >
+					    						<span class="standard-shipping shipping-promotion-added"><isprint value="${shippingModel.getShippingCost(shippingMethod).amount}"></span>
+					    					<iselse/>
+					    						<isprint value="${Resource.msg('ordersummary.freeshipping','components',null)}"/>
+					    					</isif>
+					    				</span>
+					    				
+					    				<isscript>
+						    				 var shippingExclDiscounts : dw.value.Money = shippingModel.getShippingCost(shippingMethod).amount;
+								             var shippingInclDiscounts : dw.value.Money = shippingCost.shippingPriceAdjustmentsTotal;
+								             var shippingDiscount : dw.value.Money = shippingExclDiscounts.add( shippingInclDiscounts);
+								        </isscript>
+								        
+								        <isif condition="${shippingDiscount == 0}" >
+					    				       <isprint value="${Resource.msg('ordersummary.freeshipping','components',null)}"/>
+					    				 <iselse/>
+										       <span class="discount-shipping"><isprint value="${shippingDiscount}"/></span>
+										</isif>
+									<iselse/>
+										<span>
+					    				<isif condition="${shippingModel.getShippingCost(shippingMethod).amount > 0}" >
+					    						<isprint value="${shippingModel.getShippingCost(shippingMethod).amount}">
+					    					<iselse/>
+					    						<isprint value="${Resource.msg('ordersummary.freeshipping','components',null)}"/>
+					    					</isif>
+					    				</span>
+									</isif>
+				    				<iscomment>
+									<isif condition="${shippingCost.shippingPriceAdjustmentsTotal != 0}">
+										<span class="standard-shipping"><isprint value="${shippingCost.baseShipping}"/></span> 
+										<span class="discount-shipping"><isprint value="${shippingCost.baseShippingAdjusted}"/></span>
+									<iselse/>
+										<span><isprint value="${shippingCost.baseShipping}"></span>
+									</isif>
+								<isif condition="${shippingCost.surchargeAdjusted > 0}"><span class="shippingsurcharge"> + <isprint value="${shippingCost.surchargeAdjusted}"/> ${Resource.msg('singleshipping.surcharge','checkout',null)}</span></isif>
+								<isif condition="${shippingCost.productShippingCosts.length > 0}">
+									<isset name="productShipCost" value="${new dw.value.Money(0.0, session.getCurrency().getCurrencyCode())}" scope="page"/>
+									<isloop items="${shippingCost.productShippingCosts}" var="productShipping" status="loopstate">
+										<isif condition="${productShipping.shippingCost != null && productShipping.shippingCost.amount != null && productShipping.shippingCost.amount > 0}">
+											<isset name="productShipCost" value="${productShipCost.add(productShipping.shippingCost.amount)}" scope="page"/>
+											<div class="surcharge-product">
+												<span class="label">
+													<isif condition="${productShipping.shippingCost.surcharge}">
+														(${Resource.msg('singleshipping.surcharge','checkout',null)})
+													</isif>
+													<isprint value="${productShipping.name}"/>:
+												</span>
+												<span class="value">
+													<isif condition="${productShipping.qty != null && productShipping.qty > 1}">
+														x<isprint value="${productShipping.qty}"/>
+													</isif>
+													<isprint value="${productShipping.shippingCost.amount}"/>
+												</span>
+											</div>
+										</isif>
+									</isloop>
+			
+									<div class="shipping-method-cost">
+										<span class="label">${Resource.msg('singleshipping.standard','checkout',null)}</span>
+										<span class="value"><isprint value="${shippingModel.getShippingCost(shippingMethod).getAmount()}"/></span>
+									</div>
+			
+									<isloop items="${shippingCost.shippingPriceAdjustments}" var="shippingPA">
+										<isif condition="${shippingPA.calloutMsg != null}">
+											<div class="promo">
+												<span class="label">
+													<isprint value="${shippingPA.calloutMsg}" encoding="off"/>:
+												</span>
+												<span class="value">
+													<isprint value="${shippingPA.price}"/>
+												</span>
+											</div>
+										</isif>
+									</isloop>
+			
+									<isloop items="${shippingCost.productShippingDiscounts}" var="productShippingDiscount" status="loopstate">
+										<isset name="shippingPromotion" value="${productShippingDiscount.calloutMsg}" scope="page"/>
+										<isif condition="${shippingPromotion != null}">
+											<div class="promo">
+												<span class="label">
+													<isprint value="${shippingPromotion}"/>:
+												</span>
+												<span class="value">
+													<isprint value="${productShippingDiscount.price}"/>
+												</span>
+											</div>
+										</isif>
+									</isloop>
+			
+									<div class="shippingtotal ">
+										<span class="label">${Resource.msg('singleshipping.total','checkout',null)}</span>
+										<span class="value"><isprint value="${shippingCost.shippingInclDiscounts}"/></span>
+									</div>
+								</isif>	
+								</iscomment>
+								<iscomment>PANC-984 changes to display the estimated delivery date for std, second day and overnight shipping methods</iscomment>
+								<isset name="currentDate" value="${new Date()}" scope="page" />
+								
+								<isif condition="${pdict.stdShippingMethodsList.contains(shippingMethod.ID) && shippingMethod.ID != 'PAA5' && shippingMethod.ID != 'PAA7'}" >
+						         <div class="form-caption shipng-mthod-description">
+						          Estimated Delivery ${getDayName(pdict.stdDate1.getDay())}, ${getMonthName(pdict.stdDate1.getMonth())} ${pdict.stdDate1.getDate().toFixed()} - ${getDayName(pdict.stdDate2.getDay())}, ${getMonthName(pdict.stdDate2.getMonth())} ${pdict.stdDate2.getDate().toFixed()}
+						         </div>
+						        <iselseif condition="${pdict.secondDayShippingMethodsList.contains(shippingMethod.ID)}" >
+						         <div class="form-caption shipng-mthod-description">
+						          <iscomment>${Resource.msgf('checkout.estdatesecondday','checkout',null, pdict.hourdiff,pdict.minutesdiff)}</iscomment> Order in the next <isprint value="${pdict.hourdiff}" formatter="#00"/> hours and <isprint value="${pdict.minutesdiff}" formatter="#00"/> minutes to get it by ${getDayName(pdict.secondDay.getDay())}, ${getMonthName(pdict.secondDay.getMonth())} ${pdict.secondDay.getDate().toFixed()}
+						         </div>
+						        </iselseif>
+						        <iselseif condition="${pdict.overnightShippingMethodsList.contains(shippingMethod.ID)}" >
+						         <div class="form-caption shipng-mthod-description">
+						          <iscomment>${Resource.msgf('checkout.estdatesecondday','checkout',null, pdict.hourdiff,pdict.minutesdiff)}</iscomment>Order in the next <isprint value="${pdict.hourdiff}" formatter="#00"/> hours and <isprint value="${pdict.minutesdiff}" formatter="#00"/> minutes to get it by  ${getDayName(pdict.overnight.getDay())}, ${getMonthName(pdict.overnight.getMonth())} ${pdict.overnight.getDate().toFixed()}
+						         </div>
+						        </iselseif>
+						        <iselseif condition="${pdict.whiteGloveShippingMethodsList.contains(shippingMethod.ID) || shippingMethod.ID == 'PAA5' || shippingMethod.ID == 'PAA7'}" >
+						         <div class="form-caption shipng-mthod-description">
+						          Estimated Delivery ${getDayName(pdict.whiteGloveDate1.getDay())}, ${getMonthName(pdict.whiteGloveDate1.getMonth())} ${pdict.whiteGloveDate1.getDate().toFixed()} - ${getDayName(pdict.whiteGloveDate2.getDay())}, ${getMonthName(pdict.whiteGloveDate2.getMonth())} ${pdict.whiteGloveDate2.getDate().toFixed()}
+						         </div>
+						        </iselseif>
+						        </isif>
+				    			</label>
+				    			</isif>
+				    			<iscomment>
+	
+				    			<span class="custom-radio <isif condition="${(empty(pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value) && shippingMethod.defaultMethod) || (pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value == shippingMethod.ID)}">active<iselseif condition="${loopstate.count == '1' && !(pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value == shippingMethod.ID)}">active</iselseif></isif> ">
+				    				<input class="input-radio splitshipments <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}">std-shipping</isif>" type="radio" name="${status.count}_${pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.htmlName}" id="${loopstate.count}-shipping-method-${shippingMethod.ID}" data-shipmentid="${shipment.ID}" value="${shippingMethod.ID}" <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}"></isif> />
+				    			</span>	
+				    			<isif condition="${loopstate.count == '1' && !(pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value == shippingMethod.ID)}" >
+									<span class="custom-radio active">
+					    				<input class="input-radio splitshipments <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}">std-shipping</isif>" type="radio" name="${status.count}_${pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.htmlName}" id="${loopstate.count}-shipping-method-${shippingMethod.ID}" data-shipmentid="${shipment.ID}" value="${shippingMethod.ID}" <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}"></isif> />
+					    				<input type="button" class="updateshippingmethod" id="${shippingMethod.ID}" data-shipmentid="${shipment.ID}" value="${shippingMethod.ID}"/>				    			
+					    			</span>	
+				    			<iselse/>
+				    				<span class="custom-radio <isif condition="${(empty(pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value) && shippingMethod.defaultMethod) || (pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.value == shippingMethod.ID)}">active</isif> ">
+				    					<input class="input-radio splitshipments <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}">std-shipping</isif>" type="radio" name="${status.count}_${pdict.CurrentForms.singleshipping.shippingAddress.shippingMethodID.htmlName}" id="${loopstate.count}-shipping-method-${shippingMethod.ID}" data-shipmentid="${shipment.ID}" value="${shippingMethod.ID}" <isif condition="${shippingModel.getShippingCost(shippingMethod).amount == 0}"></isif> />
+				    				</span>	
+				    			</isif></iscomment>
+				    			<!---  Display approaching shipping promotional discounts. --->
+							    <isif condition="${!empty(DiscountPlan.getApproachingShippingDiscounts(shipment, shippingMethod))}" >
+								    <ul class="shipping-promos"> 
+									    <isloop items="${DiscountPlan.getApproachingShippingDiscounts(shipment, shippingMethod)}" var="shippingDiscount">
+									        <li>${Resource.msg('approachingpromo.purchase','checkout',null)} <isprint value="${shippingDiscount.getDistanceFromConditionThreshold()}" /> ${Resource.msg('approachingpromo.more','checkout',null)} ${Resource.msg('approachingpromo.receive','checkout',null)}: ${shippingDiscount.getDiscount().getPromotion().getCalloutMsg()}<br/>
+									    </isloop>
+								    </ul>   
+								</isif>			
+			    		</div>
+					</isloop>
+				</isif>
+			</div>
+		</div>
+	</isloop>
+	<isslot id="shipment_delay_msg" context="global"  description="Shipping date delay because of natural calamities" />
+	</div>
+	
+	<script>
+	$(document).ready(function(){
+		$('input.shipmethodradio').off('click').on('click',function(){
+			var shippingMethodID = $(this).val();
+			var shipmentID = $(this).attr('data-shipmentid');
+			shippingmethoslist(shippingMethodID,shipmentID);  
+		});
+	});
+	</script>
+
+</isif>

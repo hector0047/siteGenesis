@@ -1,0 +1,9 @@
+<iscomment>
+*Energy Rating PANC-1309*
+</iscomment>
+
+<div class="product-energyrating-holder">
+	<span class="block-content-head"><isprint value="${Resource.msg('product.lefttab10','product',null)}"></span>
+	<isprint value="${pdict.Product.custom.energyRating}" encoding="off" ></isprint>
+</div>
+

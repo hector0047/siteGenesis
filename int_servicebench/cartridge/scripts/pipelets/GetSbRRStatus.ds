@@ -1,0 +1,73 @@
+/**
+*
+* TITLE:  
+*
+*	Service Bench status request
+*
+* 
+*
+*	
+*
+* INPUT PARAMETERS:
+*
+*	
+* 	
+* 	
+*
+* 	
+*
+* OUPUT PARAMETERS:
+*
+* 	
+* 	@output WSResponse : Object
+* 	@output error : Object
+*	@input CurrentCustomer : dw.customer.Customer
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+
+importScript("int_servicebench:sb/Credentials.ds");
+
+
+
+
+var sf = require("bc_serviceframework");
+require("../services/GetSbRRStatusService");
+
+
+function execute(pdict) {
+	
+	try{
+		
+		
+		var GetSbRRStatusService = sf.getService("ServiceBenchRR");
+		var service = new GetSbRRStatusService();
+		
+		var sbRRObj = new Object();
+		
+		sbRRObj.sourceSystemName 		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemName");
+		sbRRObj.sourceSystemVersion 	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemVersion");
+		sbRRObj.crmNumber				= pdict.CurrentCustomer.profile.customerNo;
+		
+		
+		service.call(sbRRObj);
+		
+		
+		//response handling
+		var response = service.response;
+		
+	
+		
+	}
+	catch(e){
+		var error = e;
+		pdict.error = error;
+		return PIPELET_ERROR;
+	}
+	
+	pdict.WSResponse = response;
+   	return PIPELET_NEXT;
+}

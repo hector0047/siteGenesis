@@ -1,0 +1,66 @@
+/**
+* Demandware Script File
+* GetVariationProductLazyLoadUrl.ds
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*    @input PVM : dw.catalog.ProductVariationModel
+*	 @input VariationProduct : dw.catalog.Product
+*	 @input CurrHttpParameter : dw.web.HttpParameterMap
+*
+*    @output LazyLoadUrl : dw.web.URL
+*
+*/
+importPackage( dw.system );
+importPackage( dw.catalog );
+importPackage( dw.web );
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+   try{
+   	  args.LazyLoadUrl = getLazyLoadUrl(args.PVM,args.VariationProduct,args.CurrHttpParameter);
+   	  return PIPELET_NEXT;
+   }catch(e){
+   	  Logger.error("Error while executing the script GetVariationProductLazyLoadUrl.ds  Error : "+e.message);
+   	  args.LazyLoadUrl = null;
+   	  return PIPELET_NEXT;
+   }
+    
+}
+/*
+* Function for getting lazy load url
+*/
+function getLazyLoadUrl(PVM : ProductVariationModel,variant : Product,CurrentHttpParameterMap : HttpParameterMap) {
+	
+		var variantSelected : Boolean = false;
+		if ( !empty(PVM) && !empty(PVM.selectedVariant)) {
+			variantSelected = true;
+		}
+		var productSizeValue : Object = null;
+    	var productColorValue : Object = null;
+    	for each(var VA in PVM.productVariationAttributes){
+    		var valength = PVM.getAllValues(VA).length;
+			var vaId = VA.getAttributeID();
+			if(vaId == 'size'){
+				if(variantSelected || (valength == 1)){
+					productSizeValue = PVM.getVariationValue(variant, PVM.getProductVariationAttribute(vaId)).value;
+				}
+			}else if(vaId == 'color'){
+				if(variantSelected || (productColorValue === '')){
+					productColorValue = PVM.getVariationValue(variant, PVM.getProductVariationAttribute(vaId)).value;
+				}
+			}
+    	}
+        var loadURL : URL = URLUtils.abs('Product-Detail', 'pid', variant.ID, 'source', !empty(CurrentHttpParameterMap.source)?CurrentHttpParameterMap.source.stringValue:'', 'uuid',!empty(CurrentHttpParameterMap.uuid)?CurrentHttpParameterMap.uuid.stringValue:'', 'Quantity', !empty(CurrentHttpParameterMap.Quantity)?CurrentHttpParameterMap.Quantity.stringValue:'', 'dwvar_' + variant.ID + '_color', productColorValue, 'dwvar_' + variant.ID + '_size', productSizeValue,'lazyload','true');			
+		return !empty(loadURL)?loadURL:null;
+	
+}

@@ -1,0 +1,18 @@
+/**
+*	This pipelet calls a webservice, which does a spellcheck on a sentence
+*
+*	@input CreditCard : String
+*	@output Result : Object
+*	@output Status : Object
+*/
+var sf = require("bc_serviceframework");
+require("../services/CreditCardCheckerService");
+
+function execute(pdict) {
+	var CreditCardCheckerService = sf.getService('CreditCardCheckerService');
+	var service = new CreditCardCheckerService();
+	service.call(pdict.CreditCard);
+	pdict.Result = service.object; 
+	pdict.Status = service.status;	
+   	return PIPELET_NEXT;
+}

@@ -1,0 +1,27 @@
+/**
+* Demandware Script File
+* To get the coupon line item from the basket
+*
+*   @input CouponCode : String 
+*	@input  Basket : dw.order.Basket
+*   @output CouponLineItem : dw.order.CouponLineItem
+*
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+
+function execute( args : PipelineDictionary ) : Number
+{
+  var basket : Basket = args.Basket;
+  var couponCode : String = args.CouponCode;
+  if( couponCode == null )
+	{
+		return PIPELET_ERROR;
+	}
+  
+  var couponLineItem : CouponLineItem = basket.getCouponLineItem(couponCode);
+  
+  args.CouponLineItem = couponLineItem;
+
+   return PIPELET_NEXT;
+}

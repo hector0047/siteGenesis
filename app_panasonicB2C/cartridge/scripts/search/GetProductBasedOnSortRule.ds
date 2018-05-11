@@ -1,0 +1,193 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*	This method use ProductSearchModel and gives the products in order(instock,backorder,preorder,Not Available) 
+*
+* For example:
+*
+*   @input ProductSearchResult : dw.catalog.ProductSearchModel The search model.
+*   @output sruleSet : dw.util.LinkedHashSet
+*
+*/
+importPackage( dw.system );
+importPackage( dw.catalog);
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	 
+   var sSet : LinkedHashSet = new LinkedHashSet();
+   
+    var sSetInstock : LinkedHashSet = new LinkedHashSet();
+    var sSetPreOrder : LinkedHashSet = new LinkedHashSet();
+    var sSetBackOrder : LinkedHashSet = new LinkedHashSet();
+    var sSetOutofStock : LinkedHashSet = new LinkedHashSet();
+    
+     try{  
+     
+   	  //Instock products
+	   for each(var productSearchHit: ArrayList in args.ProductSearchResult.productSearchHits.asList()) {
+	   		if(productSearchHit.product.master){
+		   		 //Get the default variant
+		   		 var defaultVariant : dw.catalog.Product = getDefaultOnlineVariant(productSearchHit.product);
+		   		 /*if(empty(defaultVariant)){
+		   		     defaultVariant = productSearchHit.product.variationModel.getVariants()[0];
+		   		 }*/
+	   			if((defaultVariant.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK) && (defaultVariant.availabilityModel.inventoryRecord!= 'null') && (defaultVariant.availabilityModel.inventoryRecord.stockLevel.available)){
+					sSetInstock.add(productSearchHit);
+				}
+	   		}else{
+		   		if((productSearchHit.product.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK) && (productSearchHit.product.availabilityModel.inventoryRecord!= 'null') && (productSearchHit.product.availabilityModel.inventoryRecord.stockLevel.available)){
+					sSetInstock.add(productSearchHit);
+				}
+	   		}
+		}  
+		//Preorder products
+		for each(var productSearchHit: ArrayList in args.ProductSearchResult.productSearchHits.asList()) {
+		   		if(productSearchHit.product.master){
+			   		 //Get the default variant
+			   		var defaultVariant : dw.catalog.Product = getDefaultOnlineVariant(productSearchHit.product);
+			   		 /*if(empty(defaultVariant)){
+			   		     defaultVariant = productSearchHit.product.variationModel.getVariants()[0];
+			   		 }*/
+		   			if((defaultVariant.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER)){
+						sSetPreOrder.add(productSearchHit);
+					}
+		   		}else{
+			   		if((productSearchHit.product.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER)){
+						sSetPreOrder.add(productSearchHit);
+					}
+		   		}
+			}  
+	
+		//Backorder products
+		for each(var productSearchHit: ArrayList in args.ProductSearchResult.productSearchHits.asList()) {
+	   		if(productSearchHit.product.master){
+		   		 //Get the default variant
+		   		 var defaultVariant : dw.catalog.Product = getDefaultOnlineVariant(productSearchHit.product);
+			   		 /*if(empty(defaultVariant)){
+			   		     defaultVariant = productSearchHit.product.variationModel.getVariants()[0];
+			   		 }*/
+		   			if((defaultVariant.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER)){
+						if(defaultVariant.availabilityModel.inventoryRecord != null && defaultVariant.availabilityModel.inventoryRecord.inStockDate != null && ( defaultVariant.availabilityModel.inventoryRecord.inStockDate  > new Date() ) && (defaultVariant.availabilityModel.inventoryRecord.inStockDate.getFullYear().toString() != '9999')){
+						
+							  if(('isPreOrderable' in defaultVariant.custom) && (defaultVariant.custom.isPreOrderable)){
+							  		sSetPreOrder.add(productSearchHit);
+							  
+							  }else{
+							  		sSetBackOrder.add(productSearchHit);
+							  }
+						
+						}else{
+						
+							 if(('isPreOrderable' in defaultVariant.custom) && (defaultVariant.custom.isPreOrderable)){
+							  		sSetPreOrder.add(productSearchHit);
+							  
+							  }else{
+							  		sSetBackOrder.add(productSearchHit);
+							  }
+						
+						}
+				
+					}
+	   		}else{
+	   			
+		   		if((productSearchHit.product.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER)){
+					if(productSearchHit.product.availabilityModel.inventoryRecord != null && productSearchHit.product.availabilityModel.inventoryRecord.inStockDate != null && ( productSearchHit.product.availabilityModel.inventoryRecord.inStockDate  > new Date() ) && (productSearchHit.product.availabilityModel.inventoryRecord.inStockDate.getFullYear().toString() != '9999')){
+					
+						  if(('isPreOrderable' in productSearchHit.product.custom) && (productSearchHit.product.custom.isPreOrderable)){
+						  		sSetPreOrder.add(productSearchHit);
+						  
+						  }else{
+						  		sSetBackOrder.add(productSearchHit);
+						  }
+					
+					}else{
+					
+						 if(('isPreOrderable' in productSearchHit.product.custom) && (productSearchHit.product.custom.isPreOrderable)){
+						  		sSetPreOrder.add(productSearchHit);
+						  
+						  }else{
+						  		sSetBackOrder.add(productSearchHit);
+						  }
+					
+					}
+			
+				}
+			
+	   		}
+	   		
+	   		
+	   		
+		} 
+		//Outofstock products
+		for each(var productSearchHit: ArrayList in args.ProductSearchResult.productSearchHits.asList()) {
+			if(productSearchHit.product.master){
+		   		 //Get the default variant
+		   		var defaultVariant : dw.catalog.Product = getDefaultOnlineVariant(productSearchHit.product);
+			   		 /*if(empty(defaultVariant)){
+			   		     defaultVariant = productSearchHit.product.variationModel.getVariants()[0];
+			   		 }*/
+				if((defaultVariant.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_NOT_AVAILABLE)){
+					sSetOutofStock.add(productSearchHit);
+				}
+			}else{
+		   		if((productSearchHit.product.getAvailabilityModel().getAvailabilityStatus() == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_NOT_AVAILABLE)){
+					sSetOutofStock.add(productSearchHit);
+				}
+			}
+	   }
+		
+ 	 //All all the items in sort manner
+  		sSet.addAll(sSetInstock);
+  		sSet.addAll(sSetPreOrder);
+  		sSet.addAll(sSetBackOrder);
+  		sSet.addAll(sSetOutofStock);
+  		
+		args.sruleSet = sSet;
+		
+		
+    }
+catch(e) {
+		 log.error("error while executing GetProductBasedOnSortRule.ds ",e.message);
+		 args.sruleSet = null;
+		 return PIPELET_NEXT;
+	}
+	
+   return PIPELET_NEXT;
+}
+
+/** Get default variant which is online**/
+function getDefaultOnlineVariant( product : Product ) : Product
+{
+	var selectedVar : dw.catalog.Variant = product;
+	if(product.variationModel.defaultVariant){
+	 	 if(!(product.variationModel.defaultVariant.availabilityModel.availability > 0)){
+				for each(var varient : dw.catalog.Variant in product.variationModel.getVariants()){
+					if(varient.availabilityModel.availability > 0){
+						selectedVar  = varient;
+						break;
+					}
+				}
+			}else{
+				selectedVar  = product.variationModel.defaultVariant;
+			}
+	}else{
+		for each(var varient : dw.catalog.Variant in product.variationModel.getVariants()){
+					if(varient.availabilityModel.availability > 0){
+						selectedVar  = varient;
+						break;
+					}
+		}
+	}
+ 	return selectedVar;
+}
+

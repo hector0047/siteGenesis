@@ -1,0 +1,119 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+Desc:
+Includes promotions into the product information area
+
+Parameter:
+Product - the product to use
+
+Options:
+none
+
+Available if empty: no
+Full-Block-Element: yes
+</iscomment>
+<iscomment>Active product promotions</iscomment>
+<isset name="promos" value="${dw.campaign.PromotionMgr.activeCustomerPromotions.getProductPromotions(pdict.Product)}" scope="page"/>
+<iscomment>Farhan's Dev team : 27-10-2015 3:00pm PANC-1502</iscomment>
+<isset name="msgflag" value="${false}" scope="page" />
+<iscomment>END PANC-1502</iscomment>
+<isscript>
+var containsSourceCodePromo : Boolean = false;
+var containsCouponCodePromo : Boolean = false;
+if(!empty(promos)){
+	 for each(var promotion in promos){
+		  if(promotion.isBasedOnCoupons()){
+		  	containsCouponCodePromo = true;
+		  }else if(promotion.isBasedOnSourceCodes()){
+		  	containsSourceCodePromo = true;
+		  }
+	 }
+}
+</isscript>
+<isif condition="${!empty(promos)}">
+<span class="visually-hidden">Promotions</span>
+	<div class="promotion mod">
+		<isif condition="${containsCouponCodePromo}">
+			<isloop items="${promos}" var="promo">
+				<isif condition="${promo.isBasedOnCoupons()}">
+					<iscomment>Farhan's Dev team : 27-10-2015 3:00pm PANC-1502</iscomment>
+						<isif condition="${!empty(promo.calloutMsg)&& msgflag!= true}"> 
+							<div class="promotion-title">${Resource.msg('promotions.currentpromotions','product',null)}</div>
+							<isset name="msgflag" value="${true}" scope="page" />
+						</isif>
+					<iscomment>END PANC-1502</iscomment>
+					<div class="promotion-callout" id ="${promo.ID}" name="coupon">
+						<ul><isif condition="${!empty(promo.details) && !empty(promo.calloutMsg) }">
+						<iscomment>Farhan's Dev team : 9-10-2015 3:00pm PANC-1108</iscomment>	
+							<li><a title="${promo.details}">
+									<isprint value="${promo.calloutMsg}" encoding="off"/>
+								<iscomment>
+									<div data-layout="small">
+										<isprint value="${promo.details}" encoding="off"/>
+									</div>
+								</iscomment>
+								<iscomment>END PANC-1108</iscomment>
+							</a></li>
+						<iselseif condition="${!empty(promo.calloutMsg)}">
+							<li><isprint value="${promo.calloutMsg}" encoding="off"/></li>
+						</isif></ul>
+					</div>
+				</isif>
+			</isloop> 
+		<iselse>
+			<isif condition="${containsSourceCodePromo}">
+				<isloop items="${promos}" var="promo">
+					<isif condition="${promo.isBasedOnSourceCodes()}">
+						<iscomment>Farhan's Dev team : 27-10-2015 3:00pm PANC-1502</iscomment>
+							<isif condition="${!empty(promo.calloutMsg)&& msgflag!= true}"> 
+								<div class="promotion-title">${Resource.msg('promotions.currentpromotions','product',null)}</div>
+								<isset name="msgflag" value="${true}" scope="page" />
+							</isif>
+						<iscomment>END PANC-1502</iscomment>
+						<div class="promotion-callout" id ="${promo.ID}" name="sourcecode">
+						<ul><isif condition="${!empty(promo.details) && !empty(promo.calloutMsg) }">
+							<iscomment>Farhan's Dev team : 9-10-2015 3:00pm PANC-1108</iscomment>
+								<li><a title="${promo.details}">
+										<isprint value="${promo.calloutMsg}" encoding="off"/>
+									<iscomment>
+										<div data-layout="small">
+											<isprint value="${promo.details}" encoding="off"/>
+										</div>
+									</iscomment>
+									<iscomment>END PANC-1108</iscomment>
+								</a></li>
+							<iselseif condition="${!empty(promo.calloutMsg)}">
+								<li><isprint value="${promo.calloutMsg}" encoding="off"/></li>
+							</isif></ul>
+						</div>
+					</isif>
+				</isloop>
+			<iselse>
+				<isloop items="${promos}" var="promo" status="loopstatus">
+					<iscomment>Farhan's Dev team : 27-10-2015 3:00pm PANC-1502</iscomment>
+						<isif condition="${!empty(promo.calloutMsg)&& msgflag!= true}"> 
+							<div class="promotion-title">${Resource.msg('promotions.currentpromotions','product',null)}</div>
+							<isset name="msgflag" value="${true}" scope="page" />
+						</isif>
+					<iscomment>END PANC-1502</iscomment>
+					<div class="promotion-callout" id ="${promo.ID}" name="general">
+					<ul><isif condition="${!empty(promo.details) && !empty(promo.calloutMsg) }">
+					<iscomment>Farhan's Dev team : 9-10-2015 3:00pm PANC-1108</iscomment>
+						<li><a title="${promo.details}">
+								<isprint value="${promo.calloutMsg}" encoding="off"/>
+							<iscomment>
+									<div data-layout="small">
+										<isprint value="${promo.details}" encoding="off"/>
+									</div>
+								</iscomment>
+								<iscomment>END PANC-1108</iscomment>
+						</a></li>
+					<iselseif condition="${!empty(promo.calloutMsg)}">
+						<li><isprint value="${promo.calloutMsg}" encoding="off"/></li>
+					</isif></ul>
+					</div>
+				</isloop> 		
+			</isif>	
+		</isif>
+	</div>
+</isif>

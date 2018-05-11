@@ -1,0 +1,8 @@
+<iscomment>This is response from payemnt Methods add and edit </iscomment>
+    <isscript>
+		  var msg = pdict.msg;			  
+		  var Location = pdict.Location;
+		  var success = pdict.success;				 
+		  var responseJson = '{"Location":"'+Location+'","message":"'+msg+'","success" : "'+success+'"}';
+	</isscript>
+<isprint value="${responseJson}" encoding="off"/>

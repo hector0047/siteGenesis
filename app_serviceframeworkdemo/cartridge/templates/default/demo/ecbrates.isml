@@ -1,0 +1,15 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Webservice Currency Rates Demo</title></head>
+<body style="margin:100px;">
+	
+	<div>Current EUR Rates (hopefully above 0):</div>
+	<pre>${JSON.stringify(pdict.Rates, null, 2)}</pre>
+	<div>&nbsp;</div>
+	<div><strong>Technical Information:</strong></div>
+	<div>ScriptLog:</div>
+	<div><textarea name="nosubmit1" cols="40" rows="7"><isprint value="${pdict.ScriptLog}"></textarea></div>
+	<div>Webservice Status:</div>
+	<div><textarea name="nosubmit2" cols="40" rows="7"><isprint value="${JSON.stringify(pdict.Status, null, '\t')}"></textarea></div>		
+</body>
+</html>

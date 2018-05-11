@@ -1,0 +1,44 @@
+function ECBRates() { 
+// providing constructor
+}
+
+var Calendar = require("dw/util").Calendar;
+var Site = require("dw/system").Site;
+
+ECBRates.prototype = {
+	initFromWebservice : function(response) {
+		this.processXML(response);
+	},
+	dummy : function() {
+		var dummyXML = 
+		this.processXML(<gesmes:Envelope xmlns:gesmes="http://www.gesmes.org/xml/2002-08-01" xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref"><gesmes:subject>Reference rates</gesmes:subject><gesmes:Sender><gesmes:name>European Central Bank</gesmes:name></gesmes:Sender><Cube><Cube time=\'2011-04-20\'><Cube currency=\'USD\' rate=\'1.4515\'/><Cube currency=\'JPY\' rate=\'120.13\'/><Cube currency=\'BGN\' rate=\'1.9558\'/><Cube currency=\'CZK\' rate=\'24.174\'/><Cube currency=\'DKK\' rate=\'7.4576\'/><Cube currency=\'GBP\' rate=\'0.88670\'/><Cube currency=\'HUF\' rate=\'264.05\'/><Cube currency=\'LTL\' rate=\'3.4528\'/><Cube currency=\'LVL\' rate=\'0.7093\'/><Cube currency=\'PLN\' rate=\'3.9723\'/><Cube currency=\'RON\' rate=\'4.0873\'/><Cube currency=\'SEK\' rate=\'8.9011\'/><Cube currency=\'CHF\' rate=\'1.2944\'/><Cube currency=\'NOK\' rate=\'7.7895\'/><Cube currency=\'HRK\' rate=\'7.3578\'/><Cube currency=\'RUB\' rate=\'40.8375\'/><Cube currency=\'TRY\' rate=\'2.2056\'/><Cube currency=\'AUD\' rate=\'1.3611\'/><Cube currency=\'BRL\' rate=\'2.2700\'/><Cube currency=\'CAD\' rate=\'1.3808\'/><Cube currency=\'CNY\' rate=\'9.4716\'/><Cube currency=\'HKD\' rate=\'11.2843\'/><Cube currency=\'IDR\' rate=\'12554.66\'/><Cube currency=\'ILS\' rate=\'4.9544\'/><Cube currency=\'INR\' rate=\'64.3450\'/><Cube currency=\'KRW\' rate=\'1567.35\'/><Cube currency=\'MXN\' rate=\'16.8795\'/><Cube currency=\'MYR\' rate=\'4.3734\'/><Cube currency=\'NZD\' rate=\'1.8206\'/><Cube currency=\'PHP\' rate=\'62.680\'/><Cube currency=\'SGD\' rate=\'1.7988\'/><Cube currency=\'THB\' rate=\'43.472\'/><Cube currency=\'ZAR\' rate=\'9.8519\'/></Cube></Cube></gesmes:Envelope>);
+	},
+	
+	
+	processXML : function (xmlObject) {
+		var ecbNS = new Namespace("http://www.ecb.int/vocabulary/2002-08-01/eurofxref");
+		var parentCube = xmlObject.ecbNS::Cube;
+		var timeCube = parentCube.ecbNS::Cube;
+		var cal : Calendar = Site.getCurrent().getCalendar();
+		var timeString = timeCube.attribute('time');
+		cal.parseByFormat(timeString, 'yyyy-MM-dd');
+		
+		var time = cal.getTime();
+		
+		var rateCubes = timeCube.ecbNS::Cube
+		for (var index in rateCubes) {
+			// storing as local attributes - makes debugging easier
+			var currencyCode = rateCubes[index].attribute('currency');
+			var rate = rateCubes[index].attribute('rate');
+			var countryCode = countryCode = rateCubes[index].attribute('currency').substring(0,2);
+			this[currencyCode] = new Object();
+			this[currencyCode].rate = rate.toString();
+			this[currencyCode].countryCode = countryCode;
+			this[currencyCode].validDate = time;
+			
+		}
+		return this;
+	} 
+}
+
+module.exports = ECBRates;

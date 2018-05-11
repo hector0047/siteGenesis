@@ -1,0 +1,26 @@
+/**
+* Set the order export status to EXPORT_STATUS_READY
+*
+* @input Order : dw.order.Order The order.
+*/
+importPackage( dw.order );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+    // read pipeline dictionary input parameter
+    var order : Order = pdict.Order;
+	var creationDate : Date = order.creationDate;
+	var exportTime = Site.getCurrent().getCustomPreferenceValue("MainstreetOrderExportTime"); 
+	if(!empty(exportTime)) {
+		creationDate.setTime(Number(creationDate.getTime()) + (Number(exportTime)*1000));
+	} else {
+		creationDate.setTime(Number(creationDate.getTime()));
+	}		
+	order.setExportAfter(creationDate);
+	
+	// set the export status to EXPORT_STATUS_READY
+	order.setExportStatus(Order.EXPORT_STATUS_READY);
+   
+   	return PIPELET_NEXT;
+}

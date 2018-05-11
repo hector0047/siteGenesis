@@ -1,0 +1,150 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*   @output req : Object
+*   @output response : Object
+*	@output Error : Object
+*	@output SBError : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.ws );
+
+var HashMap = require("dw/util/HashMap");
+var WSUtil = require("dw/ws/WSUtil");
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+    /*try{
+		var sbObject : Object	=	new Object();
+		
+		sbObject.sourceSystemName 		= "Panasonic";
+		sbObject.sourceSystemVersion 	= "2.0";
+		sbObject.modelNumber			= "KX-TG6572R";
+		sbObject.serialNumber			= "4JCQB686266";
+		sbObject.pDate				    = "20150518";
+		
+		var SBWebReference : WebReference = webreferences.CRMUnitValidationServiceTest;
+		
+		var SBService : Stub = SBWebReference.getService("CRMUnitValidationService", "CRMUnitPort");
+	
+		SetCredentials(SBService);
+		
+		//Creating SourceSystemInfo object
+		var sourceSystemInfo = new SBWebReference.SourceSystemInfo();
+		sourceSystemInfo.setSourceSystemName(sbObject.sourceSystemName);
+		sourceSystemInfo.setSourceSystemVersion(sbObject.sourceSystemVersion);
+		
+		//Creating UnitValidationRequestDetails object
+		var UnitValidationRequestDetails = new SBWebReference.UnitValidationRequestDetails();
+		UnitValidationRequestDetails.setModel(sbObject.modelNumber);
+		UnitValidationRequestDetails.setSerial(sbObject.serialNumber);
+		UnitValidationRequestDetails.setPurchaseDate(sbObject.pDate);
+		//unitValidationRequestDetails.setServiceAdministrator("92");
+		
+		//Creating status service request
+		var unitValidationRequest = new SBWebReference.UnitValidationRequest();
+		unitValidationRequest.setSourceSystemInfo(sourceSystemInfo);
+		unitValidationRequest.setUnitValidationRequestDetails(UnitValidationRequestDetails);
+		
+		//unitValidationRequest.setUnitValidationRequest(unitValidationRequest);
+		
+		var response = SBService.unitValidation(unitValidationRequest);
+		
+		args.response = response;
+		
+	}
+	catch(e){
+		if(e instanceof Fault)
+		{
+			Logger.error("Actor " + e.faultActor+" caused fault '"+e.faultCode +"' ("+e.faultString+" - "+e.faultDetail+")");
+		}
+		else
+		{
+			Logger.error(e.toString());
+		}
+		args.Error = e;
+		args.SBError = e.toString();
+		return PIPELET_ERROR;
+	}*/
+	
+	try{
+		var webref : WebReference2 = webreferences2.CRMServiceOrderServiceProduction;
+	
+		if ( dw.system.System.getInstanceType() != dw.system.System.PRODUCTION_SYSTEM && !Site.current.preferences.custom.EnableServiceBenchProductionInstance) {
+			webref  = webreferences2.CRMServiceOrderServiceTest;
+		}
+		
+		var port : Port = webref.getDefaultService();
+		
+		var secretsMap = new HashMap();
+		//secretsMap.put("panasonic:meridian_user", "welcome123");
+		secretsMap.put(dw.system.Site.getCurrent().getCustomPreferenceValue("SB_userName"), dw.system.Site.getCurrent().getCustomPreferenceValue("SB_password"));
+		
+		var requestCfg = new HashMap();
+		
+		// define the ws actions to be performed - in this case add a username token
+		requestCfg.put(WSUtil.WS_ACTION, WSUtil.WS_USERNAME_TOKEN);
+		requestCfg.put(WSUtil.WS_USER, "panasonic:meridian_user");
+		requestCfg.put(WSUtil.WS_PASSWORD_TYPE, WSUtil.WS_PW_TEXT );
+		
+		// set the secrets for the request
+		requestCfg.put(WSUtil.WS_SECRETS_MAP, secretsMap);
+		
+		// set the response actions - note: you must explicitly state there is no security action 
+		//   on the response if there is a security action on the request!
+		var responseCfg = new HashMap();
+		responseCfg.put(WSUtil.WS_ACTION, WSUtil.WS_NO_SECURITY);
+		
+		// set the security configurations on the port
+		WSUtil.setWSSecurityConfig(port, requestCfg, responseCfg);
+		
+		        var serviceJobStatusRequest = new webref.ServiceJobStatusRequest();
+		        serviceJobStatusRequest.setSourceSystemVersion("2.0");
+		        serviceJobStatusRequest.setSourceSystemName("test System name");
+		        var statusRequest = new webref.StatusRequest();
+		        statusRequest.setCrmNumber("1371-10359370");
+		        serviceJobStatusRequest.setStatusRequest(statusRequest);
+		        
+		        args.req = serviceJobStatusRequest;
+		       var response = port.serviceJobStatus(serviceJobStatusRequest);
+			
+		//var response = port.unitValidation(unitValidationRequest);
+		
+		args.response = response;
+	}catch(e){
+		
+		if(e instanceof Fault)
+		{
+			Logger.error("Actor " + e.faultActor+" caused fault '"+e.faultCode +"' ("+e.faultString+" - "+e.faultDetail+")");
+		}
+		else
+		{
+			Logger.error("Error :  " + e.toString() + "Cause " + e.causeFullName +"  Message ;" +e.causeMessage  +"  Name : " +e.causeName +"   exception :"  + e.javaException +"  Overall exception : "  + e);
+			
+		}
+		args.Error = e;
+		args.SBError = e.toString();
+		return PIPELET_ERROR;
+	
+	
+	}
+		
+
+   return PIPELET_NEXT;
+}

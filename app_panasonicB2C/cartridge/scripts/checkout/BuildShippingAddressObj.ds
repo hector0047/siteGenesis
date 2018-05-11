@@ -1,0 +1,41 @@
+/**
+* BuildShippingAddressObj.ds
+*
+* This script will build the shipping address object
+*
+*   @input FirstName			:	String
+*   @input LastName				:	String
+*   @input Address1				:	String
+*   @input Address2				:	String
+*   @input City					:	String
+*   @input State				:	String
+*   @input Zip					:	String
+*   @input Type					:	String
+*   @input CompanyName			:	String
+*   @output ShippingAddressObj	:	Object
+*
+*/
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var shippingAddressObj : Object = new Object();
+	shippingAddressObj.custom = {};
+	try{
+		shippingAddressObj.custom.type	=	args.Type;
+		shippingAddressObj.companyName	=	args.CompanyName;	
+		shippingAddressObj.firstName	=	args.FirstName;
+		shippingAddressObj.lastName		=	args.LastName;
+		shippingAddressObj.address1		=	args.Address1;
+		shippingAddressObj.address2		=	args.Address2;
+		shippingAddressObj.city			=	args.City;
+		shippingAddressObj.stateCode	=	args.State;
+		shippingAddressObj.countryCode	=	"US";
+		shippingAddressObj.postalCode	=	args.Zip;
+		args.ShippingAddressObj			=	shippingAddressObj;
+	}catch(e){
+		Logger.error("An error occured while executing the script BuildShippingAddressObj.ds. Error : "+e.message);
+		return PIPELET_ERROR;
+	}
+   return PIPELET_NEXT;
+}

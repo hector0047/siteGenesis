@@ -1,0 +1,125 @@
+/**********************************************************************************************************************************************************************************************
+*
+* TITLE:  
+*
+*	PayPalSetExpressCheckout.ds
+*
+* DESCRIPTION:
+*
+*	Removes PayPal payment intrsument
+*
+* INPUT PARAMETERS:
+*
+* 	@input Basket : dw.order.Basket The current Basket (which the order is created from)
+* 	@input PaymentProcessor : dw.order.PaymentProcessor The needed payment processor.
+* 	@input ReturnURL : dw.web.URL Return URL for PayPal
+* 	@input CancelURL : dw.web.URL Cancel URL for PayPal
+* 	@input RedirectURL : String, redirect url to PayPal
+*	@input PaypalOrigination : String Field to denote where the Paypal processing was originated.
+* 	@input Locale : String Locale of the website CurrentRequest.httpLocale
+* 	@input GetBillingAddrFromPP : Boolean Flag to get Billing address from PayPal
+* 	@input PaymentAction : String PayPal payment action (Sale, Order)
+* 	@input UserAgent : String httpUserAgent
+* 	@input ReferenceTransRequired : Boolean
+*	@input isBML : Boolean , checks to see if the button depressed is BML
+*
+* OUTPUT PARAMETERS
+*
+* 	@output Location : String The redirect location
+* 	@output PaypalToken : String The returned token from Paypal
+* 	@output Response : Object The Response
+* 	@output Error : Object The Error object
+* 	@output PaypalError : String If a Paypal call fails or doesn't return Success
+* 	@output AvailFuncs  : dw.util.ArrayList
+*
+**********************************************************************************************************************************************************************************************/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+
+importScript("int_paypal:cart/Credentials.ds");
+importScript("int_paypal:cart/WsUtil.ds");
+
+var sf = require("bc_serviceframework");
+require("../services/PayPalSetExpressCheckoutService");
+
+function execute(pdict : PipelineDictionary) {
+	try{
+		
+		if( pdict.Basket == null )
+		{
+			return PIPELET_ERROR;
+		}
+		var PayPalSetExpressCheckoutService = sf.getService('PayPalExpress');
+		var service = new PayPalSetExpressCheckoutService();
+		
+		// Prepare SetExpressCheckoutInfo Object
+		
+		var setExpressCheckoutInfo : Object				=	new Object();
+		
+		setExpressCheckoutInfo.basket					=	pdict.Basket;
+		setExpressCheckoutInfo.paymentProcessor			=	pdict.PaymentProcessor;
+		setExpressCheckoutInfo.returnURL				=	pdict.ReturnURL;
+		setExpressCheckoutInfo.cancelURL				=	pdict.CancelURL;
+		setExpressCheckoutInfo.redirectURL				=	pdict.RedirectURL;
+		setExpressCheckoutInfo.paypalOrigination		=	pdict.PaypalOrigination;
+		setExpressCheckoutInfo.locale					=	pdict.Locale;
+		setExpressCheckoutInfo.getBillingAddrFromPP		=	pdict.GetBillingAddrFromPP;
+		setExpressCheckoutInfo.paymentAction			=	pdict.PaymentAction;
+		setExpressCheckoutInfo.userAgent				=	pdict.UserAgent;
+		setExpressCheckoutInfo.referenceTransRequired	=	pdict.ReferenceTransRequired;
+		setExpressCheckoutInfo.isBML					=	pdict.isBML;
+		
+		service.call(setExpressCheckoutInfo);
+		
+		pdict.AvailFuncs = getAvailableFunctions(service.serviceClient);
+		
+		var response  : Object = service.object.response.res;
+		
+		var paypalExpress : WebReference = service.webReference;
+		if( response.getAck() != null && response.getAck().equals(paypalExpress.AckCodeType.Success) ) {
+			var mytoken : String = response.token;
+			pdict.PaypalToken = mytoken;
+			
+			var appendMobile =false;
+			
+			if (!empty(pdict.UserAgent) && pdict.UserAgent.toLocaleLowerCase().indexOf('mobile')>-1)
+			{
+				appendMobile = true;
+			}
+			
+			var redirectURL = pdict.RedirectURL.toString();
+			
+			if (appendMobile)
+			{
+				redirectURL = redirectURL.replace('_express-checkout','_express-checkout-mobile');
+				if (!empty(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalMobilTransactionCommit')) && dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalMobilTransactionCommit'))
+				{
+					redirectURL = redirectURL+"&useraction=commit";
+				}
+			}
+			pdict.Location = redirectURL + mytoken;
+
+		} else {
+			Logger.error('Ack  -- ' + response.getAck().toString() );
+			Logger.error('Error Message Short Message  -- ' + response.getErrors()[0].getShortMessage() );
+			Logger.error('Error Message Long Message  -- ' + response.getErrors()[0].getLongMessage() );
+			Logger.error('Error Message ErrorCode  -- ' + response.getErrors()[0].getErrorCode() );
+			pdict.PaypalError = response.getErrors()[0].getLongMessage() + " (" + response.getErrors()[0].getErrorCode() + ")" + "-(" + response.correlationID + ")";
+			return PIPELET_ERROR;
+		}
+	}catch(e){
+		var error = e;
+		if(e instanceof Fault) {
+			Logger.error("Actor " + e.faultActor+" caused fault '"+e.faultCode +"' ("+e.faultString+" - "+e.faultDetail+")");
+		}else {
+			Logger.error(e.toString());
+		}
+		pdict.Error = e;
+		pdict.PaypalError = e.message;
+		return PIPELET_ERROR;
+	}	
+   	return PIPELET_NEXT;
+}

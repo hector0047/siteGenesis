@@ -1,0 +1,287 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<iscomment>Start JIRA PREV-66:Incorrect price displayed for the product set when options are selected for multiple individual products.</iscomment>
+<iscomment>Start JIRA PREV-55:Inventory message is not displaying for the individual product within the product set.</iscomment>
+<isscript>
+importScript("int_dis:product/ProductImageSO.ds");
+	var avm = pdict.Product.availabilityModel;
+	pdict.available = avm.availabilityStatus==dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK 
+					&& avm.inventoryRecord != null 
+					&& avm.inventoryRecord.stockLevel.available;
+</isscript>
+<isscript> 
+			// ensure a unique form name and make the name reuseable, because the call to
+			// dynamicHtmlName always creates a different name
+			var uniqueFormID : String = pdict.CurrentForms.product.addtocart.dynamicHtmlName;
+		</isscript>	
+<isif condition="${pdict.isSet}">
+	<isscript>
+	
+		var selectableColors : dw.util.Collection = new dw.util.ArrayList();
+		var colorVarAttr : dw.catalog.ProductVariationAttribute = null;
+		var imageSize = 'medium';
+		var Product = pdict.Product;
+		var PVM : dw.catalog.ProductVariationModel = Product.variationModel;
+		var selectedColor, imageSource, image;
+		var defaultVarient = PVM.defaultVariant;
+		if (PVM) {
+			colorVarAttr = PVM.getProductVariationAttribute('color');
+			if (colorVarAttr != null) {
+				selectableColors = PVM.getFilteredValues(colorVarAttr);
+			}
+			if (Product.isMaster() && PVM.defaultVariant) {
+				if (colorVarAttr !== null) {
+						imageSource = PVM.defaultVariant;
+					selectedColor = imageSource.variationModel.getSelectedValue(colorVarAttr);
+				} else {
+					imageSource = PVM.master;
+				}
+			} else if (Product.isVariant()) {
+				imageSource = selectedColor = PVM.getSelectedValue(colorVarAttr);
+				if (!imageSource) {
+					if (!PVM.variants.isEmpty()) {
+						imageSource = PVM.variants[0];
+						selectedColor = imageSource.variationModel.getSelectedValue(colorVarAttr);
+					}
+				}
+			} else {
+				imageSource = Product;
+			}
+		} else {
+			imageSource = Product;
+		}
+		image1 = imageSource.getImage(imageSize, 0);
+		
+		if (Product.isMaster() && PVM.defaultVariant) 
+		{
+			if(!defaultVarient.availabilityModel.availability > 0){
+				for each(var varient : dw.catalog.Variant in PVM.getVariants()){
+					if(varient.availabilityModel.availability > 0){
+						selectedColor = varient.variationModel.getSelectedValue(colorVarAttr);
+						var selectedVar : dw.catalog.Variant = varient;
+						break;
+					}
+				}
+			}
+		}
+		else if(Product.isVariant())
+		{
+			if(!Product.availabilityModel.availability > 0){
+				for each(var varient : dw.catalog.Variant in PVM.getVariants()){
+					if(varient.availabilityModel.availability > 0){
+						selectedColor = varient.variationModel.getSelectedValue(colorVarAttr);
+						var selectedVar : dw.catalog.Variant = varient;
+						break;
+					}
+				}
+			}
+			else
+			{
+				selectedColor = Product.variationModel.getSelectedValue(colorVarAttr);
+				var selectedVar : dw.catalog.Variant = Product;
+			}
+		}
+	</isscript>
+	<isscript>
+	
+		//Code for handsets
+		
+		if(!empty(Product.variationModel.getProductVariationAttribute('handsets'))){
+		    PVM = Product.variationModel;
+			var selectableHandsets : dw.util.Collection = new dw.util.ArrayList();
+			var handsetVarAttr : dw.catalog.ProductVariationAttribute = null;
+			var selectedHandset;
+			if(PVM) {
+				handsetVarAttr = PVM.getProductVariationAttribute('handsets');
+				if (handsetVarAttr != null) {
+					selectableHandsets = PVM.getFilteredValues(handsetVarAttr);
+				}
+				if (Product.isMaster() && PVM.defaultVariant) {
+					if (handsetVarAttr !== null) {
+						selectedHandset = PVM.defaultVariant.variationModel.getSelectedValue(handsetVarAttr);
+					} else {
+						selectedHandset = PVM.master;
+					}
+				} else if (Product.isVariant()) {
+					selectedHandset = PVM.getSelectedValue(handsetVarAttr);
+					if (!selectedHandset) {
+						if (!PVM.variants.isEmpty()) {
+							selectedHandset = PVM.variants[0].variationModel.getSelectedValue(handsetVarAttr);
+						}
+					}
+				} else {
+					selectedHandset = Product;
+				}
+			} else {
+				selectedHandset = Product;
+			}
+			if (Product.isMaster() && PVM.defaultVariant) 
+			{
+				if(!defaultVarient.availabilityModel.availability > 0){
+					for each(var varient : dw.catalog.Variant in PVM.getVariants()){
+						if(varient.availabilityModel.availability > 0){
+							selectedHandset = varient.variationModel.getSelectedValue(handsetVarAttr);
+							var selectedVar :dw.catalog.Variant = varient;
+							break;
+						}
+					}
+				}
+			}
+			else if(Product.isVariant())
+			{
+				if(!Product.availabilityModel.availability > 0){
+					for each(var varient : dw.catalog.Variant in PVM.getVariants()){
+						if(varient.availabilityModel.availability > 0){
+							selectedHandset = varient.variationModel.getSelectedValue(handsetVarAttr);
+							var selectedVar :dw.catalog.Variant = varient;
+							break;
+						}
+					}
+				}
+				else
+				{
+					selectedHandset = Product.variationModel.getSelectedValue(handsetVarAttr);
+					var selectedVar :dw.catalog.Variant = Product;
+				}
+			}
+		}
+	</isscript>
+<isset name="product" value="${pdict.Product}" scope="pdict" />
+<form action="${URLUtils.url('Cart-AddProduct')}" method="post" id="${uniqueFormID}" class="pdpForm setProduct">
+	<span class="hide"><isinclude template="product/components/pricing"/></span>
+</isif>
+<input type="hidden" class="product-category" value="${typeof filteredRootCategory !== 'undefined' && !empty(filteredRootCategory) && filteredRootCategory != 'null'?filteredRootCategory:''}"/>	
+			<input type="hidden" name="cartAction" id="cartAction" value="${cartAction}" />
+			<input type="hidden" name="productWarranty" id="product-warranty" class="product-warranty" value="" />
+			<input type="hidden" name="pid" id="pid" value="${pdict.Product.ID}" />
+			<input type="hidden" name="strandsPids" id="strandspids" value="${!empty(pdict.RespIDS)?pdict.RespIDS:''}"/>
+<div class="product-set-image">
+   <isif condition="${(pdict.Product.getImages('categoryImage2')[0] != null) || !(empty(pdict.Product.getImages('categoryImage2')[0]))} "> 
+         <isset name="smImg" value="${pdict.Product.getImages('categoryImage2')[0]}" scope="page" />
+         <isset name="smallImagesSize" value="${ProductImage.getImages(imageProduct,'image80X80').length}" scope="page"/>
+            
+             <img class="product-thumbnail" src="${smImg.getURL()}" alt="${smImg.alt}" title="${smImg.title}" />
+       <iselse>
+          <isset name="heroImg" value="${pdict.Product.getImages('categoryImage2')[0]}" scope="page" />
+             <img class="product-thumbnail" src="${heroImg.getURL()}" alt="${heroImg.alt}" title="${heroImg.title}" />
+      </isif>
+ </div>
+	<div class="product-set-details">
+	<div class="product-set-details-left">
+		<h1 class="product-name">
+			<a class="item-name" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${pdict.Product.name}">
+				<isprint value="${pdict.Product.shortDescription}" encoding="off"/>
+			</a>
+		</h1>
+		
+		<div class="product-number">
+			<a class="item-name" href="${URLUtils.url('Product-Show','pid', pdict.Product.ID)}" title="${pdict.Product.name}">
+			 	<isprint value="${ pdict.Product.ID }"/>
+			</a>
+		</div>
+		<div class="product-set-left-wrap">
+		<isif condition="${!('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly) }">
+			<div class="product-review-links">
+			   <iscomment>	<isinclude template="product/components/reviewsmini"/></iscomment>
+				<isset name="Product" value="${pdict.Product}" scope="page" />	
+				<isset name="setproduct_ShowReviews" value="${true}" scope="page"/> 
+					<div class="reviews_stock_cont productset_reviews_stock_cont">
+						<isinclude template="bv/display/rr/inlineratings"/>
+					</div>
+			</div>
+		</isif> 
+			<div class="availability">
+				<span class="value"><isinclude template="product/components/availability"/></span>
+			</div>
+		<iscomment><isinclude url="${URLUtils.url('Product-ShippingMessage' , 'pid' , pdict.Product.ID)}"/>
+		<isif condition="${! empty(pdict.Product.longDescription) && pdict.Product.longDescription.markup.length > 0}">
+			<div class="tab-content pnsb2c-prod-features" itemprop="description">
+				<span class="features-head">Features</span>
+				<span class="feature-content"><isprint value="${pdict.Product.longDescription}" encoding="off"/></span>
+			</div>
+		</isif>
+		</iscomment>
+		<isif condition="${pdict.isSet && pdict.Product.variationModel.productVariationAttributes.length > 0}">
+			<div class="pnsb2c-clr-promo-atc-container">
+				<div class="pnsb2c-pdp-clr-pro-price-holder">
+					<div class="clr-price-holder">	 
+						
+						<isinclude url="${URLUtils.url('Product-ShowSwatches' , 'pid' , pdict.Product.ID,'compPage',false,'source',pdict.CurrentHttpParameterMap.source.stringValue)}"/>
+					</div>
+				</div>
+			</div>
+		</isif>
+		
+		</div>
+		</div>
+		<isif condition="${pdict.isSet}">
+			<isscript>
+				// ensure a unique form name and make the name reuseable, because the call to
+				// dynamicHtmlName always creates a different name
+				var uniqueFormID : String = pdict.CurrentForms.product.addtocart.dynamicHtmlName;
+			</isscript>
+			<div class="block-add-to-cart add-sub-product">
+					
+					<input type="hidden" name="availability" value="${pdict.Product.availabilityModel.availabilityStatus}"/>
+					<input type="hidden" name="pid" value="${pdict.Product.ID}" id="pid"/>
+					
+					<isinclude template="product/components/pricing"/>
+					
+					
+					
+					<div class="inventory hide">
+						<div class="quantity">
+						    <label for="${uniqueFormID}-quantity">${Resource.msg('global.qty','locale',null)}</label><br>
+							<input type="text" name="Quantity" id="${uniqueFormID}-quantity" maxlength="3" class="input-text positivenumber" value="${Number(empty(pdict.CurrentHttpParameterMap.Quantity.stringValue) ? 1 : pdict.CurrentHttpParameterMap.Quantity.stringValue).toFixed()}" size="2" maxlength="6" />
+						</div>
+					</div>
+					
+					<isset name="disabledText" value="${pdict.available || (pdict.Product.availabilityModel.availabilityStatus==dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER || pdict.Product.availabilityModel.availabilityStatus==dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER) ? '' : ' disabled="disabled"'}" scope="page"/>
+					<isset name="disabledAttrRemote" value="${((('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)) || !(pdict.Product.availabilityModel.availability>0 &&!pdict.Product.master)) ? true : false }" scope="page"/>	
+					<isset name="enabledStorePickup" value="${('enableStorelocator' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableStorelocator) ? true : false }" scope="page"/>
+					<div class="product-set-list-cartbtn">
+								<isset name="cartAction" value="add" scope="page"/>
+								<isset name="disabledAttr" value="${((Product.availabilityModel.availability>0)&&!Product.master) ? true : false}" scope="page"/>
+								<isset name="disabledAttr" value="${(('supportOnly' in Product.custom && Product.custom.supportOnly) || !(disabledAttr)) ? true : false }" scope="page"/>	
+								<isif condition="${pdict.CurrentHttpParameterMap.uuid.stringValue}">	
+									<input type="hidden" name="uuid" id="uuid" value="${pdict.CurrentHttpParameterMap.uuid.stringValue}" />
+									<isset name="cartAction" value="update" scope="page"/>
+								</isif>
+								<input type="hidden" name="Quantity" id="Quantity" value="1" />
+								<input type="hidden" name="cartAction" id="cartAction" value="${cartAction}" />
+								<input type="hidden" name="pid" id="pid" value="${Product.ID}" /> 
+							 	<isif condition="${pdict.tpl != null && pdict.rrq != null && !(disabledAttr)}">
+							 		<a href="${URLUtils.url('Cart-AddProduct')}" title="${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}" value="${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}" class="button-fancy-medium sub-product-item button-blue add-to-cart-setproduct ${disabledAttr?'disabled':''}" <isprint value="${disabledText}" encoding="off"/>>${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}</a>
+								<iselse/> 
+									<a title="${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}" value="${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}" class=" button-fancy-medium button-blue ${disabledAttr?'disabled':''}" <isprint value="${disabledText}" encoding="off"/>>${Resource.msg('global.addtocart', 'locale', 'Add to Cart')}</a>
+									<iscomment><isinclude url="${URLUtils.url('Product-GetInventryConditions' , 'pid' , Product.ID,'plpPage',true,'isQuickView',true,'buttonTitle',Resource.msg('global.addtocart', 'locale', 'Add to Cart'),'className','button-blue'.concat(' ').concat(accessorieclass).concat(' ').concat(cartRefresh))}"/></iscomment>
+								</isif>
+					</div>
+			</div>
+		</isif>
+		<iscomment><isif condition="${pdict.isSet}">
+			<isinclude template="product/components/promotions"/>
+		</isif></iscomment>
+		
+		
+		<isif condition="${pdict.isBundle}"> 
+			<div class="attribute">
+				<span class="label">${Resource.msg('global.quantity','locale',null)}: </span>
+				<span class="value"><isprint value="${pdict.ProductSet.getBundledProductQuantity(pdict.Product)}" /></span>
+			</div>
+		</isif>
+		
+		<isset name="pam" value="${pdict.Product.getAttributeModel()}" scope="page"/>
+		<isset name="group" value="${pam.getAttributeGroup('mainAttributes')}" scope="page"/>
+		
+		<isinclude template="product/components/group"/>			
+
+		<isinclude template="product/components/options"/>
+		
+		
+	</div>	
+	
+<isif condition="${pdict.isSet}">
+</form>
+</isif>
+<iscomment>END JIRA PREV-66,JIRA-55 </iscomment>

@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Demandware CS build cartridge - optimization" basedir=".">
+	<!--
+		Removes all console calls in the js files.
+	-->
+	<target name="remove_console_from_js_files">
+		<property name="cartridge.path" value="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/" />
+		<replaceregexp byline="true">
+			<regexp pattern="^.*console\.[a-zA-Z0-9]*\s*\(.*$" />
+			<substitution expression="" />
+			<fileset dir="${cartridge.path}">
+				<include name="*.js" />
+			</fileset>
+		</replaceregexp>
+	</target>
+
+	<!--
+		Inserts span elements into the ISML files to allow inline resource editing.
+	-->
+	<target name="insert_resource_tagging">
+		<if>
+			<equals arg1="${resource.tagging.enabled}" arg2="true" />
+			<then>
+				<echo message="Adding resource bundle tagging to all ISML files in ${local.cartridge.root}/${build.project.version}" />
+				<replaceregexp byline="true">
+					<regexp pattern="([^&quot;]{1})(\$\{Resource\.msg\(\s*(?:'|&quot;)([^']*)(?:'|&quot;)\s*,\s*(?:'|&quot;)([^']*)(?:'|&quot;)\s*,\s*([^)]*)\s*\)\}\s*)([^&quot;]{1})" />
+					<substitution expression="\1&lt;span class=&quot;resource_tag&quot; default=&quot;\5&quot;&gt;&lt;span class=&quot;resource_tag&quot; about=&quot;\4&quot;&gt;&lt;span class=&quot;resource_tag&quot; property=&quot;\3&quot;&gt;\2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;\6" />
+					<fileset dir="${local.cartridge.root}/${build.project.version}">
+						<include name="**/*.isml" />
+					</fileset>
+				</replaceregexp>
+			</then>
+		</if>
+	</target>
+
+
+	<!--
+       compress_resources_check
+       ===========================================================================
+	   This tasks checks if resources should be compressed
+	-->
+	<target name="compress_resources_check">
+		<echo message="Compresssing? ${static.files.cartridges}" level="info" />
+		<condition property="compress.resources.enabled">
+			<isset property="static.files.cartridges" />
+		</condition>
+	</target>
+
+	<!--
+		compress_resources
+       ===========================================================================
+       To improve the pages performance javascript and CSS files will be compressed.
+       This will backup and compress the js-files in static.files.cartridge
+ 	 -->
+	<target name="compress_resources" depends="compress_resources_check" if="compress.resources.enabled">
+		<echo message="compress resources" level="info" />
+		<!-- compress Javascript -->
+		<if>
+			<equals arg1="${build.optimize.js}" arg2="true" />
+			<then>
+				<if>
+					<equals arg1="${build.optimize.js.debug}" arg2="true" />
+					<then>
+						<property name="static.files.debugcartridge" value="${static.files.cartridge}_debug"/>
+						<echo message="Copy all js in ${static.files.cartridge} to ${static.files.debugcartridge}" level="info" />
+						<copy todir="${local.cartridge.root}/${build.project.version}/${static.files.debugcartridge}" failonerror="false">
+							<path>
+								<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" casesensitive="no">
+									<include name="**/*.js" />
+									<exclude name="**/*.min.*" />
+									<exclude name="**/*.min-*" />
+								</fileset>
+							</path>
+						</copy>
+					</then>
+				</if>
+
+				<foreach target="compress_file" param="filename" inheritall="true">
+					<path>
+						<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" casesensitive="no">
+							<include name="**/*.js" />
+							<exclude name="**/*.min.*" />
+							<exclude name="**/*.min-*" />
+						</fileset>
+					</path>
+				</foreach>
+			</then>
+		</if>
+
+		<!-- compress CSS -->
+		<if>
+			<equals arg1="${build.optimize.css}" arg2="true" />
+			<then>
+				<if>
+					<equals arg1="${build.optimize.css.debug}" arg2="true" />
+					<then>
+						<property name="static.files.debugcartridge" value="${static.files.cartridge}_debug" />
+						<echo message="Copy all CSS in ${static.files.cartridge} to ${static.files.debugcartridge}" level="info" />
+						<copy todir="${local.cartridge.root}/${build.project.version}/${static.files.debugcartridge}" failonerror="false">
+							<path>
+								<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" casesensitive="no">
+									<include name="**/*.css" />
+								</fileset>
+							</path>
+						</copy>
+					</then>
+				</if>
+
+				<foreach target="compress_file" param="filename" inheritall="true">
+					<path>
+						<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" casesensitive="no">
+							<include name="**/*.css" />
+						</fileset>
+					</path>
+				</foreach>
+			</then>
+		</if>
+
+	</target>
+
+	<target name="compress_file">
+		<echo message="Minimizing ${filename}" />
+		<if>
+			<and>
+				<equals arg1="${build.optimize.js.compressor}" arg2="closure" />
+				<matches string="${filename}" pattern="\.js$" />
+			</and>
+			<then>
+		        <java jar="lib/closure-compiler/compiler.jar" fork="true">
+		            <arg value="--js" />
+		            <arg value="${filename}" />
+		            <arg value="--js_output_file" />
+		            <arg value="${filename}.closure" />
+		        	<arg value="--compilation_level" />
+		        	<arg value="SIMPLE_OPTIMIZATIONS" />
+		        </java>
+		    	<copy file="${filename}.closure" tofile="${filename}" />
+		    	<delete file="${filename}.closure" />
+			</then>
+			<else>
+				<!-- WORKAROUND for bug in yuicompressor 2.4.8 where absolute paths on windows fails  -->
+				<basename property="path.file" file="${filename}"/>
+				<dirname property="path.dir" file="${filename}"/>
+				<java jar="lib/yui/yuicompressor-2.4.8.jar" fork="true" dir="${path.dir}">
+					<arg value="--charset" />
+					<arg value="UTF-8" />
+					<arg value="-o" />
+					<arg value="${path.file}" />
+					<arg value="${path.file}" />
+				</java>
+			</else>
+		</if>
+	</target>
+
+	<!--
+       concatenate_static_files_check
+       ===========================================================================
+	   This tasks checks if static files should be concatenated
+	-->
+	<target name="concatenate_static_files_check">
+		<condition property="concatenate.static.files.enabled">
+			<equals arg1="${static.files.concatenate}" arg2="true" />
+		</condition>
+	</target>
+
+	<!--
+	 	concatenate_static_files
+	    ===========================================================================
+		To reduce HTTP-Requests global javascript and CSS files will be concatenated to one file each.
+	-->
+
+	<target name="concatenate_static_files" depends="concatenate_static_files_check" if="concatenate.static.files.enabled">
+		<foreach target="concatenate" param="filename" inheritall="true">
+			<path>
+	 			<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/cartridge/templates/">
+					<include name="${static.files.concatenate.templates}" />
+	 				<contains text="!--- BEGIN CSS files to merge" casesensitive="no"/>
+				</fileset>
+			</path>
+		</foreach>
+		<foreach target="concatenate" param="filename" inheritall="true">
+			<path>
+	 			<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/cartridge/templates/">
+					<include name="${static.files.concatenate.templates}" />
+	 				<contains text="!--- BEGIN JS files to merge" casesensitive="no"/>
+				</fileset>
+			</path>
+		</foreach>
+	</target>
+
+	<!--
+	 	concatenate_static_files
+	    ===========================================================================
+		To reduce HTTP-Requests global javascript and CSS files will be concatenated to one file each.
+
+		The template parts where the concatenation should apply for are marked the following.
+		(Please note that the lines should be comment lines. Comments in comments wasn't possible due syntax reasons)
+		==CSS==
+		- BEGIN CSS files to merge.(source_path=cartridge/static/default;targetfile=cartridge/static/default/css/ggcore.css) -
+		- END CSS files to merge. -
+		==JS==
+		- BEGIN JS files to merge.(source_path=cartridge/static/default;targetfile=cartridge/static/default/js/ggcore.js) -
+		- END JS files to merge. -
+	-->
+
+
+	<target name="concatenate">
+
+
+		<echo message="Filename: ${filename}" level="info" />
+		<property name="static.files.debugcartridge" value="${static.files.cartridge}_debug" />
+
+		<loadfile property="concat_props" srcfile="${filename}"/>
+
+		<!-- get list of all cartridges the current one depends on  -->
+		<antcallback target="required_cartridges" return="required.cartridges">
+			<param name="cartridge.id" value="${static.files.cartridge}"/>
+		</antcallback>
+
+		<!-- concatenate css files -->
+
+		<loadfile property="cssfiles" srcFile="${filename}">
+			<filterchain>
+					<tokenfilter>
+						<filetokenizer />
+						<replaceregex pattern="[\D\d\S\s]*&lt;\!--- BEGIN CSS files to merge.*---&gt;" replace="" flags="m" />
+						<replaceregex pattern="\s*&lt;\!--- END CSS files to merge.*---&gt;[\D\d\S\s]*" replace="" flags="m" />
+					</tokenfilter>
+
+					<tokenfilter>
+						<replaceregex pattern="\s*&lt;.*\('/" replace="" flags="gi" />
+						<replaceregex pattern="'\).*[/&gt;]?[script&gt;]?" replace="" flags="gi" />
+					</tokenfilter>
+					<trim />
+				</filterchain>
+		</loadfile>
+
+		<propertyregex property="csssourcepath"	override="true"	input="${concat_props}"	regexp="&lt;\!--- BEGIN CSS files to merge.*[\\(](source_path=(.*?))[\\;](targetfile=(.*?))[\\)]"	select="\2" />
+		<propertyregex property="csstargetfile"	override="true"	input="${concat_props}"	regexp="&lt;\!--- BEGIN CSS files to merge.*[\\(](source_path=(.*?))[\\;](targetfile=(.*?))[\\)]"	select="\4" />
+		<propertyregex property="cssincludetemplate" override="true" input="${filename}" regexp="^.*(${static.files.cartridge}(.*))" select="\1" casesensitive="false" />
+
+		<if>
+			<not>
+				<equals arg1="${csssourcepath}" arg2="$${csssourcepath}" />
+			</not>
+			<then>
+				<property name="csssourcepath_full" value="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/${csssourcepath}" />
+				<echo message="Property exists  CSSSourcepath : ${csssourcepath_full}" />
+
+				<if>
+					<not>
+						<equals arg1="${csstargetfile}" arg2="$${csstargetfile}" />
+					</not>
+					<then>
+
+						<!-- CUSTOM - jsimon: concatenation changes -->
+						<property name="cssfilesfullpaths" value=""/>
+						<property name="foundcssfile" value="" />
+						<for list="${cssfiles}" delimiter="${line.separator}" param="cssfile">
+							<sequential>
+								<propertyregex property="cssfilenametemp"  override="yes" input="@{cssfile}" regexp="(\x0D)" replace="" defaultValue="@{cssfile}"/>
+								<propertyregex property="cssfilename"  override="yes" input="${cssfilenametemp}" regexp="(\S*):" select="\1" defaultValue="${cssfilenametemp}"/>
+								<echo message="Initial File name : ${cssfilename} hello3" />
+																								
+								<var name="foundcssfile" value="" />
+								<for list="${static.files.cartridge}:${required.cartridges}" delimiter=":" param="cartridgefrompath">
+								    <sequential>
+								        <if>
+								            <not>
+								                <length string="${foundcssfile}" when="greater" length="0" />
+								            </not>
+								            <then>
+								            	<if>
+										            <available file="${local.cartridge.root}/${build.project.version}/@{cartridgefrompath}/${csssourcepath}/${cssfilename}"/>
+										            <then>
+										            	<if>
+											            	<length string="${cssfilename}" when="greater" length="0" />
+											            	<then>
+												            	<echo message="Found ${cssfilename} in cartridge @{cartridgefrompath}"/>
+																<var name="foundcssfile" value="${local.cartridge.root}/${build.project.version}/@{cartridgefrompath}/${csssourcepath}/${cssfilename}" />
+											            	</then>
+										            	</if>
+										            </then>
+										        </if>
+								            </then>
+								        </if>
+								    </sequential>
+								</for>
+								<if>
+									<length string="${foundcssfile}" when="greater" length="0" />
+									<then>
+										<if>
+											<length string="${cssfilesfullpaths}" when="greater" length="0" />
+											<then>
+												<var name="cssfilesfullpaths" value="${cssfilesfullpaths},"/>
+											</then>
+										</if>
+										<var name="cssfilesfullpaths" value="${cssfilesfullpaths}${foundcssfile}"/>
+									</then>
+									<else>
+										<echo message="File ${cssfilename} not found in cartridge dependencies" level="error"/>
+									</else>
+								</if>
+							</sequential>
+						</for>
+
+						<property name="csstargetfile_full" value="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/${csssourcepath}/${csstargetfile}" />
+						<echo message="Property exists   CSSTargetfile : ${csstargetfile_full}" />
+
+						<echo message="concatenating css files marked in ${cssincludetemplate} from ${csssourcepath_full} to ${csstargetfile_full}" />
+
+						<echo message="${local.cartridge.root}" />
+						<echo message="csstargetfile_full::  ${csstargetfile_full}"/>
+						<echo message="cssfilesfullpaths::  ${cssfilesfullpaths}"/>
+						<concat destfile="${csstargetfile_full}">
+
+							<!-- CUSTOM - jsimon: concatenation changes -->
+							<!--<filelist id="cssfiles" dir="${csssourcepath_full}" files="${cssfiles}" />-->
+							<filelist id="cssfilesfullpaths" dir="${local.cartridge.root}/${build.project.version}" files="${cssfilesfullpaths}" />
+
+						</concat>
+						<echo message="concatenating: ${cssfiles} to ${csstargetfile}" />
+						<!-- copy template to debug cartridge and replace the scripts with the concatenated file -->
+						<if>
+							<equals arg1="${build.optimize.concatenate.debug}" arg2="true" />
+							<then>
+								<echo message="Copying include file to ${static.files.debugcartridge}" />
+								<propertyregex property="build.concatenate.css.includetemplate.without.cartridge" input="${cssincludetemplate}" regexp="^[^/\\]*[/\\]" replace="" casesensitive="false" />
+								<copy file="${local.cartridge.root}/${build.project.version}/${cssincludetemplate}" tofile="${local.cartridge.root}/${build.project.version}/${static.files.debugcartridge}/${build.concatenate.css.includetemplate.without.cartridge}" />
+							</then>
+						</if>
+						<replaceregexp file="${local.cartridge.root}/${build.project.version}/${cssincludetemplate}" byline="false" flags="s">
+
+							<!-- CUSTOM - jsimon: concatenation changes -->
+							<regexp pattern="(&lt;\!--- BEGIN CSS files to merge.)[\s\S]*(&lt;\!--- END CSS files to merge.\s*---&gt;)" />
+							<substitution expression="&lt;link href=&quot;$${URLUtils.absStatic('${csstargetfile}')}&quot; type=&quot;text/css&quot; rel=&quot;stylesheet&quot; /&gt;" />
+
+						</replaceregexp>
+
+						<!-- CUSTOM - jsimon: file sizes info -->
+						<length file="${csstargetfile_full}" property="css.length"/>
+						<echo message="${css.length} --- ${csstargetfile_full}${line.separator}" file="${local.info.filesizes.css}" append="true" />
+
+					</then>
+					<else>
+						<echo message="Property CSSTargetfile not specified -> skipped ${cssincludetemplate}" />
+					</else>
+				</if>
+			</then>
+			<else>
+				<echo message="Property CSSSourcepath not specified -> skipped ${cssincludetemplate}" />
+			</else>
+		</if>
+
+
+		<!-- concatenate js files -->
+
+			<loadfile property="jsfiles" srcFile="${filename}">
+				<filterchain>
+						<tokenfilter>
+							<filetokenizer />
+							<replaceregex pattern="[\D\d\S\s]*&lt;\!--- BEGIN JS files to merge.*---&gt;" replace="" flags="m" />
+							<replaceregex pattern="\s*&lt;\!--- END JS files to merge.*---&gt;[\D\d\S\s]*" replace="" flags="m" />
+						</tokenfilter>
+
+						<tokenfilter>
+							<replaceregex pattern="\s*&lt;.*\('/" replace="" flags="gi" />
+							<replaceregex pattern="'\).*[/&gt;]?[script&gt;]?" replace="" flags="gi" />
+						</tokenfilter>
+						<trim />
+					</filterchain>
+			</loadfile>
+
+			<propertyregex property="jssourcepath"	override="true"	input="${concat_props}"	regexp="&lt;\!--- BEGIN JS files to merge.*[\\(](source_path=(.*?))[\\;](targetfile=(.*?))[\\)]"	select="\2" />
+			<propertyregex property="jstargetfile"	override="true"	input="${concat_props}"	regexp="&lt;\!--- BEGIN JS files to merge.*[\\(](source_path=(.*?))[\\;](targetfile=(.*?))[\\)]"	select="\4" />
+			<propertyregex property="jsincludetemplate" override="true" input="${filename}" regexp="^.*(${static.files.cartridge}(.*))" select="\1" casesensitive="false" />
+
+			<if>
+				<not>
+					<equals arg1="${jssourcepath}" arg2="$${jssourcepath}" />
+				</not>
+				<then>
+
+					<!-- CUSTOM - jsimon: concatenation changes -->
+					<property name="jsfilesfullpaths" value=""/>
+					<property name="foundjsfile" value="" />
+					<for list="${jsfiles}" delimiter="${line.separator}" param="jsfile">
+						<sequential>
+							<propertyregex property="jsfilenametemp"  override="yes" input="@{jsfile}" regexp="(\x0D)" replace="" defaultValue="@{jsfile}"/>
+							<propertyregex property="jsfilename"  override="yes" input="${jsfilenametemp}" regexp="(\S*):" select="\1" defaultValue="${jsfilenametemp}"/>
+							<var name="foundjsfile" value="" />
+							<for list="${static.files.cartridge}:${required.cartridges}" delimiter=":" param="cartridgefrompath">
+							    <sequential>
+							        <if>
+							            <not>
+							                <length string="${foundjsfile}" when="greater" length="0" />
+							            </not>
+							            <then>
+									        <if>
+									            <available file="${local.cartridge.root}/${build.project.version}/@{cartridgefrompath}/${jssourcepath}/${jsfilename}"/>
+									            <then>
+									            	<if>
+										            	<length string="${jsfilename}" when="greater" length="0" />
+										            	<then>
+									                		<echo message="Found ${jsfilename} in cartridge @{cartridgefrompath}"/>
+															<var name="foundjsfile" value="${local.cartridge.root}/${build.project.version}/@{cartridgefrompath}/${jssourcepath}/${jsfilename}" />
+										            	</then>
+									        		</if>
+								            	</then>
+									          </if>
+							            </then>
+							        </if>
+							    </sequential>
+							</for>
+							<if>
+								<length string="${foundjsfile}" when="greater" length="0" />
+								<then>
+									<if>
+										<length string="${jsfilesfullpaths}" when="greater" length="0" />
+										<then>
+											<var name="jsfilesfullpaths" value="${jsfilesfullpaths},"/>
+										</then>
+									</if>
+									<var name="jsfilesfullpaths" value="${jsfilesfullpaths}${foundjsfile}"/>
+								</then>
+								<else>
+									<echo message="File ${jsfilename} not found in cartridge dependencies" level="error"/>
+								</else>
+							</if>
+						</sequential>
+					</for>
+
+					<property name="jssourcepath_full" value="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/${jssourcepath}" />
+					<echo message="Property exists  JSSourcepath : ${jssourcepath_full}" />
+
+					<if>
+						<not>
+							<equals arg1="${jstargetfile}" arg2="$${jstargetfile}" />
+						</not>
+						<then>
+							<property name="jstargetfile_full" value="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/${jssourcepath}/${jstargetfile}" />
+							<echo message="Property exists   JSTargetfile : ${jstargetfile_full}" />
+
+							<echo message="concatenating js files marked in ${jsincludetemplate} from ${jssourcepath_full} to ${jstargetfile_full}" />
+
+							<echo message="${local.cartridge.root}" />							
+
+							<concat destfile="${jstargetfile_full}">
+
+								<!-- CUSTOM - jsimon: concatenation changes -->
+								<filelist id="jsfilesfullpaths" dir="${local.cartridge.root}/${build.project.version}" files="${jsfilesfullpaths}" />
+
+							</concat>
+							<echo message="concatenating: ${jsfiles} to ${jstargetfile}" />
+							<!-- copy template to debug cartridge and replace the scripts with the concatenated file -->
+							<if>
+								<equals arg1="${build.optimize.concatenate.debug}" arg2="true" />
+								<then>
+									<echo message="Copying include file to ${static.files.debugcartridge}" />
+									<propertyregex property="build.concatenate.js.includetemplate.without.cartridge" input="${jsincludetemplate}" regexp="^[^/\\]*[/\\]" replace="" casesensitive="false" />
+									<copy file="${local.cartridge.root}/${build.project.version}/${jsincludetemplate}" tofile="${local.cartridge.root}/${build.project.version}/${static.files.debugcartridge}/${build.concatenate.js.includetemplate.without.cartridge}" />
+								</then>
+							</if>
+							<replaceregexp file="${local.cartridge.root}/${build.project.version}/${jsincludetemplate}" byline="false" flags="s">
+
+								<!-- CUSTOM - jsimon: concatenation changes -->
+								<regexp pattern="(&lt;\!--- BEGIN JS files to merge.)[\s\S]*(&lt;\!--- END JS files to merge.\s*---&gt;)" />
+								<substitution expression="&lt;script src=&quot;$${URLUtils.absStatic('${jstargetfile}')}&quot;&gt;&lt;/script&gt;" />
+
+							</replaceregexp>
+
+							<!-- CUSTOM - jsimon: file sizes info -->
+							<length file="${jstargetfile_full}" property="js.length"/>
+							<echo message="${js.length} --- ${jstargetfile_full}${line.separator}" file="${local.info.filesizes.js}" append="true" />
+
+						</then>
+						<else>
+							<echo message="Property JSTargetfile not specified -> skipped ${jsincludetemplate}" />
+						</else>
+					</if>
+				</then>
+				<else>
+					<echo message="Property JSSourcepath not specified -> skipped ${jsincludetemplate}" />
+				</else>
+			</if>
+
+	</target>
+
+	<!--
+	 	less
+	    ===========================================================================	    
+		Compiles all less files and replaces occurrences in templates in your defined 
+		static file cartridges.
+		
+		Need to be configured in build.properties:
+		
+		compile.less.files=true
+		
+		param: static.files.cartridge
+	-->		
+	<target name="compile_less">
+		<if> 
+			<equals arg1="${compile.less.files}" arg2="true" />
+			<then>
+				<echo>Compile less files for ${static.files.cartridge}</echo>
+
+				<!-- get list of all cartridges the current one depends on  -->
+				<antcallback target="required_cartridges" return="required.cartridges">
+					<param name="cartridge.id" value="${static.files.cartridge}"/>
+				</antcallback>
+				
+				<!-- copy less files from all cartridges the current one depends on -->
+				<for list="${required.cartridges}" param="required.cartridge.id" delimiter=":">
+					<sequential>
+						<echo>Copy files from @{required.cartridge.id}</echo>
+						<copy todir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" failonerror="false" overwrite="false">
+							<path>
+								<fileset dir="${local.cartridge.root}/${build.project.version}/@{required.cartridge.id}" casesensitive="no">
+									<include name="**/*.less" />
+								</fileset>
+							</path>
+						</copy>
+					</sequential>
+				</for>
+
+				<!-- actually compile all less files -->
+				<foreach target="compile_less_file" param="source.filename" parallel="true" inheritall="true">
+					<path>
+						<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/cartridge/static/">
+							<include name="**/*.less" />
+						</fileset>
+					</path>
+				</foreach>
+				
+				<!-- find templat
+				es files and replace *.less file occurrences -->
+				<foreach target="replace_less_files" param="source.filename" parallel="true" inheritall="true">
+					<path>
+						<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}/cartridge/templates/">
+							<include name="**/*.isml" />
+							<containsregexp expression="&lt;link.*[hH][rR][eE][fF].*=.*[lL][eE][sS][sS][&quot;']" />
+						</fileset>
+					</path>
+				</foreach>
+				
+			</then>
+		</if>
+	</target>
+	
+	<!-- 
+		Replaces less links in files with their css equivalent 
+	--> 
+	<target name="replace_less_files">
+		<echo message="Replacing less links in ${source.filename}"/>
+		<!--Replacing href="*.less" with href="*.css" -->
+		<replaceregexp file="${source.filename}" match="(&lt;link.*href.*=.*)\.less([&quot;'])" replace="\1.css\2" flags="gis" />
+		<!--Replacing rel="*/less" with rel="*" -->
+		<replaceregexp file="${source.filename}" match="(&lt;link.*rel.*=.*)\/less([&quot;'])" replace="\1\2" flags="gis" />
+	</target>
+	
+	<!-- 
+		Replaces less links in files with their css equivalentTakes a file and runs less on it. 
+	-->
+	<target name="compile_less_file">
+		<propertyregex property="target.filename" input="${source.filename}" regexp="(.*)\.less$" replace="\1.css" casesensitive="false"/>
+		
+		<property name="tool.less" location="lib/less/less-rhino-1.4.2.js"/>
+		<property name="tool.js" location="lib/rhino/js.jar"/>
+		<java jar="${tool.js}" fork="true" output="${target.filename}" resultproperty="less.compile.result">
+			<arg path="${tool.less}"/>
+			<arg path="${source.filename}"/>
+		</java>
+		<if>
+			<equals arg1="${less.compile.result}" arg2="1"/>
+			<then>
+				<delete file="${target.filename}" />
+				<echo message="Less defective file deleted: ${target.filename}"/>
+			</then>
+		</if>
+		<if>
+			<not>
+				<equals arg1="${less.compile.result}" arg2="1"/>
+			</not>
+			<then>
+				<echo message="Less CSS file successfully created: ${target.filename}"/>
+			</then>
+		</if>
+	</target>
+
+	<!--
+		This target includes embeds as base64 representations into targeted css files. 
+		That does only make sense if the respective set of images is referenced only once 
+		and only for cases where the size of the referenced image is not too high. 
+		Reasonable settings are provided with every Build Suite distribution.
+
+		Uses: https://github.com/nzakas/cssembed/wiki
+
+		Need to be configured in build.properties:
+		
+		build.optimize.css.embed.images.enabled=true
+
+		param: cartridge.id 
+	-->
+	<target name="embed_images_in_css_cartridge" depends="load_properties,load_cartridge_properties,create_build_directory,set_classpath">
+		<if>
+			<equals arg1="${build.optimize.css.embed.images.enabled}" arg2="true"/>
+			<then>
+				<!-- get list of all cartridges the current one depends on  -->
+				<antcallback target="required_cartridges" return="required.cartridges">
+					<param name="cartridge.id" value="${static.files.cartridge}"/>
+				</antcallback>
+				<propertyregex property="alternative.cartridge.path" input="${required.cartridges}" regexp=":" replace="," casesensitive="false"/>
+				<echo>embeding images for cartridge ${static.files.cartridge} using alternative path: ${alternative.cartridge.path}</echo>
+				<foreach target="embed_images_in_css_file" param="target.filename" inheritall="true">
+					<path>
+						<fileset dir="${local.cartridge.root}/${build.project.version}/${static.files.cartridge}" casesensitive="no">
+							<include name="**/*.css" />
+						</fileset>
+					</path>
+				</foreach>
+			</then>
+		</if>
+	</target>
+	
+	<!--
+		Executes the embed of images for a single file.
+
+		Need to be configured in build.properties:
+		
+		build.optimize.css.embed.images.mhtml=true
+		
+		param: target.filename
+	-->
+	<target name="embed_images_in_css_file" depends="set_classpath,load_external_tasks">
+		<echo message="Base64 encode images in: ${target.filename} using alterantive path ${alternative.cartridge.path} and maxImageSize ${build.optimize.css.embed.images.maxImageSize}"/>
+		<cssembed mhtml="false" skipMissing="${build.optimize.css.embed.images.skipMissing}" maxImageSize="${build.optimize.css.embed.images.maxImageSize}" verbose="true" srcFile="${target.filename}" destFile="${target.filename}" alternativePath="${alternative.cartridge.path}" />
+	</target>
+</project>

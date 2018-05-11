@@ -1,0 +1,324 @@
+<!--- TEMPLATENAME: imported_streams.isml --->
+
+<isinclude template="util/modules"/>
+
+<isdecorate template="bm/table_decorator">
+<isif condition="${empty(pdict.ErrorMsg)}">
+	<isif condition="${pdict.NeedUpdatesIMAreas.length > 0 && empty(pdict.SearchPhrase)}">
+		<div class="needupdates-areas">
+			<p>
+				${Resource.msg('im.notupdatedareasmessage', 'locale', null)}
+			</p>
+			<ul>
+				<isloop items="${pdict.NeedUpdatesIMAreas}" var="asset" status="loopstate">
+					<li class="area-for-update"
+						data-areaid="${asset.assetId}"
+						data-name="${asset.amplienceName}"
+						data-width="${asset.amplienceWidth}"
+						data-height="${asset.amplienceHeight}"
+						data-associatedmodule="${asset.amplienceAssociatedModuleName}">
+						
+						${Resource.msg('im.itemstable.guid', 'locale', null)}: ${asset.assetId}, ${Resource.msg('im.itemstable.publishingarea', 'locale', null)}: ${asset.assetName}
+					</li>
+					<isscript>
+						assetIds.push(asset.assetId);
+					</isscript>
+				</isloop>
+			</ul>
+			<button class="button update-imported-area">${Resource.msg('components.itemsperpage.update', 'locale', null)}</button>
+			
+			
+		</div>
+	</isif>
+	<isif condition="${pdict.OfflineIMAreas.length > 0 && empty(pdict.SearchPhrase)}">
+		<div class="offline-areas">
+			<p>
+				${Resource.msg('im.offlineareasmessage', 'locale', null)}
+			</p>
+			<isscript>
+				var assetIds : Array = new Array();
+			</isscript>
+			<ul>
+				<isloop items="${pdict.OfflineIMAreas}" var="asset" status="loopstate">
+					<li>${Resource.msg('im.itemstable.guid', 'locale', null)}: ${asset.amplienceId}, ${Resource.msg('im.itemstable.associatedmodule', 'locale', null)}: ${asset.amplienceAssociatedModuleName}</li>
+						
+					<isscript>
+						assetIds.push(asset.assetId);
+					</isscript>
+				</isloop>
+			</ul>
+			<button class="button delete-offline-area" data-areasids="${assetIds.join(',')}">${Resource.msg('ugc.itemstable.delete', 'locale', null)}</button>
+		</div>
+	</isif>
+	<isscript>
+		var associatedGroupIDs : Array = new Array();
+		var associatedGroupNames : Array = new Array();
+		for each (var associatedGroup : Object in pdict.AssociatedGroups) {
+		
+			associatedGroupIDs.push(associatedGroup['groupId']);
+			associatedGroupNames.push(associatedGroup['groupName'] + ' (' + Resource.msg('im.areas', 'locale', null) + ': ' + associatedGroup['associatedIMAreas'].join(', ')  + ')');
+		}
+		var orderBy : String = empty(pdict.OrderBy) ? '' : pdict.OrderBy;
+	</isscript>
+	<table class="imported-streams-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0"
+		data-associatedgroupids="${associatedGroupIDs.join(',')}"
+		data-noassociatedgroups="${empty(associatedGroupNames)}"
+		data-associatedgroupnames="${'<ul><li>' + associatedGroupNames.join('</li><li>') + '</li></ul>'}"
+		data-orderby="${orderBy}">
+		<thead>
+			<tr>
+			<th class="table_header stream-select center w e s n"><isprint value="${Resource.msg('ugc.itemstable.select', 'locale', null)}" /></th>
+			<th class="table_header stream-preview e s n"><isprint value="${Resource.msg('ugc.itemstable.preview', 'locale', null)}" /></th>
+			<th class="table_header s e n">
+				<isscript>
+					var nameCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'namedesc') {
+						
+							nameCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'nameasc') {
+						
+							nameCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+
+				<a href="#" id="order-by-im-name" ${nameCssClassCode}>
+					<span>${Resource.msg('im.itemstable.publishingarea', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header s e n">
+				<isscript>
+					var publishedDateCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'publisheddatedesc') {
+						
+							publishedDateCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'publisheddateasc') {
+						
+							publishedDateCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+				<a href="#" id="order-by-im-publisheddate" ${publishedDateCssClassCode}>
+					<span>${Resource.msg('ugc.itemstable.publisheddate', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header s e n">
+				<isscript>
+					var moduleNameCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'modulenamedesc') {
+						
+							moduleNameCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'modulenameasc') {
+						
+							moduleNameCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+				<a href="#" id="order-by-im-module-name" ${moduleNameCssClassCode}>
+					<span>${Resource.msg('im.itemstable.associatedmodule', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header s e n">
+				<isscript>
+					var widthCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'widthdesc') {
+						
+							widthCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'widthasc') {
+						
+							widthCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+				<a href="#" id="order-by-im-width" ${widthCssClassCode}>
+					<span>${Resource.msg('im.itemstable.width', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header s e n">
+				<isscript>
+					var heightCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'heightdesc') {
+						
+							heightCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'heightasc') {
+						
+							heightCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+				<a href="#" id="order-by-im-height" ${heightCssClassCode}>
+					<span>${Resource.msg('im.itemstable.height', 'locale', null)}</span>
+				</a>
+		</tr>
+		</thead>
+		<tbody>		
+			<isif condition="${pdict.ImportedSelectedIMAreas.length > 0}">
+				<isloop items="${pdict.ImportedSelectedIMAreas}" var="item" status="loopstate">
+					<isscript>
+						var assetId = item['assetId'];
+						var id = item['amplienceId'];
+						var assetUUID = item['assetUUID'];
+						var name = item['assetName'];
+						var associatedModuleName = item['amplienceAssociatedModuleName'];
+						var width = item['amplienceWidth'];
+						var height = item['amplienceHeight'];
+						
+						var lastPublished = empty(item['amplienceLastPublished']) ?
+												'' : new Date(item['amplienceLastPublished']).toUTCString();
+												
+						var thumbURL = !empty(item['amplienceThumbnail']) ? decodeURI(item['amplienceThumbnail']) + '?w=220' : '';
+											
+					</isscript>
+				
+					<tr>
+						<td class="table_detail w e s middle center thumb-container">
+							<input type="checkbox" value="${assetId}" name="selected-asset-id" checked />
+						</td>
+						<td class="table_detail e s middle">
+							<isif condition="${!empty(thumbURL)}">
+								<img src="${thumbURL}" width="58" height="58" class="thumb-img" />
+							</isif>
+						</td>
+						<td class="table_detail e s middle">
+							<strong><a href="${URLUtils.url('ViewLibraryContent_52-Start', 'ContentUUID', assetUUID )}" title="${name}">${name}</a></strong>
+							<p>${Resource.msg('im.itemstable.guid', 'locale', null)}: ${id}</p>
+						</td>
+						<td class="table_detail e s middle">
+							${lastPublished}
+						</td>
+						<td class="table_detail e s middle">
+							${associatedModuleName}
+						</td>
+						<td class="table_detail e s middle">
+							${width}
+						</td>
+						<td class="table_detail e s middle">
+							${height}
+						</td>
+					</tr>
+				</isloop>
+			</isif>
+
+			<isloop items="${pdict.PagingResult.pageElements}" var="item" status="loopstate">
+				<isscript>
+					var assetId = item['assetId'];
+					var id = item['amplienceId'];
+					var assetUUID = item['assetUUID'];
+					var name = item['assetName'];
+					var associatedModuleName = item['amplienceAssociatedModuleName'];
+					var width = item['amplienceWidth'];
+					var height = item['amplienceHeight'];
+					
+					var lastPublished = empty(item['amplienceLastPublished']) ?
+											'' : new Date(item['amplienceLastPublished']).toUTCString();
+											
+					var thumbURL = !empty(item['amplienceThumbnail']) ? decodeURI(item['amplienceThumbnail']) + '?w=220' : '';
+										
+				</isscript>
+			
+				<tr>
+					<td class="table_detail w e s middle center">
+						<input type="checkbox" value="${assetId}" name="asset-id" />
+					</td>
+					<td class="table_detail e s middle thumb-container">
+						<isif condition="${!empty(thumbURL)}">
+							<img src="${thumbURL}" width="58" height="58" class="thumb-img" />
+						</isif>
+					</td>
+					<td class="table_detail e s middle">
+						<strong><a href="${URLUtils.url('ViewLibraryContent_52-Start', 'ContentUUID', assetUUID )}" title="${name}">${name}</a></strong>
+						<p>${Resource.msg('im.itemstable.guid', 'locale', null)}: ${id}</p>
+					</td>
+					<td class="table_detail e s middle">
+						${lastPublished}
+					</td>
+					<td class="table_detail e s middle">
+						${associatedModuleName}
+					</td>
+					<td class="table_detail e s middle">
+						${width}
+					</td>
+					<td class="table_detail e s middle">
+						${height}
+					</td>
+				</tr>
+			</isloop>
+			
+			<isif condition="${empty(pdict.PagingResult.pageElements) && (pdict.ImportedSelectedIMAreas.length == 0)}">
+				<tr>
+					<td colspan="7" class="empty-table-td">
+						${Resource.msg('im.notimporteditems', 'locale', null)}
+					</td>
+				</tr>
+			</isif>		
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="7" align="left" class="w e s">
+				
+					<isif condition="${!empty(pdict.PagingResult.pageElements) || (pdict.ImportedSelectedIMAreas.length > 0)}">
+				
+						<button
+							<iscomment>
+							  Disable the Delete button when there no selected im areas
+							</iscomment>
+							<isif condition="${pdict.ImportedSelectedIMAreas.length == 0}">
+							disabled
+							</isif>
+							class="button delete-imported-area">${Resource.msg('ugc.itemstable.delete', 'locale', null)}</button>
+						
+						<button
+							<iscomment>
+							  Disable the Group button when there are selected less than 2 areas
+							</iscomment>
+							<isif condition="${pdict.ImportedSelectedIMAreas.length < 2}">
+							  disabled
+							</isif>
+						  class="button group-imported-area">${Resource.msg('components.itemsperpage.group', 'locale', null)}</button>
+					
+					</isif>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+	
+	<iscomment> URL to re-execute the exact same query. </iscomment>
+	<isset name="PageSearchURL" value="${URLUtils.url('InteractiveMerchandising-GetImportedAreas', 'selectedAreaIDs', pdict.SelectedAreaIDs, 'q', pdict.CurrentHttpParameterMap.q.stringValue, 'orderby', pdict.OrderBy)}" scope="page" />
+	
+	<div class="amp-module-pagination clearfix">
+		
+		<isitemsinfo pagingmodel="${pdict.PagingResult}"/>
+		
+		<ispagingbar pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+		
+		<isitemsperpage pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+		
+	</div>
+<iselse>
+
+	<div class="page-error-container">
+		<isprint value="${Resource.msg('ugc.pageerror', 'locale', null)}" />
+	</div>
+	
+</isif>
+</isdecorate>

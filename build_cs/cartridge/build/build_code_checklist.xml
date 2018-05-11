@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Demandware CS Build Suite - Coding Standards Check" basedir=".">
+
+	<target name="code_checklist" description="Coding Standards Check" depends="load_properties,load_cartridge_properties,create_build_directory,set_classpath">
+	    <echo message="Coding Standards Check list : Start" />
+		<script language="javascript">
+						    <![CDATA[
+								var cartridges = project.getProperty("cartridge.list");
+					    		if ( cartridges != null ) {
+									println( "Checking dependencies for following cartridges: " + cartridges );
+									var cartridgeStartName = "app_:bm_:bc_:design_:ac_:build_";
+					    			var cartridgesArray = cartridges.split(':');
+			
+					    			//Looping though all cartridges and validating existence of cartridges they depend on
+									var status = false;
+									var cartridgeNames = "";
+					    			for ( i = 0; i < cartridgesArray.length; i++ ) {
+										var cartridgeID = cartridgesArray[i];
+										if ( cartridgeID != '') {
+											var cartridgeIDStart = cartridgeID.split('_');
+											if ( cartridgeStartName.indexOf(cartridgeIDStart[0]) > 0) {
+												status = false;
+									    	} else {
+												cartridgeNames = cartridgeNames + cartridgeID +":" ;
+												status = true;
+											}
+										}
+					    			}
+														
+					    		}
+						    ]]>
+			</script>
+				<if>
+					<equals arg1="${Codechecklist.failed}" arg2="true"/>
+					<then>
+						<fail message="${Codechecklist.errormessage}" />
+					</then>
+				</if>
+		
+	    <echo message="Coding Standards Check list : End" />
+
+	</target>
+	
+</project>

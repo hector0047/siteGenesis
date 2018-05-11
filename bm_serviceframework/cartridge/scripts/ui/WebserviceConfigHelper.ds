@@ -1,0 +1,63 @@
+/** @module bm_serviceframework/cartridge/scripts/ui/WebserviceConfigHelper */
+
+var WebserviceConfiguration = require('bc_serviceframework/cartridge/scripts/util/WebserviceConfiguration');
+var ObjectHelper = require("bc_library/cartridge/scripts/customobject/ObjectHelper").ObjectHelper;
+
+/**
+ *	Extends Object Helper to cater for specifics of WebserviceConfiguration, an erver side enhanced representation of the custom object
+ * 	@class
+ *
+ */
+var WebServiceConfigurationHelper = ObjectHelper.extend(
+/** @lends WebServiceConfigurationHelper.prototype */
+{
+	/**
+	 *	Converts custom object into transient object 
+	 *	precalculates warning state of the webservice
+	 */	
+	toObject : function(co){
+		try {
+	        var object = (new WebserviceConfiguration(co.custom.ID));
+	    } catch (e) {
+	        var object = null;
+	        dw.system.Logger.error("Error while parsing webservice config {0}",e.message);  
+	    }
+	    
+	    object.UUID = co.UUID;
+	    object.state = "GREEN";
+	    
+	    if (!empty(object.lockingItems) && object.lockingItems.getCount() > 0) {
+	        object.state = "YELLOW";
+	    } 
+	    
+	    if (object.isLocked()) {
+	        object.state = "LOCKED";
+	    } 
+	    
+	    if (object.isDisabled()) {
+	        object.state = "DISABLED";
+	    } 
+	    
+	    return object;
+	},
+	/**
+	 * 	provides a demandware like object definition for transient enhanced fields
+	 */	
+	getObjectDefinition : function(){
+		var objectDefinition = this._super();
+		objectDefinition["state"] = {type : "STRING", displayName : "state", selectableValues : [], multiValueType: false, readonly : true, key : false, isSystem : false, ID : "state", transientAttribute : true};
+		objectDefinition["lockingItems"] = {type : "SET_OF_STRING", displayName : "lockingItems", selectableValues : [], multiValueType: true, readonly : true, key : false, isSystem : false, ID : "lockingItems", transientAttribute : true};
+		
+		
+		return objectDefinition;
+	}
+	
+	
+});
+
+
+/** 
+ * Specific implementation of ObjectHelper class to suite needs of webservice configuration objects 
+ * @type {WebServiceConfigurationHelper}
+ */
+exports.ObjectHelper = WebServiceConfigurationHelper;

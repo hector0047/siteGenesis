@@ -1,0 +1,113 @@
+<isif condition="${!empty(pdict.Product.custom.technicalSpecAttributes) && pdict.Product.custom.technicalSpecAttributes != 'null'}">
+	<div class="prod-specification-holder">
+		<isset name="GroupNotPresent" value="${true}" scope="page"/>
+		<h2 class="block-headline">${Resource.msg('product.lefttab3','product',null)}<span class="collapse-all-pdp toggle">Expand All</span></h2>
+		<div class="PDPFeaturecontent">
+			<ul class="block-content-ul download-specs">
+				<li class="block-content-li">
+					<div class="headblock">
+						<isset name="specsDownloadUrl" value="${URLUtils.abs('Product-DownloadSpecs', 'pid', pdict.Product.ID , 'imageUrl' , imageUrl)}" scope="page" />
+						<a href="#">
+							<isset name="ext" value="pdf" scope="page"/>
+							<div class="headicon ${ext+'-icon'}">
+								<isprint value="${ext.toUpperCase()}" />
+							</div>
+							<div class="block-info-holder" data-url="${specsDownloadUrl}" data-model="${pdict.Product.ID}">
+								<isprint value="${Resource.msg('product.viewfullspecs','product',null).toUpperCase()}" encoding="off"/>
+							</div>	
+						</a>
+					</div>
+					<div class="actionicon">
+						<a href="#">
+							<div class="block-info-holder" data-url="${specsDownloadUrl}" data-model="${pdict.Product.ID}">
+								<img src="${URLUtils.absStatic('images/downloadButton.png')}">
+							</div>
+						</a>
+					</div>
+				</li>
+			</ul>
+			<ul class="specification-holder-ul">
+				<isloop items="${pdict.Product.custom.technicalSpecAttributes.split('\n')}" var="setObj" status="loopstate">
+				
+					<isset name="Group" value="${setObj.toString().trim().split('||').indexOf('group') < 0 ? false : true }" scope="page"/>
+					<isset name="Subgroup" value="${setObj.toString().trim().split('||').indexOf('subgroup') < 0 ? false : true }" scope="page"/>
+					<isset name="SubgroupSinglePiped" value="${setObj.toString().trim().split('|').indexOf('subgroup') < 0 ? false : true }" scope="page"/>
+					<isset name="Sub" value="${setObj.toString().trim().split('|').indexOf('sub') < 0 ? false : true }" scope="page"/>
+					
+					<isif condition="${loopstate.first && !Group}">
+						<isset name="GroupNotPresent" value="${false}" scope="page"/>
+						<li class="specification-block block-1">
+							<span class="block-head">
+								<isprint value="${Resource.msg('product.moredetail','product',null).toUpperCase()}" encoding="off"/>
+								<i></i>
+							</span>
+							<div class="block-content">
+								<ul>
+					</isif>
+					<isif condition="${Group}">
+						<isif condition="${!GroupNotPresent}">
+							</ul></div></li>
+						<iselse>
+							<isset name="GroupNotPresent" value="${false}" scope="page"/>
+						</isif>
+		
+						<li class="specification-block block-1">
+							<span class="block-head">
+								<isprint value="${setObj.toString().trim().split('||')[0]}" encoding="off"/>
+								<i></i>
+								</span>
+								<div class="block-content">
+									<ul>
+													
+					<iselseif condition="${Subgroup || SubgroupSinglePiped}">
+						<li>
+							<span class="sub-group">
+								<i>
+									<isif condition="${Subgroup}">
+										<isprint value="${setObj.toString().trim().split('||')[0].toString()}" encoding="off"/>
+									<iselseif condition="${SubgroupSinglePiped}">	
+										<isprint value="${setObj.toString().trim().split('|')[0].toString()}" encoding="off"/>
+									</isif>
+								</i>
+							</span>
+						</li>	
+						
+					<iselseif condition="${Sub}">
+						<li class="subgroup-data">
+							<span class="content-head"><isprint value="${setObj.toString().trim().split('sub')[0].toString().trim().split('|')[0]}" encoding="off"/></span>
+							<span class="content-information"><isprint value="${setObj.toString().trim().split('sub')[0].toString().trim().split('|')[1]}" encoding="off"/></span>
+						</li>	
+								
+					<iselse>
+						<li>
+							<span class="content-head"><isprint value="${setObj.toString().trim().split('|')[0]}" encoding="off"/></span>
+							<span class="content-information"><isprint value="${setObj.toString().trim().split('|')[1]}" encoding="off"/></span>			
+						</li>
+			
+					</isif>
+							
+					<isif condition="${loopstate.last}"></ul></div></li></isif>
+			 
+				</isloop>
+				<iscomment> Farhans Dev team : 08-12-2015 06:46PM PANC-1547</iscomment>
+				<li class="specification-block block-1">
+				 	<isif condition="${!empty(pdict.Product.UPC)}">	
+				 		<div class="UPC-block-content">
+							<ul>
+								<li>	
+						  			<span class="block-head block-head-upc">UPC</span>
+						  			<span class="content-information upcvalue"><isprint value="${pdict.Product.UPC}" encoding="off"/></span>
+						  		</li>
+						  	</ul>
+				 		</div>
+				 	 </isif>
+				</li>
+				<iscomment> PANC-1547  END</iscomment>	
+			</ul>
+		
+			<span class="more-specification-link-holder see-all-link">
+				<a href="javascript:void(0)" class="more-specification-link new-lead-more-button"><isprint value="${Resource.msg('product.loadspecs','product',null)}"/></a>
+			</span>
+		</div>
+	</div>
+</isif>

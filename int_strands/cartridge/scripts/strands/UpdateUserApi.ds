@@ -1,0 +1,59 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *  UpdateUserApi.ds
+ *
+ *  
+ * 
+ * @input OldUser : String Previously stored user
+ * @input NewUser : String New logged user
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ */
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	if ( !('StrandsEnabled' in Site.current.preferences.custom) || !Site.current.preferences.custom.StrandsEnabled) {
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Update User Api) Strands plugin is either not present or not enabled");
+		return PIPELET_ERROR;			
+	}
+	
+	if (pdict.OldUser.length == 0 || pdict.NewUser.length == 0) {
+		pdict.ErrorCode = '852';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Update User Api) Either old user and/or new user is an empty string");
+		return PIPELET_ERROR;	 
+	}
+	
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/event/';
+	var loggingString = strandsUrl + 'userlogged.sbs?'
+			+ 'apid=' + dw.crypto.Encoding.toURI(Site.current.preferences.custom.StrandsApiID)
+			+ '&olduser=' + pdict.OldUser 
+			+ '&user=' + pdict.NewUser
+			+ '&perror=DWuserlogged';
+			
+	var eventLogging : HTTPClient = new HTTPClient();	
+	 
+	try {
+		eventLogging.setTimeout(1000);
+   		eventLogging.open("GET", loggingString);
+   		eventLogging.send();
+	} catch (e) {
+		pdict.ErrorCode = '851';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Update User Api) Request to " + loggingString + " failed: {0}", e.message);
+		return PIPELET_ERROR;
+	}	
+		
+   return PIPELET_NEXT;
+}

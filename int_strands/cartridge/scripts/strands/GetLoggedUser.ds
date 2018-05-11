@@ -1,0 +1,111 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	GetLoggedUser.ds
+ *  
+ *	This script tries to get the current user in the following order: 
+ *	first, logged user; then, via the cookie strandsSBS_P_UserId and last, via 
+ *	the cookie strandsSBS_S_UserId. If still there is no user, it will create
+ *	an anonymous user.
+ *
+ * @output User : String If user is logged, its ID, otherwise empty
+ * @output OldUser : String 
+ * @output ErrorCode : String
+ * @output ErrorLevel : String
+ */
+
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	if( ! ('StrandsEnabled' in Site.current.preferences.custom) || ! Site.current.preferences.custom.StrandsEnabled) {/* TODO ! Site.current.preferences missing */
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Logged User) Strands plugin is either not present or not enabled");		
+		return PIPELET_ERROR;
+	} 
+	
+	var user : String ="";	
+	
+	if (request.httpCookies.StrandsSBS_User) {
+		if (session.isCustomerAuthenticated()) {
+			if ('EmailId' in Site.current.preferences.custom && Site.current.preferences.custom.EmailId) {
+				user = session.getCustomer().getProfile().getEmail();
+			} else if ('EmailId' in Site.current.preferences.custom) {
+				user = session.getCustomer().getProfile().getCustomerNo();
+			}
+			
+			if (!user.equals(request.httpCookies.StrandsSBS_User.getValue())) {
+				pdict.OldUser = request.httpCookies.StrandsSBS_User.getValue();
+				setLoggedCookie(user);	
+			}
+		} else { 
+			user = request.httpCookies.StrandsSBS_User.getValue();  
+		}		
+	} else {
+		if (session.isCustomerAuthenticated()) {
+			if ('EmailId' in Site.current.preferences.custom && Site.current.preferences.custom.EmailId) {
+				user = session.getCustomer().getProfile().getEmail();
+			} else if ('EmailId' in Site.current.preferences.custom) {
+				user = session.getCustomer().getProfile().getCustomerNo();
+			}
+			setLoggedCookie(user);
+		} else {
+			user = setAnonCookie();
+		}	
+	}	
+		
+	pdict.User = user;
+
+	return PIPELET_NEXT;
+}
+
+
+function createAnonCookie() : String {		
+	return 'DW_' + (new Date()).getTime() + '_' + (Math.floor(Math.random() * 100000));	
+}
+
+function setAnonCookie() {
+	var anonCookie : String = createAnonCookie();
+	
+	var s_user : Cookie = new Cookie("strandsSBS_S_UserId", anonCookie);
+	s_user.setPath("/");
+	s_user.setMaxAge("31536000");
+	s_user.setSecure(false);
+	s_user.setVersion(0);
+	
+	var f_user : Cookie = new Cookie("StrandsSBS_User", anonCookie);
+	f_user.setPath("/");
+	f_user.setMaxAge("31536000");
+	f_user.setSecure(false);
+	f_user.setVersion(0);
+	
+	response.addHttpCookie(s_user); 
+	response.addHttpCookie(f_user);
+	
+	return anonCookie;
+}
+
+function setLoggedCookie( value : String ) {
+	var p_user : Cookie = new Cookie("strandsSBS_P_UserId", value);
+	p_user.setPath("/");
+	p_user.setMaxAge("31536000");
+	p_user.setSecure(false);
+	p_user.setVersion(0);
+	response.addHttpCookie(p_user);
+	
+	var f_user : Cookie = new Cookie("StrandsSBS_User", value);
+	f_user.setPath("/");
+	f_user.setMaxAge("31536000");
+	f_user.setSecure(false);
+	f_user.setVersion(0);
+	response.addHttpCookie(f_user);
+		
+	return;	
+}
+	

@@ -1,0 +1,44 @@
+<!--- TEMPLATENAME: table_decorator.isml --->
+
+<isset name="Decorator" value="application/menu_frame" scope="page" />
+<isif condition="${pdict.PageDecorator != null}">
+	<isset name="Decorator" value="${pdict.PageDecorator}" scope="page" />
+</isif>
+
+<isdecorate template="${Decorator}">
+	<div class="amp-module-container">
+		
+		<div class="amp-module-header">
+		</div>
+		
+		<div class="amp-module-navigation">
+			<ul class="tabs-container clearfix">
+				<isif condition="${pdict.PageTabs != null}">
+					<isloop items="${pdict.PageTabs}" var="tab">
+						<li class="${(pdict.ActiveTab == tab.id) ? 'selected' : ''}">
+							<a href="${tab.url}">${tab.displayName}</a>
+						</li>
+					</isloop>
+				</isif>
+			</ul>
+		</div>
+		
+		<div class="amp-module-body">
+			
+			<isif condition="${pdict.ActiveTab != 'grouped_streams'}">
+				<isinclude template="bm/simple_search" />
+			</isif>
+			
+			<div class="table-container">
+				<isreplace/>
+			</div>
+			
+			<div class="modal"></div>
+		</div>
+	</div>
+	
+	
+	<script src="${URLUtils.absStatic('/js/jquery-ui.min.js')}" type="text/javascript"></script>
+	<script src="${URLUtils.absStatic('/js/amp.js')}" type="text/javascript"></script>
+	<script type="text/javascript"><isinclude template="resources/ampresources"/></script>
+</isdecorate>

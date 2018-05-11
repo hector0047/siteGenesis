@@ -1,0 +1,256 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*  	 	@input  Basket 					    : dw.order.Basket
+*		@input  OldQuantity 	            : String
+*		@input  CurrentLineItemProduct   	: dw.catalog.Product
+*		
+*-   @output ExampleOut : Number
+*
+*/
+ importPackage( dw.system );
+ importPackage( dw.web );
+ importPackage( dw.value );
+ importPackage( dw.util );
+ importPackage( dw.order );
+ importPackage( dw.campaign );
+ importPackage( dw.catalog );
+ importPackage( dw.customer );
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+  	// ===================================================
+	// =====     	PROCESS INPUT PARAMETERS 		 =====
+    // ===================================================
+
+	var basket 				   : Basket  = args.Basket;
+	var OldQuantity			   : String  = args.OldQuantity;
+	var CurrentLineItemProduct : Product = args.CurrentLineItemProduct;
+	
+	
+	// ===================================================
+	// =====   UPDATE WARRANTY PRODUCTLINEITEMS      =====
+    // ===================================================
+
+	try{
+		if(!empty(CurrentLineItemProduct.getPrimaryCategory()) && CurrentLineItemProduct.getPrimaryCategory().ID == "warranty"){
+			updateWarrantyLineItem(basket,OldQuantity,CurrentLineItemProduct);
+		}else{
+			updateMainLineItem(basket,OldQuantity,CurrentLineItemProduct);
+		}
+		return PIPELET_NEXT;
+	}catch(e){
+	    Logger.error("Error while executing the script UpdateWarrantyFromCart.ds  Error : "+e.message);
+		return PIPELET_NEXT;
+	}
+	
+}
+
+/**
+ * FUNCTION: updateWarrantyLineItem
+ *
+ * Updates the warranty line items based upon the squaretrade selection
+ * 
+ */
+function updateWarrantyLineItem(basket:Basket,OldQuantity: String,CurrentLineItemProduct:Product)
+{
+	
+	var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+	while(productLineItems.hasNext())
+	{
+		var productLineItem : ProductLineItem = productLineItems.next();
+	
+		var product : Product = productLineItem.product;
+		var associationString : String ="";
+		var newAssociationString : String ="";
+		var flag : Boolean = false;
+		if((product.ID == CurrentLineItemProduct.ID) && (productLineItem.quantityValue < (new Number(OldQuantity)))){
+			
+				//Quantity difference
+				
+				var qdifference : Number = (new Number(OldQuantity))-productLineItem.quantityValue;
+				
+				
+				//Check if attribute string is present or not
+				if('coveredProducts' in productLineItem.custom && !empty(productLineItem.custom.coveredProducts)){
+					associationString = productLineItem.custom.coveredProducts;
+					
+				}
+				
+				if(associationString.length != 0){
+			
+					//Iterate all line aitems for setting quantity
+					for each(var stringObj : String in associationString.split(",")){
+						
+						var pid : String = stringObj.split(":")[0].toString().trim();
+						var pquantity : Number = new Number(stringObj.split(":")[1].toString().trim());
+					
+									if((qdifference < pquantity) || (qdifference == pquantity)){
+										pquantity = pquantity-qdifference;
+										qdifference = 0;
+										flag = true; 
+									}else{
+										qdifference = qdifference-pquantity;
+										
+									}
+					    if(pquantity > 0 && flag){
+					    	if(newAssociationString.length != 0){
+								newAssociationString = newAssociationString.trim().concat(",").concat(pid.concat(":").concat(pquantity));
+							}else{
+								newAssociationString = newAssociationString.trim().concat(pid.concat(":").concat(pquantity));
+							}
+					    }
+					
+					}
+					
+				updateAssociationStringInProductLineItem(newAssociationString,productLineItem);	
+					
+			}
+	   }
+
+    }
+}
+
+/**
+ * FUNCTION:updateMainLineItem
+ *
+ * 
+ * 
+ */
+function updateMainLineItem(basket:Basket,OldQuantity:String,CurrentLineItemProduct:Product)
+{
+	
+	var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+	var qdifference : Number = 0;
+	var status : Boolean = false;
+	var currentProductLineItem : ProductLineItem = getCurrentProductLineItem(basket,CurrentLineItemProduct);
+	while(productLineItems.hasNext())
+	{
+		var productLineItem : ProductLineItem = productLineItems.next();
+		var product : Product = productLineItem.product;
+		var associationString : String ="";
+		var newAssociationString : String ="";
+		if((!empty(product.getPrimaryCategory())) && (product.getPrimaryCategory().ID == 'warranty') && (currentProductLineItem.quantityValue < (new Number(OldQuantity))))
+		{
+				
+				//Check if attribute string is present or not
+				if('coveredProducts' in productLineItem.custom && !empty(productLineItem.custom.coveredProducts)){
+					associationString = productLineItem.custom.coveredProducts;
+					
+				}
+				
+				//Difference
+				if(qdifference > 0){
+						qdifference = qdifference;
+				}else{
+					if(!status){
+						qdifference = (new Number(OldQuantity))-currentProductLineItem.quantityValue;
+					}
+				}
+		
+				if((associationString.length != 0) && (checkMainProductInCoveredProductString(associationString,CurrentLineItemProduct.ID)) && (qdifference > 0)){
+			
+						
+					    for each(var stringObj : String in associationString.split(",")){
+					 	
+											var pid : String = stringObj.split(":")[0].toString().trim();
+											var pquantity : Number = new Number(stringObj.split(":")[1].toString().trim());
+											if(pid == CurrentLineItemProduct.ID){
+														if((qdifference < pquantity) || (qdifference == pquantity)){
+															pquantity = pquantity-qdifference;
+															qdifference = 0;
+															status = true;
+														}else{
+															qdifference = qdifference-pquantity;
+														}
+											}else{
+												if(!status){
+													if(newAssociationString.length != 0){
+														newAssociationString = newAssociationString.trim().concat(",").concat(pid.concat(":").concat(pquantity));
+													}else{
+														newAssociationString = newAssociationString.trim().concat(pid.concat(":").concat(pquantity));
+													}
+												}
+											}
+												
+								      if(pquantity > 0 && status){
+								    	if(newAssociationString.length != 0){
+											newAssociationString = newAssociationString.trim().concat(",").concat(pid.concat(":").concat(pquantity));
+										}else{
+											newAssociationString = newAssociationString.trim().concat(pid.concat(":").concat(pquantity));
+										}
+								     }
+										
+								}
+					  //Finally append the string in productline item custom attribute
+					  updateAssociationStringInProductLineItem(newAssociationString,productLineItem);	
+					   
+					}
+							
+			
+			
+				}
+			
+		
+		}
+		
+	}
+
+//function check main product in custom string or not	
+function checkMainProductInCoveredProductString(AssociationString:String,MainProductID:String){
+	var status : Boolean = false;
+	if(AssociationString.length != 0){
+		for each(var str : String in AssociationString.split(",")){
+			if(str.split(":")[0].toString() == MainProductID){
+				status = true;
+				break;
+			}	
+			
+		}
+	}
+ return status;
+}	
+	
+	
+//function getCurrentProductLineItem
+function getCurrentProductLineItem(basket:Basket,MainProduct:Product){
+	var status : ProductLineItem = null;
+
+	var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+	while(productLineItems.hasNext())
+	{
+		var productLineItem : ProductLineItem = productLineItems.next();
+		var product : Product = productLineItem.product;
+		if(product.ID == MainProduct.ID)
+		{
+			status = productLineItem;
+			break;
+		}
+	}
+ return status;
+}	
+	
+//update association string in productlineitem
+function updateAssociationStringInProductLineItem(AssociationString:String,productLineItem:ProductLineItem){
+	
+				if(AssociationString.length != 0){
+				    productLineItem.custom.coveredProducts = AssociationString;
+				}else{
+					productLineItem.custom.coveredProducts = null;
+				}
+	
+}	
+	 
+

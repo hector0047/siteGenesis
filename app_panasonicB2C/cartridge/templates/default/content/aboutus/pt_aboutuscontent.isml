@@ -1,0 +1,105 @@
+<!--- TEMPLATENAME: pt_aboutuscontent.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+	<isscript>var pageContext={title:'Content Search Results',type:'search',ns:'search'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="search/pt_contentsearchresult_UI"/>
+	
+	<iscomment>Add template-specific header information here.</iscomment>	
+	<script src="${URLUtils.absStatic('/lib/slick/slick.min.js')}"></script>	
+	<script src="${URLUtils.absStatic('/lib/colorbox/jquery.colorbox-min.js')}"></script>	
+
+<isscript>  
+  importScript( "util/ViewHelpers.ds" );
+</isscript>
+<link rel="stylesheet" href="${URLUtilsHelper.makeRelative(URLUtils.httpsStatic('/css/aboutus-fonts.css'))}"  type="text/css" rel="stylesheet" />
+
+	<link href="${URLUtils.absStatic('/lib/slick/slick.css')}" type="text/css" rel="stylesheet"/>	
+	<link href="${URLUtils.absStatic('/lib/slick/slick-theme.css')}" type="text/css" rel="stylesheet"/>	
+	<link href="${URLUtils.absStatic('/lib/colorbox/colorbox.css')}" type="text/css" rel="stylesheet"/>	
+	<link href="${URLUtils.absStatic('/css/aboutus.css')}" type="text/css" rel="stylesheet"/>	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_content-search-result">
+
+		<isif condition="${'AboutUsPage' in this && AboutUsPage}">
+			<isinclude template="content/aboutus/aboutheader.isml"/>
+			<!-- isinclude url="${URLUtils.url('AboutUs-IncludeHeader')}"/ -->
+		<iselse>
+			<isinclude url="${URLUtils.url('Home-IncludeHeader')}"/>
+		</isif>
+
+		<div id="main" role="main" class="page-content clearfix">		
+			<isreplace/>
+		</div>
+
+		<isinclude template="components/footer/footer"/>
+
+		<isinclude template="search/pt_contentsearchresult_VARS"/>
+		
+	</div>
+
+<script>
+
+function VideoLightboxContent(link) {
+	var currentYoutubeId = $(link).attr('data-youtubeid'),
+		currentTitle = $(link).attr('data-title'),
+		currentDescription = $(link).attr('data-description');
+	var html = $('<div class="video-lightbox-player">');
+	var currentVideo = $('<div class="video-lightbox-player__current-video">');
+	var videoPlaylist = $('<div class="video-lightbox-player__playlist">');
+	var videos = $('a.video-lightbox');
+	var video,
+		videoId,
+		videoThumbnail,
+		videoTitle,
+		videoDescription,
+		activeClass;
+	
+	videos.each(function(index) {
+		if ($(this).attr('data-youtubeid') == currentYoutubeId) {
+			currentVideo.append('<div class="video-lightbox-player__current-video__caption"><h3 class="video-lightbox-player__current-video__title">' + currentTitle + '</h3><p>' + currentDescription + '</p></div>');
+			currentVideo.append('<iframe width="600" height="338" src="https://www.youtube.com/embed/' + currentYoutubeId + '?autoplay=1&amp;rel=0" frameborder="0" allowfullscreen></iframe>');
+			activeClass = 'active';
+		} else {
+			activeClass = '';
+		}
+		// 0.5628571429
+		videoId = $(this).attr('data-youtubeid');
+		videoTitle = $(this).attr('data-title');
+		videoDescription = $(this).attr('data-description');
+		videoThumbnail = $('<a href="#" class="video-lightbox-player__playlist__item ' + activeClass + '" data-youtubeid="' + videoId + '" data-title="' + videoTitle + '" data-description="' + videoDescription + '">');
+		videoThumbnail.append($('img', this).clone());
+		videoThumbnail.append('<span class="video-lightbox-player__playlist__item__title">' + videoTitle + '</span>');
+		videoPlaylist.append(videoThumbnail);
+	});
+	html.append(currentVideo);
+	html.append(videoPlaylist);
+	return html;
+}
+
+$( document ).ready(function() {
+	$( "a.video-lightbox" ).on('click', function(event) {
+		event.preventDefault();
+		$.colorbox({'innerWidth':'664px','reposition':true,'html':VideoLightboxContent(event.delegateTarget)});	
+		//$.colorbox({'html':VideoLightboxContent(event.delegateTarget)});	
+	});
+	
+	$( "body" ).on('click', 'a.video-lightbox-player__playlist__item', function(event) {
+		event.preventDefault();
+		$.colorbox({'innerWidth':'664px','reposition':true,'html':VideoLightboxContent(event.currentTarget)});	
+	});
+});
+</script>	
+</body>
+</html>

@@ -1,0 +1,154 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24" varyby="price_promotion"/>
+<isset name="isQuickView" value="${pdict.CurrentHttpParameterMap.source.stringValue == 'quickview' || pdict.CurrentHttpParameterMap.source.stringValue == 'cart' || pdict.CurrentHttpParameterMap.source.stringValue == 'giftregistry' || (pdict.CurrentHttpParameterMap.source.stringValue == 'wishlist' && empty(pdict.CurrentHttpParameterMap.format))}" scope="page"/>
+
+<isif condition="${('PixleeApiKey' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.PixleeApiKey )}">
+	<input type="hidden" class="pixleeapikey" name="pixleeapikey" value="${dw.system.Site.current.preferences.custom.PixleeApiKey}">
+</isif>
+
+<isif condition="${('PixleeAlbumId' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.PixleeAlbumId )}">
+	<input type="hidden" class="pixleealbumid" name="pixleealbumid" value="${dw.system.Site.current.preferences.custom.PixleeAlbumId}">
+</isif>
+
+<isobject object="${pdict.Product}" view="detail">
+	<div id="pdpMain" class="pdp-main pnsb2c-pdp-main"  itemscope itemtype="http://schema.org/Product">				
+		<iscomment>Image and variation options are part of the include template</iscomment>
+		
+		<div class="pnsb2c-pdp-right">	
+		 <!-- Below first condition will always false because panasonic doesn't have any product set or product bundle -->	
+			<isif condition="${pdict.Product.productSet || pdict.Product.bundle && false }">
+				<isinclude template="product/producttopcontentPS" />			
+			</isif>
+			
+			<div id="ReviewsSubmissionContainerWrapper">
+	   	 		<div id="BVSubmissionContainer"></div>
+			</div>
+ 							
+	 		<isinclude template="product/producttopcontent" />
+	 		<isif condition="${!isQuickView}">	
+				<div class="pdp-hideborder-class"></div>
+				<div class="pdp-left-load <isif condition="${isQuickView}">hide</isif>">
+					<isinclude template="product/pdpleftcontent"/>
+				</div>
+				
+				<isif condition="${(!empty(pdict.Product.custom.isGallery) && (pdict.Product.custom.isGallery != 'null') && (pdict.Product.custom.isGallery) )}">
+		         	<div class="gallery-block" id="pnsb2c-pdp-gallery">
+		          		<isif condition="${'LazyLoadGallery' in dw.system.Site.current.preferences.custom && !(dw.system.Site.current.preferences.custom.LazyLoadGallery)}">
+		           			<isinclude template="product/components/gallery"/>
+		          		</isif>
+		         	</div> 
+		        </isif>
+				<isif condition="${!empty(pdict.Product.custom.overview) && pdict.Product.custom.overview != 'null' && !pdict.Product.custom.supportOnly}"> 
+						
+					<isif condition="${'isLegacyOverviewSection' in pdict.Product.custom && pdict.Product.custom.isLegacyOverviewSection}">
+							<div class="pdplazyloadstopped-features-holder legacy-product">
+								<div class="features-block" id="pnsb2c-pdp-feature">
+									<isinclude template="product/components/productfeatures"/>
+								</div>
+							</div>
+					<iselse/>
+						<div class="pdplazyloadstopped-features-holder">
+							<div class="features-block" id="pnsb2c-pdp-feature">
+								<isinclude template="product/components/productfeatures"/>
+							</div>
+						</div>
+					</isif>
+				</isif>
+				
+				<iscomment>************JIRA 1165*******************</iscomment>
+				<iscomment>
+					<isif condition="${('pdpShowCompare' in pdict.Product.custom && pdict.Product.custom.pdpShowCompare)}">
+						<div class="" id="pnsb2c-pdp-specifications">
+							<isinclude template="product/components/productcompare" />
+						</div>	
+					</isif>
+				</iscomment>
+				
+				<isif condition="${(!empty(pdict.Product.custom.technicalSpecAttributes) && pdict.Product.custom.technicalSpecAttributes != 'null')}">
+					<div class="specifications-block" id="pnsb2c-pdp-specifications">
+						<isinclude template="product/components/productspecifications"/>
+					</div>	
+				</isif>	
+				<iscomment>PANC-1526 moving awards up</iscomment>
+				<isif condition="${(!empty(pdict.ProductOwnerImages) && pdict.ProductOwnerImages != 'null')}">
+						<div class="awards-block"  id="pnsb2c-pdp-awards">
+							<isif condition="${'LazyLoadAwards' in dw.system.Site.current.preferences.custom && !(dw.system.Site.current.preferences.custom.LazyLoadAwards)}">
+								<isinclude template="product/components/productawards"/>
+							</isif>
+						</div>	
+				</isif>
+				<isif condition="${!(pdict.Product.productSet)}">
+					<isif condition="${empty(pdict.CurrentHttpParameterMap.hidereviews.stringValue)}">
+					<div class="product-reviews-tabs pdp-reviews-block" id="pdp-reviews-block">
+						<div class="pnsb2c-pdp-BVreviews-wrapper">
+							<h2 class="block-headline" id="pdp-reviews-block">
+								<isprint value="${Resource.msg('product.lefttab6','product',null)}" encoding="off"/>
+							</h2>
+							<div class="PDPFeaturecontent"><isinclude template="bv/display/rr/reviews"/></div>
+						</div>	
+					</div>
+					</isif>
+				</isif>
+				<iscomment>Fix for : PANC-676</iscomment>
+				<isif condition="${(('enableDWRecommendations' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableDWRecommendations && !empty(pdict.productset) && pdict.productset != 'null') || ('StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled && !empty(pdict.Response) && pdict.Response != 'null'))}">
+						<div class="accessories-block"  id="pnsb2c-pdp-accessesories">
+							<isif condition="${'LazyLoadAccessories' in dw.system.Site.current.preferences.custom && !(dw.system.Site.current.preferences.custom.LazyLoadAccessories)}">
+								<isinclude template="product/components/productaccessories"/>
+							</isif>
+						</div>	
+				</isif>
+												
+				<iscomment>Energy Rating PANC-1309 | Attribute: "energyRating"</iscomment>
+				<iscomment>
+					<isif condition="${'energyRating' in pdict.Product.custom  && !empty(pdict.Product.custom.energyRating)}">
+						<div class="energyrating-block"  id="pnsb2c-pdp-energyrating">	
+								<isinclude template="product/components/productenergyrating"/>
+						</div>	
+					</isif>
+				</iscomment>
+					
+				<iscomment>
+					<isif condition="${((!empty(pdict.OwnerShipUrls) && pdict.OwnerShipUrls != 'null') || (!empty(pdict.WarrentyUrls) && pdict.WarrentyUrls != 'null'))}">
+						<div class="ownership-block"  id="pnsb2c-pdp-ownership">
+								<isinclude template="product/components/productownership"/>
+						</div>	
+					</isif>
+				 </iscomment>
+					<!-- product support isml -->
+				
+				<div class="product-support-block" id="pnsb2c-pdp-support">
+					<isinclude template="product/components/productsupport"/>
+				</div>
+				
+				<iscomment>Strands recommendations</iscomment>
+				<isif condition="${('StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled )}">
+					<div class="recommendation-block desktopBlock">
+						<iscomment><isinclude template="product/components/productrecommendations"/></iscomment>
+						<isinclude url="${URLUtils.url('Strands-Recommendations' , 'pid' , pdict.Product.ID)}"/>
+					</div>
+				</isif>	
+	 		</isif>
+		</div>
+		
+		<isif condition="${!('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)  && !empty(pdict.lazyURL)}">
+			<div class="lazyload-placeholder-variation hide" data-placeholder="${pdict.lazyURL}"></div>
+		</isif>
+	</div><!--/pdpMain -->
+	<iscomment>Pixlee PDP
+	<isinclude template="widgets/pdpwidget.isml"/></iscomment>
+	<isif condition="${!isQuickView}">	
+		<iscomment> PANC-1272  Farhan's Dev team 22-sep-2015 11:20am IST </iscomment>
+		<img src="${URLUtils.staticURL('/images/panasonic-logo.jpg')}" alt="Panasonic USA" class="flLeft hide">
+		<script src="${URLUtils.absStatic('/js/bvreview-dialog.js')}"></script>
+		<iscomment> END </iscomment>
+	</isif>
+	<script type="text/javascript">
+		$BV.ui("rr", "show_reviews", {
+		    productId: "${pdict.Product.ID}"
+		});
+	</script>
+</isobject>
+
+<isif condition="${'EnableEnsighten' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.EnableEnsighten}">
+	<iscomponent pipeline="EnsightenFooterInjection-AJAXStart" ens_ajax_id="Product Quickview" pid="${pdict.CurrentHttpParameterMap.pid.stringValue}" />
+</isif>

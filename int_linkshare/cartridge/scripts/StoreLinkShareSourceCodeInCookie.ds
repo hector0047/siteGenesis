@@ -1,0 +1,46 @@
+/*
+* StoreLinkShareSourceCodeInCookie.ds
+*
+*
+*
+*	@input  SourceCode 		: String
+*	@input  SiteId			: String
+*	@input  CurrentDomain 	: String
+*   
+*   
+*	
+*	
+*
+*/ 
+importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.web);
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var srcStatus  : Boolean = storeCookie("src",args.SourceCode,args.CurrentDomain);
+	var siteStatus : Boolean = storeCookie("siteID",args.SiteId,args.CurrentDomain);
+	return PIPELET_NEXT;
+}
+function storeCookie(cname:String,cvalue:String,cdomain:String)
+{
+	var status : Boolean = false;
+	try{
+		//Storing source code in cookies
+			var f_user : Cookie = new Cookie(cname,StringUtils.trim(cvalue.toString())); 
+				f_user.setPath("/");
+				//setting cookie for 2 years
+				f_user.setMaxAge("63072000");
+				f_user.setSecure(false);
+				f_user.setDomain(cdomain);
+				f_user.setVersion(0);
+				response.addHttpCookie(f_user);
+		    	status =  true;
+     
+	}catch(e){
+		Logger.error("Error while executing the script StoreLinkShareSourceCodeInCookie.ds  Error : "+e.message);
+		status =  false;
+	}
+  return status;
+}

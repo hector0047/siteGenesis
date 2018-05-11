@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19" secure="true">
+
+	<field formid="firstName"  label="profile.firstname" type="string" mandatory="true" />
+	<field formid="lastName"  label="profile.lastname" type="string" mandatory="true" />
+	<field formid="address1"  label="forms.address1" type="string" mandatory="true" />
+	<field formid="address2"  label="forms.address2" type="string" mandatory="false" />
+	<field formid="city" label="forms.city" type="string" mandatory="true" />
+	<include formid="states" name="states"/>
+	
+	<field formid="postal" label="forms.zipcode" type="string" mandatory="true" binding="postalCode" missing-error="forms.errorzip" min-length="5" max-length="10" regexp="(^\d{5}(-\d{4})?$)|(^[abceghjklmnprstvxyABCEGHJKLMNPRSTVXY]{1}\d{1}[A-Za-z]{1} *\d{1}[A-Za-z]{1}\d{1}$)"/>
+	<field formid="postalUS" label="forms.zipcode" type="string" mandatory="true" binding="postalCode" missing-error="forms.errorzip"/>
+	<field formid="postalCA" label="forms.postalcode" type="string" mandatory="true" binding="postalCode" missing-error="forms.errorpostal"/>
+	<field formid="postalDE" label="forms.postalcode" type="string" mandatory="true" binding="postalCode" missing-error="forms.errorpostal"/>
+	
+	<field formid="phone" label="profile.phone"  type="string" mandatory="true" binding="phone" max-length="16" missing-error="forms.address.phone.missing" range-error="forms.address.field.invalid" />
+	<action formid="submitForm" valid-form="false"/>
+	<action formid="validatessr" valid-form="true"/> 
+
+</form>

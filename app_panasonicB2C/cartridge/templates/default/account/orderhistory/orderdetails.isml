@@ -1,0 +1,25 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/orderhistory/pt_orderhistory">
+<isinclude template="util/modules"/>
+
+	<isif condition="${!empty(pdict.Order)}">
+		<isset name="orderType" value="${pdict.Order instanceof dw.order.Order ? 'DW' : 'Service'}" scope="page" />		
+		<isif condition="${orderType === 'DW'}">
+			<isorderdetailsdw order="${pdict.Order}" orderstatus="true"/>
+		<iselse/>	
+			<isorderdetailsservice order="${pdict.Order}" orderstatus="true"/>
+		</isif>	
+	<iselse/>	
+		<isif condition="${pdict.CurrentCustomer.authenticated}">
+			<div class="back">
+				<a href="${URLUtils.https('Order-History')}" title="${Resource.msg('orderdetails.returnorder','account',null)}">
+					${Resource.msg('orderdetails.returnorder','account',null)}
+				</a>
+			</div>
+		</isif>
+		<div class="not-found">
+			${Resource.msg('orders.notfound','account',null)}
+		</div>
+	</isif>
+	
+</isdecorate>

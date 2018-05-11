@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="Subscribe">
+    <segment>
+      <node>
+        <start-node name="Subscribe" secure="false"/>
+        <node-display x="1" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="CurrentCustomer.authenticated" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="true"/>
+                <key-binding alias="CurrentForms.billing.billingAddress.addToEmailList.value || CurrentHttpParameterMap.optin.booleanValue" key="From_0"/>
+                <key-binding alias="CurrentSession.privacy.marketo_optin" key="To_0"/>
+                <key-binding alias="CurrentHttpParameterMap.optin.booleanValue" key="From_1"/>
+                <key-binding alias="CurrentCustomer.profile.custom.isSubscription" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <key-binding alias="CurrentHttpParameterMap.optin.booleanValue" key="From_0"/>
+          <key-binding alias="CurrentSession.privacy.marketo_optin" key="To_0"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="1" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="pipelets/MarketoEmailSubscriptionForBilling.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="CurrentHttpParameterMap.email.value" key="CurrentHttpParameterMap"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoEndpointURL&quot;)" key="MarketoEndpointUrl"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoAuthToken&quot;)" key="AccessToken"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoClientId&quot;)" key="marketoClientId"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoSecretKey&quot;)" key="marketoClientSecretKey"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoEndpointURL&quot;)" key="marketoEndpointUrl"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;marketoAuthTokenEndPointURL&quot;)" key="marketoTokenEndpointUrl"/>
+          <key-binding alias="CurrentHttpParameterMap.email.stringValue || CurrentForms.profile.customer.email.value || CurrentForms.billing.billingAddress.email.emailAddress.value" key="email"/>
+          <key-binding alias="CurrentForms.profile.customer.firstname.value" key="firstName"/>
+          <key-binding alias="CurrentForms.profile.customer.age.value" key="agegroup"/>
+          <key-binding alias="CurrentForms.profile.customer.age.value" key="age"/>
+          <key-binding alias="CurrentForms.profile.customer.email.value" key="profile"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.email.emailAddress.value" key="billing"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.address1.value" key="baddress1"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.address2.value" key="baddress2"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.city.value" key="bcity"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.firstName.value" key="bfirstname"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.lastName.value" key="blastname"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.phone.value" key="bphone"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.address1.value" key="bstate"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addressFields.postal.value || CurrentForms.billing.billingAddress.addressFields.postalUS.value || CurrentForms.billing.billingAddress.addressFields.postalCA.value || CurrentForms.billing.billingAddress.addressFields.postalDE.value" key="bzipcode"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.address1.value" key="saddress1"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.address2.value" key="saddress2"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.city.value" key="scity"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.firstName.value" key="sfirstname"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.lastName.value" key="slastname"/>
+          <key-binding alias="CurrentForms.singleshipping.shippingAddress.addressFields.states.value" key="sstate"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addToEmailList.value" key="optflag"/>
+          <key-binding alias="CurrentHttpParameterMap.first.stringValue" key="firstname"/>
+          <key-binding alias="CurrentHttpParameterMap.last.stringValue" key="lastname"/>
+          <key-binding alias="CurrentForms.profile.customer.addtoemaillist.value" key="optfin"/>
+          <key-binding alias="CurrentForms.billing.billingAddress.addToEmailList.value || CurrentHttpParameterMap.optin.booleanValue" key="optin"/>
+          <key-binding alias="CurrentHttpParameterMap.shopPCECmember?CurrentHttpParameterMap.shopPCECmember.booleanValue:''" key="shopPCEmember"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Eval" pipelet-set-identifier="bc_api">
+                <config-property key="OnError" value="null"/>
+                <config-property key="Transactional" value="true"/>
+                <config-property key="Expression" value="dw.system.Logger.info(&quot;STEP3:FAILURE&quot;)"/>
+                <key-binding alias="Result" key="Result"/>
+              </pipelet-node>
+              <node-display x="2" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <decision-node condition-key="CurrentHttpParameterMap.format.stringValue == 'ajax'" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <interaction-node transaction-required="false">
+                      <template buffered="true" dynamic="false" name="util/errorjson"/>
+                    </interaction-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="0" y="-1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <end-node name="error"/>
+              <node-display x="1" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Eval" pipelet-set-identifier="bc_api">
+          <config-property key="OnError" value="null"/>
+          <config-property key="Transactional" value="true"/>
+          <config-property key="Expression" value="dw.system.Logger.info(&quot;STEP3:SUCCESS&quot;)"/>
+          <key-binding alias="Result" key="Result"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="CurrentHttpParameterMap.format.stringValue == 'ajax'" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <interaction-node transaction-required="false">
+                <template buffered="true" dynamic="false" name="util/successjson"/>
+              </interaction-node>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="success"/>
+        <node-display x="1" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

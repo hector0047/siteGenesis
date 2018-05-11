@@ -1,0 +1,31 @@
+<iscontent type="multipart/mixed; boundary=------------000001030701020908040700" compact="false">
+
+<isscript>
+	importPackage( dw.io );
+	importPackage( dw.util );
+	var path : String = pdict.csvreportpath;
+	var csvfile : File = new File(path);
+	var fileReader : FileReader = new FileReader(csvfile, "UTF-8");
+	var readLine : String = "";
+	var allLine : String = "";
+	do {
+		readLine = fileReader.readLine();
+		if (readLine != null) {
+			allLine = allLine + readLine + "\n" 
+		}
+	} while (readLine != null);
+	
+	fileReader.close();
+	
+</isscript>
+
+--------------000001030701020908040700
+
+The automated daily price spider report for ${pdict.dateTime} is attached.
+
+--------------000001030701020908040700
+Content-Description: "PriceSpider Report"
+Content-Disposition: attachment; filename=${pdict.filenm};
+${allLine}
+
+--------------000001030701020908040700--

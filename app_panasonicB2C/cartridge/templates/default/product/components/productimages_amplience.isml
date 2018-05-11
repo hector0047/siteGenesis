@@ -1,0 +1,97 @@
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	importScript("util/GetAmplienceImageUrl.ds");
+</isscript>
+<isif condition="${pdict.Product.master && pdict.CurrentVariationModel}">
+	<isset name="colorVA" value="${pdict.CurrentVariationModel.getProductVariationAttribute('color')}" scope="page"/>
+	<isif condition="${colorVA && pdict.CurrentVariationModel.getSelectedValue(colorVA)}">
+		<isset name="imageProduct" value="${pdict.CurrentVariationModel.getSelectedValue(colorVA)}" scope="page"/>
+	<iselseif condition="${pdict.CurrentVariationModel.defaultVariant}">
+		<isset name="imageProduct" value="${pdict.CurrentVariationModel.defaultVariant}" scope="page"/>
+	<iselseif condition="${pdict.CurrentVariationModel.variants.size() > 0}">
+		<isset name="imageProduct" value="${pdict.CurrentVariationModel.variants[0]}" scope="page"/>
+	</isif>
+	<isif condition="${!imageProduct}">
+		<isset name="imageProduct" value="${pdict.Product}" scope="page"/>
+	</isif>
+<iselse>
+	<isset name="imageProduct" value="${pdict.Product}" scope="page"/>
+</isif>
+<isset name="badgeProduct" value="${pdict.Product}" scope="page"/>
+<isif condition="${!badgeProduct.master && !empty(badgeProduct.variationModel) && !empty(badgeProduct.variationModel.master)}">
+	<isset name="badgeProduct" value="${badgeProduct.variationModel.master}" scope="page"/>	
+</isif>
+<!-- Commented below code as badge mapping is not required in panasonic -->
+<iscomment>
+<isset name="badgeMapping" value="${('badgeMapping' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.badgeMapping)?JSON.parse(dw.system.Site.current.getCustomPreferenceValue('badgeMapping').toString():'')}" scope="page"/>
+
+
+	<div class="badge-icons">
+		<isif condition="${badgeProduct.custom.isNew && dw.system.Site.current.getCustomPreferenceValue('badgeEnable')}">					
+			<img class="status-new" src="${URLUtils.staticURL(URLUtils.CONTEXT_LIBRARY, null, badgeMapping.pdpnewBadge)}" alt="isnew">		
+		</isif>
+		
+		<isif condition="${badgeProduct.custom.isSale && dw.system.Site.current.getCustomPreferenceValue('badgeEnable')}">
+			<img class="status-onsale" src="${URLUtils.staticURL(URLUtils.CONTEXT_LIBRARY, null, badgeMapping.pdpsaleBadge)}" alt="issale">		
+		</isif>	
+	</div>
+</iscomment>
+
+<isset name="mainImage" value="${ProductImage.getImage('pdpmainimage430X334', imageProduct, 0)}" scope="page"/>
+<isif condition="${!empty(mainImage)}">
+	<isset name="imageUrl" value="${mainImage.getURL()}" scope="page"/>
+	<isset name="imageAlt" value="${mainImage.alt}" scope="page"/>
+	<isset name="imageTitle" value="${mainImage.title}" scope="page"/>
+<iselse/>
+	<isset name="imageUrl" value="${URLUtils.staticURL('/images/noimagemedium.png')}" scope="page"/>
+	<isset name="imageAlt" value="${pdict.Product.name}" scope="page"/>
+	<isset name="imageTitle" value="${pdict.Product.name}" scope="page"/>
+</isif>
+
+<isscript>
+ var mediaSet : String = getMediaSet(imageProduct);  
+ var mediaSetObject : Object = getMediaSetObject(mediaSet); 
+</isscript>
+
+<isif condition="${!empty(mediaSet)}">
+	<div class="product-primary-image">
+	<span class="visually-hidden">Images</span>			
+	<a href="${mediaSetObject.items[0].src}?$PDP-Zoom-Image-Desktop$" target="_blank" class="product-image main-image" title="${imageTitle}">
+		<img itemprop="image" class="primary-image" src="${mediaSetObject.items[0].src}?$PDP-Hero-Image-Desktop$" alt="${mediaSetObject.items[0].src}?$PDP-Hero-Image-Desktop$" title="${imageTitle}"/>
+	</a>
+</div>
+
+<div id="thumbnails" class="product-thumbnails">		
+	<iscomment><h2>${Resource.msg('productthumbnails.title','product',null)}</h2></iscomment>
+	<ul id="pdp-aleternative-images" class="horizontal-carousel">
+		<isloop items="${mediaSetObject.items}" var="img" status="imgSmStatus">
+			<isif condition="${!(img.videoid)}">
+				<li class="thumb${imgSmStatus.first ? ' selected' : ''}">
+					<isset name="hi_res" scope="page" value="${img.src}?$PDP-Zoom-Image-Desktop$" />
+					<isset name="href" scope="page" value="${'href="'+hi_res+'" target="_blank"'}" />
+					<a ${href} class="thumbnail-link">
+						<img class="productthumbnail" src="${img.src}?$PDP-Carousel-Thumbnail-Desktop$" alt="${img.src}?$PDP-Carousel-Thumbnail-Desktop$" title="${pdict.Product.name}${img.title}" data-lgimg='{"url":"${img.src}?$PDP-Hero-Image-Desktop$", "title":"<isprint value="${"carouselimage"}" encoding="on"/>", "alt":"<isprint value="${"carouselimage"}" encoding="on"/>", "hires": "${img.src}?$PDP-Zoom-Image-Desktop$" , "is_video":"0"}' />								 
+					</a>
+				</li>
+			<iselse>
+				<li class="thumb">
+					<a href="javascript:void(0)" class="thumbnail-link video-link">
+						<span class="video-thumb"></span>
+						<isset name="tpath" value="${'http://img.youtube.com/vi/'+ img.videoid + '/default.jpg'}" scope="page"/>
+						<isset name="videopath" value="${'http://www.youtube.com/embed/'+ img.videoid }" scope="page"/>
+						<isset name="bigthumbnailpath" value="${'http://img.youtube.com/vi/'+ img.videoid + '/0.jpg'}" scope="page"/>						
+						<img src="${tpath}" data-lgimg='{"url":"${bigthumbnailpath}", "title":"<isprint value="${videoItem[0].trim()}" encoding="on"/>", "alt":"<isprint value="${lgImage.alt}" encoding="on"/>", "hires":"${hi_res}", "videopath":"${videopath}", "thumbpath":"${tpath}", "is_video":"1"}'/>							 
+					</a>
+				</li>	
+			</isif>											
+		</isloop>			
+	</ul>		
+</div>
+<iselse/>
+	<isset name="imageUrl" value="https://i1.adis.ws/i/pcec/Noimagemedium?$PDP-Hero-Image-Desktop$" scope="page"/>
+	<isset name="imageAlt" value="${pdict.Product.name}" scope="page"/>
+	<isset name="imageTitle" value="${pdict.Product.name}" scope="page"/>
+	<img itemprop="image" class="primary-image" src="${imageUrl}" alt="${imageAlt}" title="${imageTitle}"/>
+</isif>
+
+

@@ -1,0 +1,409 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/orderhistory/pt_ReturnPolicy">
+	<isinclude template="util/modules"/>
+	
+	   
+	<div class="pnsb2c-Myacc-Return-Policy">
+	<h1 class="return" id="policy">
+		<span class="ord-returnpolicy" id="pnsb2c-myaccount-orders"><isprint value="${Resource.msg('orders.returnpolicy','account',null)}" /></span>	
+	</h1>
+	</div>
+	
+	<isscript>
+		importScript("int_dis:product/ProductImageSO.ds");
+		importScript("util/GetAmplienceImageUrl.ds");
+		var order : Object = pdict.Order;				
+	</isscript>
+	<span class="reasonCodeError hide oms"> Please indicate the reason you are returning each item</span></br>
+	<span class="boxCodeError hide oms"> Please indicate if the product has been opened for each item</span></br>
+	<span class="partsCodeError hide oms"> Please indicate if you have all the parts and materials for each item</span></br>
+	<iscomment>PANC-1813</iscomment>
+	<span class="productSelectError hide oms"> Select An Item To Return</span></br>
+	<iscomment>PANC-1813 End</iscomment>
+	<div class="table-ord-stat-holder demandwareOrder">
+	<div class="order-date-num-holder">
+	
+			<div class="order-number order-style">
+				<span class="label">${Resource.msg('orderdetails.ordernumber','components',null)} </span>
+				<span class="value"><isprint value="${order.orderNo}"/></span>	
+			</div>
+			<div class="order-date order-style">
+					<span class="label">${Resource.msg('orderdetails.orderdate','components',null)}: </span>
+					<span class="value"><isprint value="${order.creationDate}" style="DATE_LONG"/></span>			
+			</div>
+	</div>
+			<br><br>
+	
+	<isset name="recycleProductID" value="${('recycleProductID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.recycleProductID)? dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim() : ''}" scope="page" />
+	<isscript>
+		importScript("int_dis:product/ProductImageSO.ds");
+		var data="";
+	</isscript>
+	<iscomment>render a box for each shipment</iscomment>
+	
+	<form id="ChhoseItem" class="chs-itms-rtn-page" name="ChooseItem" action="${URLUtils.httpsContinue()}" method="post" class="returnpolicy">	
+	<fieldset>
+	<isset name="productInfo" value="${JSON.parse(pdict.CurrentSession.privacy.OrderInfo)}" scope="page" />
+	<div class="Myacc-order-table-holder dtls">
+	<div class="order-shipment-table item-return-page">
+		<isloop items="${order.shipments}" var="shipment" status="shipmentloopstate">
+			<isset name="count" value="${shipmentloopstate.count}" scope="page" />
+			<isif condition="${shipment.productLineItems.size() > 0}">
+				<iscomment>Shipment items table</iscomment>
+					<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+						 	<isset name="entered" value="${false}" scope="page" />
+						 <isif condition="${productInfo!=null}"> 
+							<isloop items="${productInfo.iterator()}" var="productdata" status="dataloopstate">
+								 <isif condition="${productLineItem.product.ID != recycleProductID || !productLineItem.product.ID.equals(recycleProductID)}">
+									 <isif condition="${productLineItem.product.ID != productdata.ProductId && dataloopstate.last}"> 
+									 <div class="order-row-holder">
+								 		<isif condition="${productLineItem.getAdjustedPrice() != 0}" >
+										<isif condition="${productdata.ProductId!=null && productdata.ProductId==productLineItem.product.ID }">
+											<isset name="entered" value="${true}" scope="page" />
+											<span class="custom-checkbox active">
+												<input type="checkbox" value="" name="dwfrm_returnpolicy_returncheckbox" id="dwfrm_returnpolicy_returncheckbox" checked="checked"/>
+											</span>						
+										<iselse/>
+											<isset name="entered" value="${true}" scope="page" />
+											<span class="custom-checkbox">
+												<input type="checkbox" value="" name="dwfrm_returnpolicy_returncheckbox" id="dwfrm_returnpolicy_returncheckbox"/>
+											</span>
+										</isif>
+										
+										</isif>
+										<div class="last">
+										
+											<div class="item-image">
+											
+												<div class="prod-img-holder">
+													<isset name="image" value="${new ProductImage('image150X150',productLineItem.product,0)}" scope="page"/>
+													<isif condition="${productLineItem.product != null}">
+														<!-- img src="${image.getURL()}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}"/-->
+														<picture>
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+															<img src="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}" />
+														</picture>
+													<iselse/>
+														<img src="${URLUtils.staticURL('/images/noimagesmall.png')}" alt="${productLineItem.productName}" title="${productLineItem.productName}"/>
+													</isif>
+												</div>
+												<isif condition="${productLineItem.bonusProductLineItem}">
+													<div class="bonus-item">${Resource.msg('global.bonus','locale',null)}</div>
+												</isif>
+											</div>	
+										 	<div class="productId">
+												<input type="hidden" id="productId" name="productId" value="${productLineItem.product.ID}">
+											</div> 
+											<div class="productPrice">
+												<input type="hidden" id="price" name="totalPrice" value="${productLineItem.getAdjustedPrice()}"/>
+											</div>
+											<div class="salePrice">
+												<input type="hidden" id="saleprice" name="Price" value="${productLineItem.basePrice}"/>
+											</div>
+											<div class="prod-name-holder"> 
+												<iscomment>Display product line and product using module</iscomment>
+												<isdisplayliproductorderdetail p_productli="${productLineItem}" p_editable="${false}"/>
+									    		<iscomment>Prints a message about the product's availability. </iscomment>					
+											</div>												
+												
+												<div class="priceDetails">
+													<isdisplayvariationvalues product="${productLineItem.product}"/>
+														<isset name="PriceModel" value="${productLineItem.product.getPriceModel()}" scope="page" />																					
+												 				 Price: <span class="price-standard"><isprint value="${PriceModel.getPrice()}"/></span>  
+												 			<iscomment>	<span class="label">Price:</span><span class="price-standard"><isprint value="${productLineItem.basePrice}" /></span> </iscomment>
+														<iscomment>Prints quantity of the product. </iscomment>	
+														<div class="item-qty">
+															${Resource.msg('global.qnty','locale',null)}:
+															<isif condition="${productdata.Rqty!=null && productdata.ProductId==productLineItem.product.ID}">
+																<input type="text" class="input-text valid" name="Quantity"  id="Quantity" size="2" maxlength="3" value="<isprint value="${productdata.Rqty}"/>" data-available="1000055" data-orvalue="<isprint value="${productdata.Rqty}"/>"> 																					
+															<iselse/>
+																<input type="text" class="input-text valid" name="Quantity"  id="Quantity" size="2" maxlength="3" value="<isprint value="${productLineItem.quantity}"/>" data-available="1000055" data-orvalue="<isprint value="${productLineItem.quantity}"/>">
+															</isif>
+														
+														</div>	
+														<span class="error hide">Quantity should be less than or equals to the order quantity</span>													
+														<iscomment>item total</iscomment>									
+															<isinclude template="product/components/standardprice" />
+															<iscomment>Item Total:<span class="price-standard"><isprint value="${productLineItem.quantity*StandardPrice}" /></span></iscomment> 
+															<span class="label">${Resource.msg('orderdetails.itemtotal','account',null)}</span> <span class="price-standard"><isprint value="${productLineItem.getAdjustedPrice()}" /></span>
+											   </div>
+											  
+									<isif condition="${productLineItem.getAdjustedPrice() != 0}" >	
+											<div class="return_res">
+												<label for="dwfrm_returnpolicy_dropdown">
+													<span>${Resource.msg('forms.reason','forms',null)} </span>
+												</label>
+												<div class="select-style">
+				        						<span class="customeselect-Arrow"></span>
+												<select class="return_reason">
+													<options>
+														<option optionid="" 	label="${Resource.msg('reason.default','forms',null)}"  value="">${Resource.msg('reason.default','forms',null)}</option>
+														<option optionid="r1" 	label="${Resource.msg('reason.reason1','forms',null)}" 	<isif condition="${productdata.Reason == "Ordered+wrong+product" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Ordered wrong product">${Resource.msg('reason.reason1','forms',null)}</option>
+														<option optionid="r2" 	label="${Resource.msg('reason.reason2','forms',null)}"	<isif condition="${productdata.Reason == "Better+price+available"  && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Better price available">${Resource.msg('reason.reason2','forms',null)}</option>
+														<option optionid="r3" 	label="${Resource.msg('reason.reason3','forms',null)}" 	<isif condition="${productdata.Reason == "Item+is+damaged" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Item is damaged">${Resource.msg('reason.reason3','forms',null)}</option>
+														<option optionid="r4" 	label="${Resource.msg('reason.reason4','forms',null)}" 	<isif condition="${productdata.Reason == "No+longer+needed+or+wanted" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="No longer needed or wanted">${Resource.msg('reason.reason4','forms',null)}</option>
+														<option optionid="r5" 	label="${Resource.msg('reason.reason5','forms',null)}"	<isif condition="${productdata.Reason == "Not+satisfied+with+product+quality" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Not satisfied with product quality">${Resource.msg('reason.reason5','forms',null)}</option>
+														<option optionid="r6" 	label="${Resource.msg('reason.reason6','forms',null)}"	<isif condition="${productdata.Reason == "Product+is+defective" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Product is defective">${Resource.msg('reason.reason6','forms',null)}</option>
+														<option optionid="r7" 	label="${Resource.msg('reason.reason7','forms',null)}"	<isif condition="${productdata.Reason == "Wrong+item+was+sent" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Wrong item was sent">${Resource.msg('reason.reason7','forms',null)}</option>
+													</options>	
+												</select>
+												</div>
+												
+											</div>
+									     	<div class="product-box-return" >					     	
+									     	<label>${Resource.msg('return.box','forms',null)}</label>								
+													<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}" <isif condition="${productdata.Rbox == "yes" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="yes">Yes
+									     	 		<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}" <isif condition="${productdata.Rbox == "no" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="no">No								
+									     	</div>
+									     	
+									     	<div class="return-parts">					     						     	
+											<label>${Resource.msg('return.parts','forms',null)}</label>
+											 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" <isif condition="${productdata.Rparts == "yes" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="yes">Yes
+									     	 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" <isif condition="${productdata.Rparts == "no" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="no">No  
+									     	</div>
+									</isif>     	 					    						
+										</div>
+									</div>
+										</tr>						
+									<iselseif condition="${productLineItem.product.ID == productdata.ProductId}">									
+										<div class="order-row-holder">
+								 		<isif condition="${productLineItem.getAdjustedPrice() != 0}" >
+										<isif condition="${productdata.ProductId!=null && productdata.ProductId==productLineItem.product.ID }">
+											<isset name="entered" value="${true}" scope="page" />
+											<span class="custom-checkbox active">
+												<input type="checkbox" value="" name="dwfrm_returnpolicy_returncheckbox" id="dwfrm_returnpolicy_returncheckbox" checked="checked"/>
+											</span>						
+										<iselse/>
+											<isset name="entered" value="${true}" scope="page" />
+											<span class="custom-checkbox">
+												<input type="checkbox" value="" name="dwfrm_returnpolicy_returncheckbox" id="dwfrm_returnpolicy_returncheckbox"/>
+											</span>
+										</isif>
+										
+										</isif>
+										<div class="last">
+										
+											<div class="item-image">
+											
+												<div class="prod-img-holder">
+													<isset name="image" value="${new ProductImage('image150X150',productLineItem.product,0)}" scope="page"/>
+													<isif condition="${productLineItem.product != null}">
+														<!-- img src="${image.getURL()}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}"/-->
+														<picture>
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+															<img src="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}" />
+														</picture>
+													<iselse/>
+														<img src="${URLUtils.staticURL('/images/noimagesmall.png')}" alt="${productLineItem.productName}" title="${productLineItem.productName}"/>
+													</isif>
+												</div>
+												<isif condition="${productLineItem.bonusProductLineItem}">
+													<div class="bonus-item">${Resource.msg('global.bonus','locale',null)}</div>
+												</isif>
+											</div>	
+										 	<div class="productId">
+												<input type="hidden" id="productId" name="productId" value="${productLineItem.product.ID}">
+											</div> 
+											<div class="productPrice">
+												<input type="hidden" id="price" name="totalPrice" value="${productLineItem.getAdjustedPrice()}"/>
+											</div>
+											<div class="salePrice">
+												<input type="hidden" id="saleprice" name="Price" value="${productLineItem.basePrice}"/>
+											</div>
+											<div class="prod-name-holder"> 
+												<iscomment>Display product line and product using module</iscomment>
+												<isdisplayliproductorderdetail p_productli="${productLineItem}" p_editable="${false}"/>
+									    		<iscomment>Prints a message about the product's availability. </iscomment>					
+											</div>												
+												
+												<div class="priceDetails">
+													<isdisplayvariationvalues product="${productLineItem.product}"/>
+														<isset name="PriceModel" value="${productLineItem.product.getPriceModel()}" scope="page" />																					
+												 				 Price: <span class="price-standard"><isprint value="${PriceModel.getPrice()}"/></span>  
+												 			<iscomment>	<span class="label">Price:</span><span class="price-standard"><isprint value="${productLineItem.basePrice}" /></span> </iscomment>
+														<iscomment>Prints quantity of the product. </iscomment>	
+														<div class="item-qty">
+															${Resource.msg('global.qnty','locale',null)}:
+															<isif condition="${productdata.Rqty!=null && productdata.ProductId==productLineItem.product.ID}">
+																<input type="text" class="input-text valid" name="Quantity"  id="Quantity" size="2" maxlength="3" value="<isprint value="${productdata.Rqty}"/>" data-available="1000055" data-orvalue="<isprint value="${productdata.Rqty}"/>"> 																					
+															<iselse/>
+																<input type="text" class="input-text valid" name="Quantity"  id="Quantity" size="2" maxlength="3" value="<isprint value="${productLineItem.quantity}"/>" data-available="1000055" data-orvalue="<isprint value="${productLineItem.quantity}"/>">
+															</isif>
+														
+														</div>	
+														<span class="error hide">Quantity should be less than or equals to the order quantity</span>													
+														<iscomment>item total</iscomment>									
+															<isinclude template="product/components/standardprice" />
+															<iscomment>Item Total:<span class="price-standard"><isprint value="${productLineItem.quantity*StandardPrice}" /></span></iscomment> 
+															<span class="label">${Resource.msg('orderdetails.itemtotal','account',null)}</span> <span class="price-standard"><isprint value="${productLineItem.getAdjustedPrice()}" /></span>
+											   </div>
+											  
+									<isif condition="${productLineItem.getAdjustedPrice() != 0}" >	
+											<div class="return_res">
+												<label for="dwfrm_returnpolicy_dropdown">
+													<span>${Resource.msg('forms.reason','forms',null)} </span>
+												</label>
+												<div class="select-style">
+				        						<span class="customeselect-Arrow"></span>
+												<select class="return_reason">
+													<options>
+														<option optionid="" 	label="${Resource.msg('reason.default','forms',null)}"  value="">${Resource.msg('reason.default','forms',null)}</option>
+														<option optionid="r1" 	label="${Resource.msg('reason.reason1','forms',null)}" 	<isif condition="${productdata.Reason == "Ordered+wrong+product" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Ordered wrong product">${Resource.msg('reason.reason1','forms',null)}</option>
+														<option optionid="r2" 	label="${Resource.msg('reason.reason2','forms',null)}"	<isif condition="${productdata.Reason == "Better+price+available"  && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Better price available">${Resource.msg('reason.reason2','forms',null)}</option>
+														<option optionid="r3" 	label="${Resource.msg('reason.reason3','forms',null)}" 	<isif condition="${productdata.Reason == "Item+is+damaged" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Item is damaged">${Resource.msg('reason.reason3','forms',null)}</option>
+														<option optionid="r4" 	label="${Resource.msg('reason.reason4','forms',null)}" 	<isif condition="${productdata.Reason == "No+longer+needed+or+wanted" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="No longer needed or wanted">${Resource.msg('reason.reason4','forms',null)}</option>
+														<option optionid="r5" 	label="${Resource.msg('reason.reason5','forms',null)}"	<isif condition="${productdata.Reason == "Not+satisfied+with+product+quality" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Not satisfied with product quality">${Resource.msg('reason.reason5','forms',null)}</option>
+														<option optionid="r6" 	label="${Resource.msg('reason.reason6','forms',null)}"	<isif condition="${productdata.Reason == "Product+is+defective" && productdata.ProductId==productLineItem.product.ID }"> selected="selected" </isif> value="Product is defective">${Resource.msg('reason.reason6','forms',null)}</option>
+														<option optionid="r7" 	label="${Resource.msg('reason.reason7','forms',null)}"	<isif condition="${productdata.Reason == "Wrong+item+was+sent" && productdata.ProductId==productLineItem.product.ID}"> selected="selected" </isif> value="Wrong item was sent">${Resource.msg('reason.reason7','forms',null)}</option>
+													</options>	
+												</select>
+												</div>
+												
+											</div>
+									     	<div class="product-box-return" >					     	
+									     	<label>${Resource.msg('return.box','forms',null)}</label>								
+													<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}" <isif condition="${productdata.Rbox == "yes" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="yes">Yes
+									     	 		<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}" <isif condition="${productdata.Rbox == "no" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="no">No								
+									     	</div>
+									     	
+									     	<div class="return-parts">					     						     	
+											<label>${Resource.msg('return.parts','forms',null)}</label>
+											 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" <isif condition="${productdata.Rparts == "yes" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="yes">Yes
+									     	 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" <isif condition="${productdata.Rparts == "no" && productdata.ProductId==productLineItem.product.ID}">checked ="true"</isif> value="no">No  
+									     	</div>
+									</isif>     	 					    						
+										</div>
+									</div>
+										</tr>
+										<isbreak/>			
+										</iselseif>
+									</isif>	
+								</isif>				 
+							</isloop>
+						<iselse/>
+							 <isif condition="${productLineItem.product.ID != recycleProductID || !productLineItem.product.ID.equals(recycleProductID)}">
+							 <div class="order-row-holder">
+						 		<isif condition="${productLineItem.getAdjustedPrice() != 0}" >
+									<span class="custom-checkbox">
+										<input type="checkbox" value="" name="dwfrm_returnpolicy_returncheckbox" id="dwfrm_returnpolicy_returncheckbox"/>
+									</span>
+								</isif>
+								<div class="last">
+								
+									<div class="item-image">
+									
+										<div class="prod-img-holder">
+											<isset name="image" value="${new ProductImage('image150X150',productLineItem.product,0)}" scope="page"/>
+											<isif condition="${productLineItem.product != null}">
+												<!-- img src="${image.getURL()}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}"/-->
+												<picture>
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+															<source srcset="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+															<img src="${getAmplienceImageUrlViewPortWise(image.getURL(),'$Cart-Large-Thumbnail-Desktop$','desktop')}" alt="${productLineItem.product.getImage('small',0).alt}" title="${productLineItem.product.getImage('small',0).title}" />
+												</picture>
+											<iselse/>
+												<img src="${URLUtils.staticURL('/images/noimagesmall.png')}" alt="${productLineItem.productName}" title="${productLineItem.productName}"/>
+											</isif>
+										</div>
+										<isif condition="${productLineItem.bonusProductLineItem}">
+											<div class="bonus-item">${Resource.msg('global.bonus','locale',null)}</div>
+										</isif>
+									</div>	
+								 	<div class="productId">
+										<input type="hidden" id="productId" name="productId" value="${productLineItem.product.ID}">
+									</div> 
+									<div class="productPrice">
+										<input type="hidden" id="price" name="totalPrice" value="${productLineItem.getAdjustedPrice()}"/>
+									</div>
+									<div class="salePrice">
+										<input type="hidden" id="saleprice" name="Price" value="${productLineItem.basePrice}"/>
+									</div>
+									<div class="prod-name-holder"> 
+										<iscomment>Display product line and product using module</iscomment>
+										<isdisplayliproductorderdetail p_productli="${productLineItem}" p_editable="${false}"/>
+							    		<iscomment>Prints a message about the product's availability. </iscomment>					
+									</div>												
+										
+										<div class="priceDetails">
+											<isdisplayvariationvalues product="${productLineItem.product}"/>
+												<isset name="PriceModel" value="${productLineItem.product.getPriceModel()}" scope="page" />																					
+										 				 Price: <span class="price-standard"><isprint value="${PriceModel.getPrice()}"/></span>  
+										 			<iscomment>	<span class="label">Price:</span><span class="price-standard"><isprint value="${productLineItem.basePrice}" /></span> </iscomment>
+												<iscomment>Prints quantity of the product. </iscomment>	
+												<div class="item-qty">
+													${Resource.msg('global.qnty','locale',null)}:
+														<input type="text" class="input-text valid" name="Quantity"  id="Quantity" size="2" maxlength="3" value="<isprint value="${productLineItem.quantity}"/>" data-available="1000055" data-orvalue="<isprint value="${productLineItem.quantity}"/>">
+												
+												</div>	
+												<span class="error hide">Quantity should be less than or equals to the order quantity</span>													
+												<iscomment>item total</iscomment>									
+													<isinclude template="product/components/standardprice" />
+													<iscomment>Item Total:<span class="price-standard"><isprint value="${productLineItem.quantity*StandardPrice}" /></span></iscomment> 
+													<span class="label">${Resource.msg('orderdetails.itemtotal','account',null)}</span> <span class="price-standard"><isprint value="${productLineItem.getAdjustedPrice()}" /></span>
+									   </div>
+									  
+							<isif condition="${productLineItem.getAdjustedPrice() != 0}" >	
+									<div class="return_res">
+										<label for="dwfrm_returnpolicy_dropdown">
+											<span>${Resource.msg('forms.reason','forms',null)} </span>
+										</label>
+										<div class="select-style">
+		        						<span class="customeselect-Arrow"></span>
+										<select class="return_reason">
+											<options>
+												<option optionid="" 	label="${Resource.msg('reason.default','forms',null)}"  value="">${Resource.msg('reason.default','forms',null)}</option>
+												<option optionid="r1" 	label="${Resource.msg('reason.reason1','forms',null)}"  value="Ordered wrong product">${Resource.msg('reason.reason1','forms',null)}</option>
+												<option optionid="r2" 	label="${Resource.msg('reason.reason2','forms',null)}"  value="Better price available">${Resource.msg('reason.reason2','forms',null)}</option>
+												<option optionid="r3" 	label="${Resource.msg('reason.reason3','forms',null)}"  value="Item is damaged">${Resource.msg('reason.reason3','forms',null)}</option>
+												<option optionid="r4" 	label="${Resource.msg('reason.reason4','forms',null)}"  value="No longer needed or wanted">${Resource.msg('reason.reason4','forms',null)}</option>
+												<option optionid="r5" 	label="${Resource.msg('reason.reason5','forms',null)}"	value="Not satisfied with product quality">${Resource.msg('reason.reason5','forms',null)}</option>
+												<option optionid="r6" 	label="${Resource.msg('reason.reason6','forms',null)}"	value="Product is defective">${Resource.msg('reason.reason6','forms',null)}</option>
+												<option optionid="r7" 	label="${Resource.msg('reason.reason7','forms',null)}"	value="Wrong item was sent">${Resource.msg('reason.reason7','forms',null)}</option>
+											</options>	
+										</select>
+										</div>
+										
+									</div>
+							     	<div class="product-box-return" >					     	
+							     	<label>${Resource.msg('return.box','forms',null)}</label>								
+											<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}" value="yes">Yes
+							     	 		<input class="input-radio" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio} ${productLineItem.product.name}"  value="no">No								
+							     	</div>
+							     	
+							     	<div class="return-parts">					     						     	
+									<label>${Resource.msg('return.parts','forms',null)}</label>
+									 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" value="yes">Yes
+							     	 <input class="input-radio1" type="radio" name="${pdict.CurrentForms.returnpolicy.returnpolicyradio1} ${productLineItem.product.name}" value="no">No  
+							     	</div>
+							</isif>     	 					    						
+								</div>
+							</div>
+								</tr>						
+							</isif>		
+						</isif>			
+					</isloop>				
+			</isif>
+		</isloop>
+	</div>		
+	</div>	
+	<input type="hidden" id="orderId" name="orderId" value="${pdict.Order.orderNo}"/>
+	<input type="hidden" id="grossPrice" name="grossPrice" value="${pdict.CurrentHttpParameterMap.grossPrice.value}"/>
+	<button class="visually-hidden1" type="submit" value="${pdict.CurrentForms.returnpolicy.submitForm.htmlName}" name="${pdict.CurrentForms.cart.submitForm.htmlName}">${Resource.msg('return.continue','account',null)}</button>
+	</fieldset>
+	</form>
+	
+	</div>
+
+	<div class="html-slot-container">
+		<isif condition="${slotcontent != null}">
+			<isloop items="${slotcontent.content}" var="markupText">
+				<isprint value="${markupText.markup}" encoding="off"/>	
+			</isloop>
+		</isif>
+	</div>
+</isdecorate>	

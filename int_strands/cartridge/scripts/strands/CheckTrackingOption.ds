@@ -1,0 +1,93 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	CheckTrackingOption.ds
+ *  
+ *	This script tries to consult Strands Recommender about the current 
+ *	tracking option (via api or via JS). In case an error occurs, it will 
+ * 	output the corresponding error.
+ *
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ * 
+ */
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number 
+{
+
+	if ( ! ('StrandsEnabled' in Site.current.preferences.custom) || ! Site.current.preferences.custom.StrandsEnabled) {
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Tracking Type) Strands plugin is either not present or not enabled");		
+		return PIPELET_ERROR;
+	}
+
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Tracking Type) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/';
+
+	var getPropString = strandsUrl + 'plugin/config/get.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(dw.system.Site.current.preferences.custom.StrandsApiID)
+						+ '&pluginName=' + 'demandware'
+						+ '&propertyName=' + 'tracking_type';
+	
+						
+					
+    var getProperty : HTTPClient = new HTTPClient();
+    try
+	{
+    	getProperty.setTimeout(1000);
+    	getProperty.open("GET", getPropString);
+    	getProperty.send();    		
+    }
+    catch(e) 
+    {
+    	pdict.ErrorCode = '201';
+		pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Get Tracking Type) Request to "+getPropString+" failed: {0}", e.message);
+    	return PIPELET_ERROR;
+    }
+
+	if ( ! ('JavaScriptEnabled' in Site.current.preferences.custom)) {
+		pdict.ErrorCode = '111';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Get Tracking Type) JavaScriptEnabled is not present");
+		return PIPELET_ERROR;
+	}
+
+	if ( empty(getProperty.getText())) {
+		pdict.ErrorCode = '202';
+		pdict.ErrorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) No value returned from the call");
+		return PIPELET_ERROR;
+	}
+
+	var tracking_type : String = getProperty.getText();
+	
+	if (tracking_type.equals('js'))
+		Site.current.preferences.custom.JavaScriptEnabled = true;
+
+	else if (tracking_type.equals('api')) 
+		Site.current.preferences.custom.JavaScriptEnabled = false;
+		
+	else {
+		pdict.ErrorCode = '203';
+		pdict.ErrorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) Invalid value returned from the call");
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

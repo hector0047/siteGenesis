@@ -1,0 +1,39 @@
+<isif condition="${pdict.Result == 'Authorized' || pdict.Result == 'Declined' || pdict.Result == 'Error'}">
+		<div class="js-singleship-addressvalidation">		 
+	    	<h1> Verify your address</h1>
+		    <div class="address entered-address">
+		 	    <h3>You entered</h3>
+		        ${pdict.CurrentHttpParameterMap.address1.value}
+				<isif condition="${!empty(pdict.CurrentHttpParameterMap.address2)}">
+					<div>${pdict.CurrentHttpParameterMap.address2.value}</div>
+				</isif>
+		        <div>${pdict.CurrentHttpParameterMap.city.value},&nbsp;${pdict.CurrentHttpParameterMap.state.value}&nbsp;${pdict.CurrentHttpParameterMap.zip.value}</div>
+		    </div>
+		    			    	
+		     <isif condition="${!empty(pdict.StandardizedAddress && pdict.StandardizedAddress.address1)}">
+		     	<h3>Based on this address, We recommend:</h3>
+			    <div class="address dav-address">
+			           ${pdict.StandardizedAddress.address1}
+						<isif condition="${!empty(pdict.StandardizedAddress && pdict.StandardizedAddress.address2)}">
+							<div>${pdict.StandardizedAddress.address2}</div>
+						</isif>
+			            <div>${pdict.StandardizedAddress.city},&nbsp;${pdict.StandardizedAddress.state}&nbsp;${pdict.StandardizedAddress.postalCode}</div>
+			   	</div>
+			<iselse>
+		    	<div class="alert-inline-error">
+                    CANNOT FIND A MATCH FOR THIS ADDRESS.
+                </div>
+	    	</isif>
+		    	
+		        <isif condition="${!empty(pdict.StandardizedAddress && pdict.StandardizedAddress.address1)}">
+		        	<button id="js-recommendAddress" class="btn btn-primary">Use Recommended Address</button>
+		        <iselse>
+		        	<button id="js-reenter" class="btn btn-primary">Re-Enter</button>
+		        </isif>
+		        <a href="${'#'}" id="js-actualAddress" class="actualAddress button-blue">Use address I entered</a>
+		    	 <isif condition="${!empty(pdict.StandardizedAddress && pdict.StandardizedAddress.address1)}">
+		    		<div id="crctdAddress" style="display:none;" class="is-hidden">{"address1":"${pdict.StandardizedAddress.address1}","address2":<isif condition="${!empty(pdict.StandardizedAddress && pdict.StandardizedAddress.address2)}">"${pdict.StandardizedAddress.address2}"<iselse>""</isif>,"city":"${pdict.StandardizedAddress.city}","states_state":"${pdict.StandardizedAddress.state}","postal":"${pdict.StandardizedAddress.postalCode}","addToAddressBook":"${pdict.CurrentForms.singleshipping.shippingAddress.addToAddressBook.value}"}</div>
+		    	</isif>  
+	        </div>
+	        
+</isif>

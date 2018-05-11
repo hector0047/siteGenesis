@@ -1,0 +1,451 @@
+/*
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	StrandsExportCatalog.ds
+ *  
+ *	This script tries to create a catalog suitable for Strands Recommender
+ *	with the data of the current shop. In order to keep it confidential, 
+ *	data is being encrypted before storing it in the file. In case an error 
+ *	occurs, it will output the corresponding error.
+ *
+ * @output File : dw.io.File Catalog
+ * @output RecFile : dw.io.File
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ */
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.customer );
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.campaign );
+importPackage( dw.web );
+importPackage( dw.crypto );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	if( ! ('StrandsEnabled' in Site.current.preferences.custom) || ! Site.current.preferences.custom.StrandsEnabled) {
+		pdict.ErrorCode = '101';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Catalog Upload) Strands plugin is either not present or not enabled");
+		return PIPELET_ERROR;
+	}
+	
+	if ( ! ('StrandsApiID' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsApiID)) {
+		pdict.ErrorCode = '102';
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Catalog Upload) Strands Api ID is either not present or the field is empty");
+		return PIPELET_ERROR;
+	}
+	
+	if ( ! ('StrandsValidationToken' in Site.current.preferences.custom) || empty (Site.current.preferences.custom.StrandsValidationToken)) {
+		pdict.ErrorCode = '105' ;
+		pdict.ErrorLevel = '5';
+		Logger.error("(Strands Catalog Upload) Strands Customer Validation Token is either not present or the field is empty");
+		return PIPELET_ERROR;	
+	}
+
+	var key : String = createKey(Site.current.preferences.custom.StrandsApiID, Site.current.preferences.custom.StrandsValidationToken);
+	
+	var catPath : String = '/src/strands/';
+	var catName : String = 'catalog.xml';
+	
+	/*var catCrypName : String = 'catalogCr.xml';*/
+
+	(new dw.io.File(dw.io.File.IMPEX + catPath)).mkdirs();
+	var file : File = new dw.io.File(dw.io.File.IMPEX + catPath + catName);
+	var exportFileWriter : FileWriter = new FileWriter(file);
+	/*var exportFileReader : FileReader = new FileReader(file);*/
+	var productList : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	
+	/*var fileCr : File = new dw.io.File(dw.io.File.IMPEX + catPath + catCrypName);
+	var exportFileCrWriter : FileWriter = new FileWriter(fileCr);*/
+	
+	
+	var timeBC : Calendar = new Calendar();
+	var itemsNo : Number = 0;
+	
+	var cipher : Cipher = new dw.crypto.Cipher();
+	
+	var usedUrl : String = "";
+	//Fix for PANC-587
+	var categories : ArrayList = new ArrayList();
+	if(('excludedCategoryStrands' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.excludedCategoryStrands)){
+		var excludedList : Array = dw.system.Site.getCurrent().getCustomPreferenceValue("excludedCategoryStrands");
+		for each( var listItem : String in excludedList) {
+			categories.add(listItem);
+		}
+	}
+	if(('SiteUrl' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.SiteUrl))
+		usedUrl = dw.system.Site.current.preferences.custom.SiteUrl;
+	else	
+    	usedUrl = "http://" + dw.system.Site.current.httpHostName;
+    	
+	writeEncrypted('<?xml version="1.0" encoding="UTF-8"?>\n', exportFileWriter, cipher, key);
+	writeEncrypted('<sbs-catalog version="1.0">\n', exportFileWriter, cipher, key);
+	writeEncrypted('  <company>'+dw.system.Site.current.ID+'</company>\n', exportFileWriter, cipher, key);
+	writeEncrypted('  <link>'+dw.system.Site.current.httpHostName+'</link>\n', exportFileWriter, cipher, key);
+	writeEncrypted('  <description><![CDATA['+dw.system.Site.current.name+']]></description>\n', exportFileWriter, cipher, key);	
+	
+	var ProductRecommendationsWriter : FileWriter = null;
+	try{
+		var ProductRecommendations : dw.io.File = new dw.io.File(dw.io.File.IMPEX + dw.io.File.SEPARATOR + "src" + dw.io.File.SEPARATOR +'productrecommendations.csv');
+			if( !ProductRecommendations.exists() ){
+				ProductRecommendations.createNewFile();
+			}
+			
+			ProductRecommendationsWriter= new FileWriter(ProductRecommendations);
+	
+	while(productList.hasNext()) {
+		var product : Product = productList.next();
+		if (product.assignedToSiteCatalog && product.online && product.product && product.searchable && !product.variant) {
+			writeEncrypted('    <item>\n', exportFileWriter, cipher, key);
+			//Fix for PANC-587
+			if(product.primaryCategory != null && !empty(categories) && !(categories.contains(product.primaryCategory.ID))){
+				exportProduct(product,usedUrl,exportFileWriter,cipher, key);
+				exportProductRecommendations(product,ProductRecommendationsWriter);
+			}else{
+				exportProduct(product,usedUrl,exportFileWriter,cipher, key);
+				exportProductRecommendations(product,ProductRecommendationsWriter);
+			}
+			writeEncrypted('    </item>\n', exportFileWriter, cipher, key);
+			itemsNo++;
+			}
+		}
+	}
+	finally{
+	if(ProductRecommendationsWriter != null){
+		ProductRecommendationsWriter.close();
+		}
+	}
+	writeEncrypted('</sbs-catalog>', exportFileWriter, cipher, key);
+	
+	exportFileWriter.flush();	
+	exportFileWriter.close();
+	
+	
+	pdict.File = file;
+	pdict.RecFile = ProductRecommendations;
+	
+	var timeAC : Calendar = new Calendar();
+	
+	if ( ('LogLevel' in Site.current.preferences.custom) && ! empty(Site.current.preferences.custom.LogLevel)) {
+		var logLevel : Number = Site.current.preferences.custom.LogLevel;
+		var levelINFO : String = '3';
+		
+		if (Number(levelINFO) >= Site.current.preferences.custom.LogLevel) {
+		
+			var apiID : String = "";
+			if( ! ('StrandsApiID' in Site.current.preferences.custom) || empty(Site.current.preferences.custom.StrandsApiID))
+				apiID = request.httpHost;
+			else
+				apiID = Site.current.preferences.custom.StrandsApiID;
+		
+			var strandsUrl = 'http://bizsolutions.strands.com/api2/';
+			var infoCatalog = strandsUrl + 'alert/message/manage.sbs?'
+					+ 'apid=' + dw.crypto.Encoding.toURI(apiID)
+					+ '&pluginName=' + 'demandware'
+					+ '&level=' + levelINFO
+					+ '&code=' + '351'
+					+ '&msg=';	
+	
+			var infoMsg : String = 'Catalog creation started at: ' + timeBC.getTime().toUTCString() + '. ';
+			infoMsg += 'Catalog creation finished at: ' + timeAC.getTime().toUTCString() + '. ';
+			infoMsg += 'Catalog creation duration: ' + ( (timeAC.getTime().valueOf() - timeBC.getTime().valueOf()) / 1000 ).toString() + ' seconds. ';
+			infoMsg += 'Number of items loaded: ' + itemsNo;
+				
+			infoCatalog += dw.crypto.Encoding.toURI(infoMsg);
+			
+			if (("last" in session.clickStream) && !empty(session.clickStream.last.pipelineName))
+				infoCatalog += '&pipeline=' + session.clickStream.last.pipelineName;
+			else
+				infoCatalog += '&pipeline=' + 'empty';
+				
+			var infoHttp : HTTPClient = new HTTPClient();
+			try {
+    			infoHttp.setTimeout(1000);
+    			infoHttp.open("GET", infoCatalog);
+    			infoHttp.send();    		
+    		} catch(e) { 
+				Logger.warn("(Strands Catalog Upload) It is not possible to send info about the catalog");
+				return PIPELET_NEXT;
+    		}
+    		
+    		var logLevel : Number;
+			try {
+				logLevel = Number (infoHttp.getText());
+			} catch(e) {
+				Logger.warn("(Strands Catalog Upload) It is not possible to read the value of logLevel");
+				return PIPELET_NEXT;
+			}
+				
+			if (logLevel < 1 || logLevel > 5) {
+				Logger.warn("(Strands Catalog Upload) logLevel received is out of bounds");
+				return PIPELET_NEXT;
+			}
+		}
+	}
+	
+    return PIPELET_NEXT;
+}
+
+function exportProduct(product : Product, usedUrl : String, exportFileWriter : FileWriter, cipher : Cipher, key : String) {
+	var currentPB : String = ''; 	
+
+	if(('listPriceDefault' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.listPriceDefault))
+		currentPB = dw.system.Site.current.preferences.custom.listPriceDefault;
+	else	
+    	currentPB = 'list-prices';	
+    	
+    Logger.getLogger("Strands-Recommender-export").error( "Product being exported : " + product + product.ID + product.name  );	
+	
+	writeEncrypted('      <title><![CDATA['+product.name+']]></title>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <link>'+URLUtils.http('Product-Show', 'pid', product.ID)+'</link>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <link_custom>'+usedUrl+URLUtils.url('Product-Show', 'pid', product.ID)+'</link_custom>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <description><![CDATA['+product.shortDescription+']]></description>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <id><![CDATA['+product.ID+']]></id>\n', exportFileWriter, cipher, key);
+	
+	/*if (product.getImage('medium')) {
+		writeEncrypted('      <image_link_medium>'+product.getImage('medium').absURL+'</image_link_medium>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_medium_custom>'+usedUrl+product.getImage('medium').getURL()+'</image_link_medium_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('medium')) {
+		writeEncrypted('      <image_link_medium>'+product.variationModel.variants[0].getImage('medium').absURL+'</image_link_medium>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_medium_custom>'+usedUrl+product.variationModel.variants[0].getImage('medium').getURL()+'</image_link_medium_custom>\n', exportFileWriter, cipher, key);		
+	}
+	
+	if (product.getImage('large')) {
+		writeEncrypted('      <image_link_large>'+product.getImage('large').absURL+'</image_link_large>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_large_custom>'+usedUrl+product.getImage('large').getURL()+'</image_link_large_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('large')) {
+		writeEncrypted('      <image_link_large>'+product.variationModel.variants[0].getImage('large').absURL+'</image_link_large>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_large_custom>'+usedUrl+product.variationModel.variants[0].getImage('large').getURL()+'</image_link_large_custom>\n', exportFileWriter, cipher, key);
+	}
+	
+	if (product.getImage('small')) {
+		writeEncrypted('      <image_link_small>'+product.getImage('small').absURL+'</image_link_small>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_small_custom>'+usedUrl+product.getImage('small').getURL()+'</image_link_small_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('small')) {
+		writeEncrypted('      <image_link_small>'+product.variationModel.variants[0].getImage('small').absURL+'</image_link_small>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_small_custom>'+usedUrl+product.variationModel.variants[0].getImage('small').getURL()+'</image_link_small_custom>\n', exportFileWriter, cipher, key);
+	}
+	
+	if (product.getImage('swatch')) {
+		writeEncrypted('      <image_link_swatch>'+product.getImage('swatch').absURL+'</image_link_swatch>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_swatch_custom>'+usedUrl+product.getImage('swatch').getURL()+'</image_link_swatch_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('swatch')) {
+		writeEncrypted('      <image_link_swatch>'+product.variationModel.variants[0].getImage('swatch').absURL+'</image_link_swatch>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_swatch_custom>'+usedUrl+product.variationModel.variants[0].getImage('swatch').getURL()+'</image_link_swatch_custom>\n', exportFileWriter, cipher, key);
+	}
+
+	if (product.getImage('thumbnail')) {
+		writeEncrypted('      <image_link_thumbnail>'+product.getImage('thumbnail').absURL+'</image_link_thumbnail>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_thumbnail_custom>'+usedUrl+product.getImage('thumbnail').getURL()+'</image_link_thumbnail_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('thumbnail')) {
+		writeEncrypted('      <image_link_thumbnail>'+product.variationModel.variants[0].getImage('thumbnail').absURL+'</image_link_thumbnail>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_thumbnail_custom>'+usedUrl+product.variationModel.variants[0].getImage('thumbnail').getURL()+'</image_link_thumbnail_custom>\n', exportFileWriter, cipher, key);
+	}*/
+	
+	if (product.getImage('categoryImage2')) {
+		writeEncrypted('      <image_link_medium>'+product.getImage('categoryImage2').absURL+'</image_link_medium>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_medium_custom>'+usedUrl+product.getImage('categoryImage2').getURL()+'</image_link_medium_custom>\n', exportFileWriter, cipher, key);
+	} else if (product.master && product.variationModel.variants.size() > 0 && product.variationModel.variants[0].getImage('categoryImage2')) {
+		writeEncrypted('      <image_link_medium>'+product.variationModel.variants[0].getImage('categoryImage2').absURL+'</image_link_medium>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <image_link_medium_custom>'+usedUrl+product.variationModel.variants[0].getImage('categoryImage2').getURL()+'</image_link_medium_custom>\n', exportFileWriter, cipher, key);		
+	}
+		
+	var onSale : boolean = false;	
+	if (product.master && product.variationModel.variants.size() > 0) {
+		writeEncrypted('      <normalprice>'+product.variationModel.variants[0].priceModel.getPriceBookPrice(currentPB).toNumberString()+'</normalprice>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <saleprice>'+product.variationModel.variants[0].priceModel.price.toNumberString()+'</saleprice>\n', exportFileWriter, cipher, key);
+		if (product.variationModel.variants[0].priceModel.price < product.variationModel.variants[0].priceModel.getPriceBookPrice(currentPB))
+			onSale = true;
+	} else {
+		writeEncrypted('      <normalprice>'+product.priceModel.getPriceBookPrice(currentPB).toNumberString()+'</normalprice>\n', exportFileWriter, cipher, key);
+		writeEncrypted('      <saleprice>'+product.priceModel.price.toNumberString()+'</saleprice>\n', exportFileWriter, cipher, key);
+		if (product.priceModel.price < product.priceModel.getPriceBookPrice(currentPB))
+			onSale = true;
+	}
+								
+	if (!product.getOrderableRecommendations().empty) {	
+		for each (var rec : Recommendation in product.getOrderableRecommendations()) {
+			writeEncrypted('      <recommendation><![CDATA['+rec.getRecommendedItemID()+']]></recommendation>\n', exportFileWriter, cipher, key);
+		}
+	}
+
+	if (!empty(product.brand)) {
+		writeEncrypted('      <brand><![CDATA['+product.brand+']]></brand>\n', exportFileWriter, cipher, key); 
+	}	
+		
+/*				
+	if (product.categorized) {
+		for each (var cat : Category in product.getCategories()) {
+			writeEncrypted('      <category><![CDATA['+cat.ID+']]></category>\n', exportFileWriter, cipher, key);
+			if ('parent' in cat && !empty(cat.parent)) {
+				var parentCat : Category = cat.parent;
+				while (!parentCat.root) {
+					writeEncrypted('      <category><![CDATA['+parentCat.ID+']]></category>\n', exportFileWriter, cipher, key);
+					if ('parent' in parentCat && !empty(parentCat.parent)) {
+						parentCat = parentCat.parent;
+					}	
+				}
+			}
+		}
+	}
+*/	
+
+	if (product.categorized) {
+		if (product.primaryCategory !== null) {			
+			var primary_cat : Category = product.primaryCategory;			
+		} else {
+			var primary_cat : Category = null;	
+		}	
+	
+		for each (var cat : Category in product.getCategories()) {
+			writeEncrypted('      <catid><![CDATA['+cat.ID+']]></catid>\n', exportFileWriter, cipher, key);			
+			var catList : List = new ArrayList();
+			catList.push(cat.ID);
+			if ('parent' in cat && !empty(cat.parent)) {
+				var parentCat : Category = cat.parent;
+				while (!parentCat.root) {
+					catList.push(parentCat.ID);
+					writeEncrypted('      <catid><![CDATA['+parentCat.ID+']]></catid>\n', exportFileWriter, cipher, key);					
+					if ('parent' in parentCat && !empty(parentCat.parent)) {
+						parentCat = parentCat.parent;
+					}				
+				}
+			}
+			var catDepth : Number = 0;
+			catList.reverse();
+			
+			var concatCategories : String = "";
+			var separator : String = "";
+			
+//			writeEncrypted('    <catid><![CDATA['+cat.ID+']]></catid>\n', exportFileWriter, cipher, key);			
+			
+			for each (var catStr : String in catList) {
+				concatCategories += separator + catStr;
+				separator = " > ";
+				catDepth++;
+			}
+
+			writeEncrypted('      <category><![CDATA['+concatCategories+']]></category>\n', exportFileWriter, cipher, key);		
+		}	
+	}		
+	
+	if (!empty(product.pageKeywords)) {
+		for each (var tag : String in product.pageKeywords.split(','))
+			writeEncrypted('      <tag><![CDATA['+StringUtils.trim(tag)+']]></tag>\n', exportFileWriter, cipher, key);
+	}
+	
+				
+	writeEncrypted('      <available>'+product.availabilityModel.availability.toFixed()+'</available>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <instock>'+(product.availabilityModel.inStock ? 'true' : 'false')+'</instock>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <onsale>'+((!PromotionMgr.getActivePromotions().getProductPromotions(product).empty || onSale) ? 'true' : 'false')+'</onsale>\n', exportFileWriter, cipher, key);
+	
+	if ('promotion' in product.custom && product.custom.promotion != null)
+		writeEncrypted('      <promotion>'+product.custom.promotion+'</promotion>\n', exportFileWriter, cipher, key);
+
+	
+	writeEncrypted('      <bundle>'+product.bundle+'</bundle>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <ean><![CDATA['+product.EAN+']]></ean>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <manufacturer_name><![CDATA['+product.manufacturerName+']]></manufacturer_name>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <manufacturer_sku><![CDATA['+product.manufacturerSKU+']]></manufacturer_sku>\n', exportFileWriter, cipher, key);
+	if (product.minOrderQuantity !== null)
+		writeEncrypted('      <min_order_quantity>'+product.minOrderQuantity.value+'</min_order_quantity>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <name><![CDATA['+product.name+']]></name>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <online>'+product.online+'</online>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <online_from><![CDATA['+product.onlineFrom+']]></online_from>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <online_to><![CDATA['+product.onlineTo+']]></online_to>\n', exportFileWriter, cipher, key);
+	if (product.longDescription !== null)
+		writeEncrypted('      <long_description><![CDATA['+product.longDescription.source+']]></long_description>\n', exportFileWriter, cipher, key);		
+	if (product.stepQuantity !== null)
+		writeEncrypted('      <step_quantity>'+product.stepQuantity.value+'</step_quantity>\n', exportFileWriter, cipher, key);		
+	writeEncrypted('      <tax_class><![CDATA['+product.taxClassID+']]></tax_class>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <page_description><![CDATA['+product.pageDescription+']]></page_description>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <page_title><![CDATA['+product.pageTitle+']]></page_title>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <page_url><![CDATA['+product.pageURL+']]></page_url>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <searchable>'+product.searchable+'</searchable>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <searchable_rank>'+product.searchRank+'</searchable_rank>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <upc><![CDATA['+product.UPC+']]></upc>\n', exportFileWriter, cipher, key);
+	writeEncrypted('      <uuid><![CDATA['+product.UUID+']]></uuid>\n', exportFileWriter, cipher, key);
+				
+}
+
+
+function writeEncrypted(text : String, exportFileWriter : FileWriter, cipher : Cipher, key : String) {
+	
+	var transformation : String = "AES";
+	var salt : String = null;
+	var iterations : Number = 1;
+	
+	var textCr : String = cipher.encrypt(text, key, transformation, salt, iterations);
+	
+//	var aux : String = cipher.decrypt(textCr, key, transformation, salt, iterations);
+//	exportFileWriter.write(aux+'\n');
+	
+	
+	/// TODO: keep textCr
+	//exportFileWriter.write(text+'\n');
+	exportFileWriter.write(textCr+'\n');	
+}
+
+
+function createKey(apiId : String, token : String) {
+	
+	var keyConcat : String = apiId + token;
+	var keyLength : Number = 16;
+	var len : Number = keyConcat.length;
+	
+	var key : String = '';
+	
+	if (len > keyLength) {
+		key = keyConcat.substr(0,keyLength);
+	} else if (len < keyLength) {
+		key = keyConcat;
+		while (key.length < keyLength) {
+			key = key + '0';	
+		}
+	}
+	
+	var keyBytes : Bytes = new Bytes(key,"UTF-8");
+	var key64 : Encoding = dw.crypto.Encoding.toBase64(keyBytes);
+	
+	return key64;
+	
+}
+function exportProductRecommendations(product : Product, sWriter : FileWriter){
+
+	if(product.recommendations.size() > 0){
+		try{	
+			
+			var strArray : ArrayList = new ArrayList();
+			for each(var prod : Object in product.recommendations){
+				strArray.add(prod.recommendedItem.ID);
+			}
+			var currArr : String =[];
+			currArr[0] = product.ID;
+			var productline = "";
+			for(var i=0 ; i < strArray.length ; i++){
+				if(i > 0) { 
+	  				productline = productline + "," + strArray[i];
+	  			} else {
+	  				productline = productline + strArray[i];
+	  			}
+			}
+			currArr[1] = productline;
+			sWriter.writeLine(currArr);
+		}
+		finally{
+			sWriter.flush();
+		}
+	}
+	return PIPELET_NEXT;
+}
+

@@ -1,0 +1,21 @@
+{
+  "name": "ServiceFramework",
+  "version": "1.0.0",
+  "author": "Community Suite <developer.community@demandware.com>",
+  "description": "A framework wrapping webservices and their configuration into easy to use script objects",
+  "contributors": [ 
+    {
+      "name": "Danny Gehl",
+      "email": "dgehl@demandware.com"
+    }, 
+    {
+      "name": "Holger Nestmann",
+      "email": "hnestmann@demandware.com"
+    } 
+  ],
+  "main": "./cartridge/scripts/ServiceMgr.ds",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/demandware/service-framework.git"
+  }
+}

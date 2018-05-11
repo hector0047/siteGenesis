@@ -1,0 +1,22 @@
+<iscache type="relative" hour="24"/>
+<iscomment>
+	This template renders the slot content of the bottom category landing slot
+	in case the slot content is of type Content Asset.
+	Note, only one content asset is rendered.
+</iscomment>
+
+<iscomment>make sure we have content at all</iscomment>
+<isif condition="${slotcontent != null}">
+	<div class="amplienceContent">
+		<isloop items="${slotcontent.content}" var="contentAsset">
+			<isif condition="${!empty(contentAsset.template)}">
+				<isset name="Content" value="${contentAsset}" scope="pdict"/>
+				<isset name="SlotContent" value="${true}" scope="pdict" />
+				<isinclude template="content/amplience/amplience_content">
+			<iselse>
+				<isprint value="${contentAsset.custom.body}" encoding="off"/>
+			</isif>
+		</isloop>
+	</div>
+
+</isif>

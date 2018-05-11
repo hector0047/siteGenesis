@@ -1,0 +1,30 @@
+/**
+* Demandware Script File
+* Removes passed type payment intrsument
+*
+* @input Basket : dw.order.LineItemCtnr The basket.
+* @input PaymentType : String the type of the payment instrument.
+*
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	// get type payment instruments
+	var basket : LineItemCtnr = args.Basket;
+	var paymentType : String = args.PaymentType;
+	var typePaymentInstrs : Collection = basket.getPaymentInstruments( paymentType );
+	var iter : Iterator = typePaymentInstrs.iterator();
+	var existingPI : OrderPaymentInstrument = null;
+
+	// remove them
+	while( iter.hasNext() )
+	{
+		existingPI = iter.next();
+		basket.removePaymentInstrument( existingPI );
+	}
+    return PIPELET_NEXT;
+}

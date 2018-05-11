@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline>
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node/>
+        <node-display x="0" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ShowForm">
+    <segment>
+      <node>
+        <start-node call-mode="public" name="ShowForm" secure="true"/>
+        <node-display x="1" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ClearFormElement" pipelet-set-identifier="bc_api">
+          <key-binding alias="CurrentForms.repairsubmit" key="FormElement"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <call-node start-name-ref="ServiceBench-RequireLogin"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <call-node start-name-ref="ServiceBench-CreateSBObjects"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-continue-node secure="true" start-name="repair request" transaction-required="false">
+          <description>Repair request</description>
+          <template buffered="true" dynamic="false" name="account/user/sb_requestform"/>
+        </interaction-continue-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="save">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="dw.catalog.ProductMgr.getProduct(CurrentForms.repairsubmit.mnumber.value)" key="From_0"/>
+                <key-binding alias="Product" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <decision-node condition-key="Product != null" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <call-node start-name-ref="SBRepairRequest-UnitValidation"/>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <decision-node condition-key="warrantyStatusLabor != 'undefined' &amp;&amp; warrantyStatusLabor != null &amp;&amp; warrantyStatusPart != 'undefined' &amp;&amp; warrantyStatusPart != null &amp;&amp; onlineRepairQualification == '1' &amp;&amp; errorComment == 'undefined'" condition-operator="expr"/>
+                    <node-display x="0" y="1"/>
+                    <branch basename="b2" source-connector="yes">
+                      <transition target-connector="in">
+                        <transition-display>
+                          <bend-point relative-to="source" x="0" y="1"/>
+                        </transition-display>
+                      </transition>
+                      <segment>
+                        <node>
+                          <decision-node condition-key="warrantyStatusLabor == 'InWarranty' &amp;&amp; warrantyStatusPart == 'InWarranty'" condition-operator="expr"/>
+                          <node-display x="0" y="1"/>
+                          <branch basename="b2" source-connector="yes">
+                            <transition target-connector="in">
+                              <transition-display>
+                                <bend-point relative-to="source" x="0" y="1"/>
+                              </transition-display>
+                            </transition>
+                            <segment>
+                              <node>
+                                <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                                  <config-property key="Transactional" value="false"/>
+                                  <key-binding alias="true" key="From_0"/>
+                                  <key-binding alias="SbWarrantyStatus" key="To_0"/>
+                                  <key-binding alias="null" key="From_1"/>
+                                  <key-binding alias="null" key="To_1"/>
+                                  <key-binding alias="null" key="From_2"/>
+                                  <key-binding alias="null" key="To_2"/>
+                                  <key-binding alias="null" key="From_3"/>
+                                  <key-binding alias="null" key="To_3"/>
+                                  <key-binding alias="null" key="From_4"/>
+                                  <key-binding alias="null" key="To_4"/>
+                                  <key-binding alias="null" key="From_5"/>
+                                  <key-binding alias="null" key="To_5"/>
+                                  <key-binding alias="null" key="From_6"/>
+                                  <key-binding alias="null" key="To_6"/>
+                                  <key-binding alias="null" key="From_7"/>
+                                  <key-binding alias="null" key="To_7"/>
+                                  <key-binding alias="null" key="From_8"/>
+                                  <key-binding alias="null" key="To_8"/>
+                                  <key-binding alias="null" key="From_9"/>
+                                  <key-binding alias="null" key="To_9"/>
+                                </pipelet-node>
+                                <node-display x="0" y="1"/>
+                              </node>
+                              <simple-transition>
+                                <transition-display>
+                                  <bend-point relative-to="source" x="0" y="1"/>
+                                </transition-display>
+                              </simple-transition>
+                              <node>
+                                <pipelet-node custom-name="Updating the response we are receiving from SB to session level attributes" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                                  <description>Updating Session shippingAddress from form</description>
+                                  <config-property key="Transactional" value="false"/>
+                                  <key-binding alias="warrantyTypeNamePart" key="From_0"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyTypeNamePart" key="To_0"/>
+                                  <key-binding alias="warrantyTypeNameLabor" key="From_1"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyTypeNameLabor" key="To_1"/>
+                                  <key-binding alias="warrantyStatusPart" key="From_2"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyStatusPart" key="To_2"/>
+                                  <key-binding alias="warrantyStatusLabor" key="From_3"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyStatusLabor" key="To_3"/>
+                                  <key-binding alias="warrantyEndDatePart" key="From_4"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyEndDatePart" key="To_4"/>
+                                  <key-binding alias="warrantyEndDateLabor" key="From_5"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyEndDateLabor" key="To_5"/>
+                                  <key-binding alias="shipAmount" key="From_6"/>
+                                  <key-binding alias="exchangeAmount" key="From_7"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyShipAmount" key="To_6"/>
+                                  <key-binding alias="CurrentSession.custom.warrantyExchangeAmount" key="To_7"/>
+                                  <key-binding alias="CurrentSession.custom.exchangeable" key="To_8"/>
+                                  <key-binding alias="exchangeable" key="From_8"/>
+                                </pipelet-node>
+                                <node-display x="0" y="1"/>
+                              </node>
+                              <simple-transition>
+                                <transition-display>
+                                  <bend-point relative-to="source" x="0" y="1"/>
+                                </transition-display>
+                              </simple-transition>
+                              <node>
+                                <jump-node start-name-ref="SBRepairRequest-ShowEstimation"/>
+                                <node-display x="0" y="1"/>
+                              </node>
+                            </segment>
+                          </branch>
+                        </node>
+                        <simple-transition>
+                          <transition-display>
+                            <bend-point relative-to="source" x="2" y="0"/>
+                            <bend-point relative-to="target" x="0" y="-1"/>
+                          </transition-display>
+                        </simple-transition>
+                        <node>
+                          <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <config-property key="Transactional" value="false"/>
+                            <key-binding alias="false" key="From_0"/>
+                            <key-binding alias="SbWarrantyStatus" key="To_0"/>
+                            <key-binding alias="null" key="From_1"/>
+                            <key-binding alias="null" key="To_1"/>
+                            <key-binding alias="null" key="From_2"/>
+                            <key-binding alias="null" key="To_2"/>
+                            <key-binding alias="null" key="From_3"/>
+                            <key-binding alias="null" key="To_3"/>
+                            <key-binding alias="null" key="From_4"/>
+                            <key-binding alias="null" key="To_4"/>
+                            <key-binding alias="null" key="From_5"/>
+                            <key-binding alias="null" key="To_5"/>
+                            <key-binding alias="null" key="From_6"/>
+                            <key-binding alias="null" key="To_6"/>
+                            <key-binding alias="null" key="From_7"/>
+                            <key-binding alias="null" key="To_7"/>
+                            <key-binding alias="null" key="From_8"/>
+                            <key-binding alias="null" key="To_8"/>
+                            <key-binding alias="null" key="From_9"/>
+                            <key-binding alias="null" key="To_9"/>
+                          </pipelet-node>
+                          <node-display x="1" y="1"/>
+                        </node>
+                        <simple-transition>
+                          <transition-display>
+                            <bend-point relative-to="source" x="0" y="1"/>
+                          </transition-display>
+                        </simple-transition>
+                        <node>
+                          <pipelet-node custom-name="Updating the response we are receiving from SB to session level attributes" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                            <description>Updating Session shippingAddress from form</description>
+                            <config-property key="Transactional" value="false"/>
+                            <key-binding alias="warrantyTypeNamePart" key="From_0"/>
+                            <key-binding alias="CurrentSession.custom.warrantyTypeNamePart" key="To_0"/>
+                            <key-binding alias="warrantyTypeNameLabor" key="From_1"/>
+                            <key-binding alias="CurrentSession.custom.warrantyTypeNameLabor" key="To_1"/>
+                            <key-binding alias="warrantyStatusPart" key="From_2"/>
+                            <key-binding alias="CurrentSession.custom.warrantyStatusPart" key="To_2"/>
+                            <key-binding alias="warrantyStatusLabor" key="From_3"/>
+                            <key-binding alias="CurrentSession.custom.warrantyStatusLabor" key="To_3"/>
+                            <key-binding alias="warrantyEndDatePart" key="From_4"/>
+                            <key-binding alias="CurrentSession.custom.warrantyEndDatePart" key="To_4"/>
+                            <key-binding alias="warrantyEndDateLabor" key="From_5"/>
+                            <key-binding alias="CurrentSession.custom.warrantyEndDateLabor" key="To_5"/>
+                            <key-binding alias="shipAmount" key="From_6"/>
+                            <key-binding alias="exchangeAmount" key="From_7"/>
+                            <key-binding alias="CurrentSession.custom.warrantyShipAmount" key="To_6"/>
+                            <key-binding alias="CurrentSession.custom.warrantyExchangeAmount" key="To_7"/>
+                            <key-binding alias="exchangeable" key="From_8"/>
+                            <key-binding alias="CurrentSession.custom.exchangeable" key="To_8"/>
+                          </pipelet-node>
+                          <node-display x="0" y="1"/>
+                        </node>
+                        <transition target-connector="in1" target-path="../../+1">
+                          <transition-display>
+                            <bend-point relative-to="source" x="0" y="1"/>
+                            <bend-point relative-to="source" x="1" y="1"/>
+                            <bend-point relative-to="target" x="1" y="3"/>
+                            <bend-point relative-to="target" x="1" y="0"/>
+                          </transition-display>
+                        </transition>
+                      </segment>
+                    </branch>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1">
+                    <transition-display>
+                      <bend-point relative-to="source" x="3" y="0"/>
+                      <bend-point relative-to="target" x="1" y="0"/>
+                    </transition-display>
+                  </transition>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in2" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="-3"/>
+            </node>
+            <transition target-connector="in1" target-path=".."/>
+          </segment>
+        </branch>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <text-node/>
+        <node-display x="3" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ShowEstimation">
+    <segment>
+      <node>
+        <start-node call-mode="public" name="ShowEstimation" secure="true"/>
+        <node-display x="3" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <call-node start-name-ref="ServiceBench-RequireLogin"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="UnitValidation" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="UnitValidation" condition-operator="expr">
+          <description>Here we need to check the unit validation response from WS if response is present in session object then rediredt to estimation page else reedirect to show form page.</description>
+        </decision-node>
+        <node-display x="0" y="2"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in1" target-path="./+1"/>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="1" y="0"/>
+          <bend-point relative-to="target" x="1" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="account/user/sb_repairestimation.isml"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="UnitValidation">
+    <segment>
+      <node>
+        <start-node name="UnitValidation" secure="true"/>
+        <node-display x="5" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="pipelets/SubmitRepairRequest.ds"/>
+          <config-property key="Timeout" value="300000"/>
+          <key-binding alias="log" key="ScriptLog"/>
+          <key-binding alias="Response" key="WSResponse"/>
+          <key-binding alias="error" key="error"/>
+          <key-binding alias="warrantyEndDateLabor" key="warrantyEndDateLabor"/>
+          <key-binding alias="warrantyEndDatePart" key="warrantyEndDatePart"/>
+          <key-binding alias="warrantyStatusLabor" key="warrantyStatusLabor"/>
+          <key-binding alias="warrantyStatusPart" key="warrantyStatusPart"/>
+          <key-binding alias="warrantyTypeNameLabor" key="warrantyTypeNameLabor"/>
+          <key-binding alias="warrantyTypeNamePart" key="warrantyTypeNamePart"/>
+          <key-binding alias="exchangeAmount" key="exchangeAmount"/>
+          <key-binding alias="shipAmount" key="shipAmount"/>
+          <key-binding alias="onlineRepairQualification" key="onlineRepairQualification"/>
+          <key-binding alias="errorComment" key="errorComment"/>
+          <key-binding alias="exchangeable" key="exchangeable"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+              <bend-point relative-to="target" x="1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="LoginRedirect">
+    <segment>
+      <node>
+        <start-node name="LoginRedirect" secure="false"/>
+        <node-display x="0" y="4"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <jump-node start-name-ref="Login-Redirect"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_7">
+    <segment>
+      <node>
+        <text-node/>
+        <node-display x="0" y="12"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="RequireLogin">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="RequireLogin" secure="false"/>
+        <node-display x="1" y="14"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="!CurrentCustomer.authenticated" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="ClearFormElement" pipelet-set-identifier="bc_api">
+                <key-binding alias="CurrentForms.ordertrack" key="FormElement"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="ClearFormElement" pipelet-set-identifier="bc_api">
+                <key-binding alias="CurrentForms.login" key="FormElement"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <decision-node condition-key="CurrentCustomer.registered" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <key-binding alias="CurrentCustomer.profile.credentials.login" key="From_0"/>
+                      <key-binding alias="CurrentForms.login.username.value" key="To_0"/>
+                      <key-binding alias="true" key="From_1"/>
+                      <key-binding alias="CurrentForms.login.rememberme.value" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in3" target-path="./+1">
+              <transition-display>
+                <bend-point relative-to="source" x="1" y="0"/>
+                <bend-point relative-to="target" x="1" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="2"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="UpdatePageMetaData" pipelet-set-identifier="bc_api"/>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="RegistrationStatus" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <interaction-continue-node secure="true" start-name="SubmitFormTest" transaction-required="false">
+                <template buffered="true" dynamic="false" name="account/login/sb_accountlogin"/>
+              </interaction-continue-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="login">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <call-node start-name-ref="Login-Process"/>
+                    <node-display x="0" y="1"/>
+                    <branch basename="b2" source-connector="login_failed">
+                      <transition target-connector="in1">
+                        <transition-display>
+                          <bend-point relative-to="source" x="0" y="1"/>
+                          <bend-point relative-to="source" x="-2" y="1"/>
+                        </transition-display>
+                      </transition>
+                      <segment>
+                        <node>
+                          <join-node/>
+                          <node-display x="-1" y="-1"/>
+                        </node>
+                        <transition target-connector="in3" target-path="../../+1"/>
+                      </segment>
+                    </branch>
+                    <branch basename="b3" source-connector="login_succeeded">
+                      <transition target-connector="in">
+                        <transition-display>
+                          <bend-point relative-to="target" x="0" y="-1"/>
+                        </transition-display>
+                      </transition>
+                      <segment>
+                        <node>
+                          <jump-node start-name-ref="Login-RedirectToMostRecent"/>
+                          <node-display x="0" y="2"/>
+                        </node>
+                      </segment>
+                    </branch>
+                  </node>
+                </segment>
+              </branch>
+              <branch basename="b3" source-connector="register">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="target" x="0" y="-2"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <call-node start-name-ref="Account-Register"/>
+                    <node-display x="1" y="2"/>
+                  </node>
+                  <simple-transition>
+                    <transition-display>
+                      <bend-point relative-to="source" x="0" y="1"/>
+                    </transition-display>
+                  </simple-transition>
+                  <node>
+                    <jump-node start-name-ref="Login-Redirect"/>
+                    <node-display x="0" y="1"/>
+                  </node>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in1" target-path="./+1">
+              <transition-display>
+                <bend-point relative-to="target" x="0" y="1"/>
+              </transition-display>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="-1" y="-1"/>
+            </node>
+            <transition target-connector="in1" target-path="./-1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="1" y="0"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display orientation="horizontal" x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="DuplicateRegistrationFromFB">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="DuplicateRegistrationFromFB" secure="false"/>
+        <node-display x="0" y="20"/>
+      </node>
+      <transition target-connector="in1" target-path="/RequireLogin.1/b2.3"/>
+    </segment>
+  </branch>
+</pipeline>

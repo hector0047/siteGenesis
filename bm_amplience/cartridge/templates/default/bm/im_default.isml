@@ -1,0 +1,23 @@
+<isdecorate template="application/menu_frame">
+	<!-- TEMPLATENAME: im_default.isml (Start) -->
+	<iscontent type="text/html" charset="UTF-8" compact="true">
+	
+	<isset name="PageContextJson" value="${JSON.stringify(pdict.PageContext)}" scope="page" />
+	
+	<link rel="stylesheet" type="text/css" href="${URLUtils.absStatic('/css/jquery-ui.css')}" />
+	<link rel="stylesheet" type="text/css" href="${URLUtils.absStatic('/css/amp.css')}" />
+	
+	<div id="main-container" data-page-context="${PageContextJson}">
+		
+		<h2 class="overview_title">
+			<isprint value="${Resource.msg('im.title', 'locale', null)}" />
+		</h2>
+		<div class="overview_title_description">
+		</div>
+		
+		<isreplace/>
+	
+	</div>
+
+	<!-- TEMPLATENAME: im_default.isml (End) -->
+</isdecorate>

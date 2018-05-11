@@ -1,0 +1,148 @@
+How to create a client certificate for Two Factor Authentication
+Objective
+To configure and manage the client certificates required for two-factor authentication within the customer environment as required for PCI compliance.
+
+Note: All new realms are configured with BLOCK_PUT enabled, and Demandware Security Compliance requires that we do not disable this - the two-factor authentication configuration is required for all new realms.
+Environment
+Staging instance
+Procedure
+1.     Install OpenSSL
+a.     Download a Windows or Linux OpenSSL client from the following location:
+http://www.slproweb.com/products/Win32OpenSSL.html
+a.     Install only the OpenSSL Light version.
+b.     For Windows users, accept the default installation instructions.
+c.      OpenSSL will be installed to C:\OpenSSL by default.
+The instructions in this document assume the default installation location.
+2.     Create a new key and request using OpenSSL
+a.     Extract the Certificate.zip file in C:\OpenSSL\bin.
+b.     Open the command prompt and enter C:\OpenSSL\bin\.
+c.      In either case, enter the following command to generate a request:
+openssl req -new -sha256 -newkey rsa:2048 -nodes -out b2c_2FactorCert.req -keyout b2c_2FactorCert.key
+ 
+$user indicates the user that this key is for. We recommend that it be the same as the Business Manager user they are authenticating against. For example, if the Demandware instance username is jsmith, the certificate should be named jsmith.
+ 
+Note: When prompted for information to be included in the certificate request, please provide information for the user that will be using the certificate (for example, jsmith).
+ 
+CAUTION: Do not use generic names such as Release Team.
+The output should be as follows:
+ 
+Generating a 2048 bit RSA private key
+....................++++++++++++
+........++++++++++++
+writing new private key to '$user.key'
+-----
+You are about to be asked to enter information that will be
+incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished
+Name
+or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (city) []:
+Organization Name (company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (section) []:
+Common Name (YOUR name) []:
+Email Address []:
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+ 
+Note: The last two fields are optional. We recommend that you leave them blank. The challenge password is not used.
+d.     Fill out the request with your company name information and a valid email address. This should be the valid email address of the person using the certificate.
+For example:
+ 
+Country Name (2 letter code) [AU]: US
+State or Province Name (full name)
+[Some-State]: Massachusetts
+Locality Name (city) []:
+Organization Name (company) [Internet
+Widgits Pty Ltd]: Demandware
+Organizational Unit Name (section) []:
+Customer Services
+Common Name (YOUR name) []: John Smith
+Email Address []:
+jsmith@demandware.com
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+ 
+Note: Demandware supports OpenSSL ( http://www.openssl.org ) certificates.
+3.     Sign the certificate request ($user.req) with your certificate
+a.     Copy the results of the client key and client request to the same directory as the certificate and key (C:\OpenSSL\bin).
+b.     Enter the following OpenSSL command into the command prompt:
+openssl x509 -CA $name.crt -CAkey $name.key -CAserial $name.srl -req -in $user.req -out $user.pem -days $days
+
+openssl x509 -CA cert.staging.store.panasonic.demandware.net_01.crt -CAkey cert.staging.store.panasonic.demandware.net_01.key -CAserial cert.staging.store.panasonic.demandware.net.srl -req -in b2c_2FactorCert.req -out b2c_2FactorCert.pem -days 9999
+ 
+$days: the number of valid days for this client certificate following creation$name: the name provided by Demandware
+$user: the user of the client certificate you are signing. For example: jsmith
+ 
+Note: The $name portion of the $name.srl file may be slightly different from other $name files. Make sure you enter the file name correctly.
+ 
+For example:
+ 
+openssl x509 -CA cert.staging.web.customer.demandware.net_01.crt -CAkey cert.staging.web.customer.demandware.net_01.key -CAserial cert.staging.web.customer.demandware.net.srl -req -in jsmith.req -out jsmith.pem -days 10
+c.      The certificate will be valid until it expires or you ask Demandware to revoke all certificates. Therefore you must plan carefully when assigning certificates to users.
+The output of this command should look as follows:
+ 
+Signature ok
+subject=/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN=XX/emailAddress=user@co.com
+Getting CA Private Key
+Enter pass phrase for $name.key:
+d.     Enter the pass phrase (contained in $name.txt) to sign the certificate.
+4.     Export the certificate and client information to pkcs12 format.
+a.     Enter the following command into the command prompt:
+openssl pkcs12 -export -in $user.pem -inkey $user.key -certfile $name.crt -name "$user" -out  $user.p12
+
+openssl pkcs12 -export -in b2c_2FactorCert.pem -inkey b2c_2FactorCert.key -certfile cert.staging.store.panasonic.demandware.net_01.crt -name "b2c_2FactorCert" -out  b2c_2FactorCert.p12
+ 
+$name is the name provided by Demandware.
+ 
+$user is the user of the client certificate you are signing.
+ 
+For example:
+ 
+openssl pkcs12 -export -in jsmith.pem -inkey jsmith.key -certfile cert.staging.web.customer.demandware.net_01.crt -name "jsmith" -out jsmith.p12
+b.     Specify an export password for this file. This password must be provided to the end user who will be loading the certificate into Studio or another keystore.
+c.      The pkcs12 certificate can be used to connect to a Staging instance via Studio. The certificate can also be used with other WebDAV clients, such as the Windows built in WebDAV client. If the user wants to upload code via the Windows WebDAV, see Step 6, Otherwise, Step 6 is not required.
+5.     Import the certificate into a browser. This is a validation step to test that the certificate works in a browser.
+a.     In Firefox, select Tools > Options.
+b.     Click Advanced.
+c.      On the Encryption tab, click View Certificates.
+The Certificate Manager dialog appears.
+d.     Click the Your Certificates tab and click Import.
+e.     Select the <user>.p12 certificate
+6.     Import the pkcs12 file if creating a WebDAV connection.
+a.     On the local machine, double-click the certificate to open it.  The Certificate dialog will appear.
+b.     Click Install Certificate. The Certificate Import Wizard will appear.
+c.      Click Next.
+d.     Select the Automatically select the certificate store based on the type of certificate check box.
+e.     Click Next.
+Note: A message will appear indicating that you have successfully completed the certificate import.
+f.       Click Finish. You will now be able to open a WebDAV connection using this certificate. You can also open Studio and import the certificate directly.
+g.     Use the Add Network Wizard to create a WebDAV network location with Windows, using the following hostname:
+cert.staging.realm.customer.demandware.net
+ 
+Please reference the Microsoft hotfix (KB942392) to make the above work with the Windows Vista client (http://support.microsoft.com/KB/942392 ).
+7.     Create a server connection via Studio.
+a.     Open Demandware Studio.
+b.     Click File > New > Demandware Server Connection. The New Demandware Server Connection dialog box will appear.
+c.      Make sure you enter the new instance URL. It should be in the format ofcert.staging.realm.customer.demandware.net.
+d.     Click the Use Certificate Authentication check box.
+e.     Browse to the keystore (pkcs12) file you want to import and click Select.
+f.       Enter the password supplied to you by your administrator.
+g.     Click Finish to connect.
+The customer can now connect via Studio and WebDAV.
+ 
+Note: You may also need to import the certificate file into your browser before you can connect with Studio.
+Additional Info
+Also see the article: What Does BLOCK_PUT Mean in Regards to Two-Factor Authentication?
+Attachment
+ 

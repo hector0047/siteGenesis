@@ -1,0 +1,157 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/pt_account">
+	<isinclude template="util/modules"/>
+	
+	<div class="desktopBlock"><isslot id="account-banner" description="Banner for My Account pages" context="global" /></div>
+	
+	<iscomment>Builds a registration page for the user. It provides all input fields for names and address</iscomment>
+
+		<isif condition="${!empty(pdict.Action) && pdict.Action == 'edit'}">
+			<h1 id="pnsb2c-myaccount-edit">${Resource.msg('account.myprofile','account',null)}</h1>
+		<iselse/>
+			<h1 id="pnsb2c-myaccount-edit">${Resource.msg('account.createnew','account',null)}</h1>
+		</isif>
+
+		<iscomment>Only enable the facebook registration if the customer isn't authenticated</iscomment>
+		<isif condition="${!pdict.CurrentCustomer.authenticated &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookConnectEnabled')) &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookAppID') != null) &&
+							(dw.system.Site.getCurrent().getCustomPreferenceValue('facebookURI') != null)
+							}">
+			<isinclude template="account/facebook/facebookregistration"/>
+		</isif>
+		<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationFormone" class="editname" name="updatename">
+
+			<fieldset>
+				<div class="pnsb2c-edit-prof-block-head">
+					${Resource.msg('registration.name','account',null)}
+				</div>
+			 
+				<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+					<div class="pnsb2c-edit-profile-form-row-holder">
+						<isinputfield formfield="${pdict.CurrentForms.profile.customer.title}" type="select" class="title" rowclass="edit-prof-row select-box-row" requiredtextstar="true"/>
+						<isinputfield formfield="${pdict.CurrentForms.profile.customer.firstname}" type="input" class="firstname" rowclass="edit-prof-row middle-row" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}"/>
+						<isinputfield formfield="${pdict.CurrentForms.profile.customer.lastname}" type="input" class="lastname" rowclass="edit-prof-row" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}"/>
+					</div>
+					<div class="success-fail-msg hide">
+						<span class="spriteico"></span>
+						<span id="msgname"></span>
+					</div>
+				<iselse/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.firstname}" type="input" attribute1="disabled" value1="disabled"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.lastname}" type="input" attribute1="disabled" value1="disabled"/>
+				</isif>
+			   <div class="form-row form-row-button edit-prof-buton-margin-none">
+					<button type="submit" value="${Resource.msg('global.name','locale',null)}" name="${pdict.CurrentForms.profile.updatename.htmlName}">
+						${Resource.msg('global.name','locale',null)}
+					</button>
+				</div>	
+				
+				<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>		
+			 </fieldset>	
+			</form>
+			
+			<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationFormtwo" class="editemail">
+				<fieldset>
+				<div class="pnsb2c-edit-prof-block-head">
+					${Resource.msg('registration.email','account',null)}
+				</div>
+			 
+					<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+							<div class="emailinfo example-info">
+								${pdict.CurrentCustomer.profile.credentials.login}
+							</div>
+						<div class="pnsb2c-edit-profile-form-row-holder">
+							<isinputfield formfield="${pdict.CurrentForms.profile.customer.emailnew}" type="input" xhtmlclass="email-input" rowclass="edit-prof-row first-margin" requiredtextstar="true" xhtmlclass="email" requiredtext="${Resource.msg('editprofile.newemail.missing-error','forms',null)}"/>
+							<isinputfield formfield="${pdict.CurrentForms.profile.customer.emailnewconfirm}" type="input" rowclass="edit-prof-row middle-row" xhtmlclass="email" requiredtext="${Resource.msg('editprofile.confirmnewemail.missing-error','forms',null)}"/>
+							<isinputfield formfield="${pdict.CurrentForms.profile.login.oldpassword}" type="password" rowclass="edit-prof-row" requiredtext="${Resource.msg('editprofile.currentpassword.missing-error','forms',null)}"/>
+						</div>
+	             <iscomment>Checkbox for My account profile page</iscomment>
+	             <isif condition="${pdict.CurrentCustomer.profile.custom.isSubscription}">
+	                  <isinputfield formfield="${pdict.CurrentForms.profile.customer.addtoemaillist}" type="checkbox" rowclass="form-indent label-inline pnsb2c-edit-prof-form-indent tickmark" attribute1="checked" value1="checked"/>
+	             <iselse>
+	             	<isinputfield formfield="${pdict.CurrentForms.profile.customer.addtoemaillist}" type="checkbox" rowclass="form-indent label-inline pnsb2c-edit-prof-form-indent tickmark"/>
+	             </isif>
+						<div class="success-fail-msg hide">
+							<span class="spriteico"></span>
+							<span id="msgemail"></span>
+					   </div>
+						<div class="form-row form-row-button edit-prof-buton-margin-none">
+							<button type="submit" value="${Resource.msg('global.email','locale',null)}" name="${pdict.CurrentForms.profile.updateemail.htmlName}">
+								${Resource.msg('global.email','locale',null)}
+							</button>
+						</div>
+						 
+					<iselse/>
+						<isinputfield formfield="${pdict.CurrentForms.profile.customer.email}" type="input" attribute1="disabled" value1="disabled"/>
+					</isif>
+					<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>	
+					
+					</fieldset>
+				</form>
+								
+				<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationFormthree" class="editpassword">
+				<fieldset>
+				<div class="pnsb2c-edit-prof-block-head">
+					${Resource.msg('registration.password','account',null)}
+					<span class="info part-2">
+					<span class="password-resetlable">${Resource.msg('acount.forgotpassword.info','account',null)}</span>
+					<a id="password-reset" href="${URLUtils.url('Account-PasswordResetDialog')}" title="${Resource.msg('account.clickhere','account',null)}">
+							${Resource.msg('account.clickhere','account',null)}
+					</a></span>
+				</div>
+					<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+					 
+						<div class="pnsb2c-edit-profile-form-row-holder">					
+							<isinputfield formfield="${pdict.CurrentForms.profile.login.oldpassword}" type="password" rowclass="edit-prof-row" requiredtextstar="true" requiredtext="${Resource.msg('editprofile.currentpassword.missing-error','forms',null)}"/>
+							<isinputfield formfield="${pdict.CurrentForms.profile.login.newpassword}" type="password" xhtmlclass="password-input" rowclass="edit-prof-row middle-row" requiredtext="${Resource.msg('editprofile.newpassword.missing-error','forms',null)}"/>
+							<isinputfield formfield="${pdict.CurrentForms.profile.login.newpasswordconfirm}" type="password" rowclass="edit-prof-row" requiredtext="${Resource.msg('editprofile.newconfirmpassword.missing-error','forms',null)}"/>
+						</div>	
+						
+						<div class="success-fail-msg hide">
+							<span class="spriteico"></span>
+							<span id="msgpassword"></span>
+					    </div>
+						<div class="form-row form-row-button edit-prof-buton-margin-none">
+								<button type="submit" value="${Resource.msg('global.password','locale',null)}" name="${pdict.CurrentForms.profile.updatepassword.htmlName}">
+									${Resource.msg('global.password','locale',null)}
+								</button>						
+						</div>					
+					<iselse/>
+						<iscomment>
+							<isinputfield formfield="${pdict.CurrentForms.profile.customer.email}" type="input" attribute1="disabled" value1="disabled"/>
+						</iscomment>
+					</isif>					
+					<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>	
+					</fieldset>
+				</form>	
+				<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationFormfour" class="editpersonalinformation">
+					<fieldset>
+						<div class="pnsb2c-edit-prof-block-head">
+							<span class="info">${Resource.msg('account.tellusmoreaboutyou','account',null)}</span>
+							<span class="info part-2">${Resource.msg('account.whatsyouragegroup','account',null)}</span>
+						</div>
+						<div class="pnsb2c-edit-profile-form-row-holder">
+								 <div class="form-row pnsb2c-age-radio">
+								 <label for="gap-1">${Resource.msg('account.age.firstoption','account',null)}</label><span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.profile.customer.age.htmlName}"  value="${Resource.msg('account.age.firstoption','account',null)}" <isif condition="${pdict.CurrentCustomer.profile.custom.agegroup==Resource.msg('account.age.firstoption','account',null)}"> checked="checked" </isif>/></span>
+								 <label for="gap-1">${Resource.msg('account.age.secondoption','account',null)}</label><span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.profile.customer.age.htmlName}"  value="${Resource.msg('account.age.secondoption','account',null)}" <isif condition="${pdict.CurrentCustomer.profile.custom.agegroup==Resource.msg('account.age.secondoption','account',null)}"> checked="checked" </isif>/></span>
+								 <label for="gap-1">${Resource.msg('account.age.thirdoption','account',null)}</label><span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.profile.customer.age.htmlName}"  value="${Resource.msg('account.age.thirdoption','account',null)}" <isif condition="${pdict.CurrentCustomer.profile.custom.agegroup==Resource.msg('account.age.thirdoption','account',null)}"> checked="checked" </isif>/></span>
+								 <label for="gap-1">${Resource.msg('account.age.fourthoption','account',null)}</label><span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.profile.customer.age.htmlName}"  value="${Resource.msg('account.age.fourthoption','account',null)}" <isif condition="${pdict.CurrentCustomer.profile.custom.agegroup==Resource.msg('account.age.fourthoption','account',null)}"> checked="checked" </isif>/></span>
+								 <label for="gap-1">${Resource.msg('account.age.fifthoption','account',null)}</label><span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.profile.customer.age.htmlName}"  value="${Resource.msg('account.age.fifthoption','account',null)}" <isif condition="${pdict.CurrentCustomer.profile.custom.agegroup==Resource.msg('account.age.fifthoption','account',null)}"> checked="checked" </isif>/></span>
+								 </div>
+						</div>	
+						<div class="success-fail-msg hide">
+							<span class="spriteico"></span>
+							<span id="msgpersonalinformation"></span>
+					    </div>
+					    
+						<div class="form-row form-row-button edit-prof-buton-margin-none">
+								<button type="submit" value="${Resource.msg('global.updatepersonalinformation','locale',null)}" name="${pdict.CurrentForms.profile.updatepersonalinformation.htmlName}">
+									${Resource.msg('global.updatepersonalinformation','locale',null)}
+								</button>
+						
+							</div>
+						<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>
+				</fieldset>
+		</form>					
+</isdecorate>

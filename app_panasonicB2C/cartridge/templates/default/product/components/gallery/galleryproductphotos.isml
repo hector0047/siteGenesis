@@ -1,0 +1,42 @@
+<div id="gallery-product-photos">
+<div id="gallery-product-photos-carousel" class="gallery-product-photos-carousel">
+	<ul>
+		<isloop items="${galleryProductPhotosObject.items}" var="img" status="imgSmStatus">
+			<li class="gallery-tile">
+				<picture>
+					<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PDP-Zoom-Image-Desktop$','desktop')}" media="(min-width: 1024px)">
+					<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PDP-Zoom-Image-Desktop$','tablet')}" media="(min-width: 768px)">
+					<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PDP-Zoom-Image-Desktop$','mobile')}" media="(min-width: 380px)">
+					<a href='#' onclick="javascript:return void(0);" class='galleryImage' data-url="${getGalleryImagesUrl}" data-tab="galleryProductPhotos" data-model="${pdict.Product.ID}" data-index="${imgSmStatus.index}">
+						<img src="${getAmplienceImageUrlViewPortWise(img.src,'$PDP-Zoom-Image-Desktop$','desktop')}"  width="180" height="120"/>
+					</a>
+				</picture>						
+			</li>
+		</isloop>	 	
+	</ul>
+</div>
+<div id="gallery-product-photos-grid">
+		<ul>
+			<isloop items="${galleryProductPhotosObject.items}" var="img" status="imgSmStatus">		
+		    	<isif condition="${(imgSmStatus.index%5 == 0)}">
+					<li class="gallry-tile-new gallery-tile">
+				<iselse>
+					<li class="gallery-tile">
+				</isif>
+						<picture>
+							<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PLP-Product-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+							<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PLP-Product-Thumbnail-Desktop$','tablet')}" media="(min-width: 768px)">
+							<source srcset="${getAmplienceImageUrlViewPortWise(img.src,'$PLP-Product-Thumbnail-Desktop$','mobile')}" media="(min-width: 380px)">
+							<isif condition="${(galleryProductPhotosObject.items.size() == (imgSmStatus.index + 1))}">
+								<a href='#' onclick="javascript:return void(0);" class='galleryImage' data-url="${getGalleryImagesUrl}" data-tab="galleryProductPhotos" data-model="${pdict.Product.ID}" data-index="${imgSmStatus.index}" data-last="1">
+							<iselse>
+								<a href='#' onclick="javascript:return void(0);" class='galleryImage' data-url="${getGalleryImagesUrl}" data-tab="galleryProductPhotos" data-model="${pdict.Product.ID}" data-index="${imgSmStatus.index}" data-last="0">
+							</isif>
+								<img src="${getAmplienceImageUrlViewPortWise(img.src,'$PLP-Product-Thumbnail-Desktop$','desktop')}"  width="180" height="120"/>
+							</a>
+						</picture>
+					</li>
+			</isloop>	 	
+		</ul>
+	</div>
+</div>

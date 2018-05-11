@@ -1,0 +1,117 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="checkout/pt_sbcheckoutestimate">
+<isinclude template="util/modules"/>
+<isset name="PageName" value="sb_EstimationPage" scope="page"/>
+<isset name="bctext1" value="${Resource.msg('servicebench.estimarebred','account',null)}" scope="pdict"/>
+<div class="SB-repair-estimation-page-wrapper">
+	<h1 class="sb-repair-estimate-head" id= "sb-repairestimation">${Resource.msg('servicebench.estimarebred','account',null)}</h1>
+	<div class="estimate-topic-block block-1">
+	
+		<span class="block-head column-header">
+			${Resource.msg('servicebench.estimate.prodinfo','account',null)}
+		</span>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.modelNumb','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.mnumber.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.serialNumb','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.snumber.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('sb.purchaseDate','sb_forms',null)}</span>
+			<span class="block-info"><isprint value="${pdict.CurrentForms.repairsubmit.month.value}" />/<isprint value="${pdict.CurrentForms.repairsubmit.day.value}" />/<isprint value="${pdict.CurrentForms.repairsubmit.year.value}" /></span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.partsWarrantyStatus','sb_forms',null)}</span>
+			<span class="block-info">
+				<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart != null}" >
+					<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty'}">
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					</isif>
+				<iselse/>
+					<isif condition="${pdict.warrantyStatusPart == 'InWarranty'}">
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					</isif>
+				</isif>
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.laborWarrantyStatus','sb_forms',null)}</span>
+			<span class="block-info">
+				<isif condition="${pdict.CurrentSession.custom.warrantyStatusLabor != null}" >
+					<isif condition="${pdict.CurrentSession.custom.warrantyStatusLabor == 'OutofWarranty'}">
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					</isif>
+				<iselse/>
+					<isif condition="${pdict.warrantyStatusLabor == 'InWarranty'}">
+						${Resource.msg('sb.inWarranty','sb_forms',null)}
+					<iselse/>
+						${Resource.msg('sb.outWarranty','sb_forms',null)}
+					</isif>
+				</isif>
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.partsWarrantyExpDate','sb_forms',null)}</span>
+			<isif condition="${pdict.CurrentSession.custom.warrantyEndDatePart != null}" >
+				<isset name="Pyear" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[0]}" scope="page" />
+				<isset name="Pmonth" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[1]}" scope="page" />
+				<isset name="Pday" value="${pdict.CurrentSession.custom.warrantyEndDatePart.split('/')[2]}" scope="page" />
+			<iselse/>
+				<isset name="Pyear" value="${pdict.warrantyEndDatePart.split('/')[0]}" scope="page" />
+				<isset name="Pmonth" value="${pdict.warrantyEndDatePart.split('/')[1]}" scope="page" />
+				<isset name="Pday" value="${pdict.warrantyEndDatePart.split('/')[2]}" scope="page" />
+			</isif>
+			<span class="block-info">
+				<isprint value="${dw.util.StringUtils.formatCalendar(new dw.util.Calendar(new Date(Pyear,Pmonth-1,Pday)), 'MM/dd/yyyy')}" />
+			</span>
+		</div>
+		<div class="info-block">
+			<span class="block-head">${Resource.msg('checkout.laborWarrantyExpDate','sb_forms',null)}</span>
+			<isif condition="${pdict.CurrentSession.custom.warrantyEndDateLabor != null}" >
+				<isset name="Lyear" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[0]}" scope="page" />
+				<isset name="Lmonth" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[1]}" scope="page" />
+				<isset name="Lday" value="${pdict.CurrentSession.custom.warrantyEndDateLabor.split('/')[2]}" scope="page" />
+			<iselse/>
+				<isset name="Lyear" value="${pdict.warrantyEndDateLabor.split('/')[0]}" scope="page" />
+				<isset name="Lmonth" value="${pdict.warrantyEndDateLabor.split('/')[1]}" scope="page" />
+				<isset name="Lday" value="${pdict.warrantyEndDateLabor.split('/')[2]}" scope="page" />
+			</isif>
+			<span class="block-info">
+				<isprint value="${dw.util.StringUtils.formatCalendar(new dw.util.Calendar(new Date(Lyear,Lmonth-1,Lday)), 'MM/dd/yyyy')}" />
+			</span>
+		</div>
+		
+	</div>
+	<div class="estimate-description-block block-2">
+		<isif condition="${pdict.CurrentSession.custom.warrantyStatusPart == 'InWarranty' && pdict.CurrentSession.custom.warrantyStatusPart == 'InWarranty'}" >
+			<isif condition="${pdict.CurrentSession.custom.exchangeable != '0'}" >
+				<div class="info-block">
+					<span class="block-head">${Resource.msg('checkout.prodExchangeNoticehead','sb_forms',null)}</span>
+					<span class="block-info">${Resource.msg('checkout.prodExchangeNotice','sb_forms',null)}</span>
+				</div>
+			</isif>
+			<div class="info-block">
+				<span class="block-head">${Resource.msg('checkout.ServiceInformationHead','sb_forms',null)}</span>
+				<span class="block-info">${Resource.msg('checkout.ServiceInformation','sb_forms',null)}</span>
+			</div>
+		<iselseif condition="${pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty' && pdict.CurrentSession.custom.warrantyStatusPart == 'OutofWarranty'}" >
+			<div class="info-block">
+				<span class="block-head">${Resource.msg('checkout.customerInfo','sb_forms',null)}</span>
+				<span class="block-info">${Resource.msg('checkout.outwarrantyinfo','sb_forms',null)}</span>
+			</div>
+		</iselseif>
+		</isif>
+	</div> 
+	 <div class="request-summary-block block-3">
+		<isinclude template="responses/sb_requestsummary.isml"/> 
+	 </div>
+</div> 					 	
+</isdecorate>

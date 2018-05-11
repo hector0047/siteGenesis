@@ -1,0 +1,67 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Creates a mini credit card display.
+	If p_card is given the second parameter is ignored.
+	Only shown if Owner, Type and Number are not empty (p_card is a credit card).
+	
+	Parameter:
+	p_card	       : the PaymentInstrument object to display
+	p_cc_formfield : a credit card formfield element
+</iscomment>
+<isscript>
+	importPackage( dw.util );
+	importPackage( dw.object );
+	importPackage( dw.system );
+	importPackage( dw.web );
+	var cybersourceCheck : Boolean = Site.getCurrent().getCustomPreferenceValue('enableCSIntegration');
+	var ccType   : String;
+	var ccNumber : String;
+	var ccMonth  : Integer;
+	var ccYear   : Integer;
+	var ccOwner  : String;
+	var maskedFourDigit  : String;
+
+	if( pdict.p_card != null )
+	{
+		ccType   = pdict.p_card.creditCardType;
+		ccNumber = pdict.p_card.maskedCreditCardNumber;
+		ccMonth  = pdict.p_card.creditCardExpirationMonth;
+		ccYear   = pdict.p_card.creditCardExpirationYear;
+		ccOwner  = pdict.p_card.creditCardHolder;
+	}
+	else
+	{
+		ccType   = pdict.p_cc_formfield.type.htmlValue;
+		ccNumber = pdict.p_cc_formfield.number.htmlValue;
+		ccMonth  = pdict.p_cc_formfield.month.value;
+		ccYear   = pdict.p_cc_formfield.year.value;
+		ccOwner  = pdict.p_cc_formfield.owner.htmlValue;
+	}
+
+	var ccNumber1 = ccNumber.substring(0,4);
+	var ccNumber2 = ccNumber.substring(4,8);
+	var ccNumber3 = ccNumber.substring(8,12);
+	var ccNumber4 = ccNumber.substring(12,16);
+	
+	
+</isscript>
+<isif condition="${!empty(ccOwner) && !empty(ccType) && !empty(ccNumber)}">
+	<span class="cc_owner"><isprint value="${ccOwner}"/><br /></span>
+	<iscomment>we are getting card name from properties file because card name configured in BM is short name like amex instead of american express</iscomment>	
+	<span class="cc_cardtype"><isprint value="${Resource.msg(ccType,'checkout',null)}"/><br /></span>
+	<span class="cc_number">
+		<isif condition="${pdict.CurrentRequest.httpPath.indexOf('PaymentInstruments-AddCreditCard') != -1 || pdict.CurrentRequest.httpPath.indexOf('PaymentInstruments-EditCreditCard') != -1 || pdict.CurrentRequest.httpPath.indexOf('PaymentInstruments-List') != -1 || pdict.CurrentRequest.httpPath.indexOf('PaymentInstruments-SetDefault') != -1}">	
+				${ccNumber1} ${ccNumber2} ${ccNumber3} ${ccNumber4}	<br />		
+			<iselse/>
+				<isprint value="${ccNumber.replace(/[-]/g,'')}"/><br />
+		</isif>
+	</span>
+	<span class="mcard-expdt-confpage">
+		<isif condition="${pdict.CurrentRequest.httpPath.indexOf('Order-History') != -1}">
+				<isprint value="${parseInt(ccMonth)}" formatter="00"/>/<isprint value="${ccYear}" formatter="0000"/>
+			<iselse/>
+				${Resource.msg('minicardcard.expires','account',null)} <isprint value="${ccMonth}" formatter="00"/>/<isprint value="${ccYear}" formatter="0000"/>
+		</isif>
+	</span>
+	
+</isif>

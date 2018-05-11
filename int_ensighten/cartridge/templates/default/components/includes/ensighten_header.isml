@@ -1,0 +1,8 @@
+<!--- TEMPLATENAME: ensighten.isml --->
+<isscript> 
+	var orderID = null;
+	if(!empty(pdict.Order)  && pdict.Order.class.name  == 'dw.order.Order' && !empty(pdict.Order.orderNo)){
+		orderID = pdict.Order.orderNo;
+	}
+</isscript>
+<iscomponent pipeline="EnsightenInjection-Start"  ens_orderno="${orderID}" />

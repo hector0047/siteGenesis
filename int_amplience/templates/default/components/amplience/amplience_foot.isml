@@ -1,0 +1,45 @@
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceEnabled')}">
+	
+	<iscomment> Amplience IM Libs </iscomment>
+	<isinclude template="components/amplience/amplience_im"/>
+	
+	<iscomment> Amplience UGC Libs </iscomment>
+	<isinclude template="components/amplience/amplience_ugc"/>
+	
+	<iscomment> Amplience DI Libs </iscomment>
+	<isinclude template="components/amplience/amplience_di"/>
+	
+	<script type="text/javascript" src="${URLUtils.staticURL('/js/amplience-async.js')}"></script>
+	<script type="text/javascript">
+	(function () {
+		
+		var amp = window.amp;
+		if (typeof amp.asyncLoad === 'function' && 'dwJsLibs' in amp) {
+			amp.asyncLoad(amp.dwJsLibs);
+		};
+		
+	})();
+	</script>
+	
+	<script type="text/javascript">
+	(function () {
+		
+		var regExp = /^\$(\w+)\(([^\)]*)\)\$$/;
+		
+		var tencmsInvokeAction = window.tencmsInvokeAction = function (data, areaID, context) {
+			var module = interact.getApp(areaID);
+			var result = regExp.exec(data);
+			if (result == null) {
+				if (module) module.pauseModule();
+				window.ecommBridge.interaction.launchQuickview(data);
+			} else {
+				window.ecommBridge.interaction.actions(result[1], result[2], module);
+			}
+		};
+		
+		
+		
+	})();
+	</script>
+	
+</isif>

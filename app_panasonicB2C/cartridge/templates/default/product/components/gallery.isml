@@ -1,0 +1,66 @@
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+	importScript("util/GetAmplienceImageUrl.ds");
+</isscript>
+<isset name="getGalleryImagesUrl" value="${URLUtils.url('Product-GetGalleryImages', 'pid', pdict.Product.ID)}" scope="page" />
+<isif condition="${pdict.Product.isVariant()}" >
+	<isset name="mainProduct" value="${pdict.Product.getVariationModel().getMaster()}" scope="page" />
+<iselse>
+	<isset name="mainProduct" value="${pdict.Product}" scope="page" />
+</isif>
+
+<input name="mainProductID" id="mainProductID" value="${mainProduct.ID}" type="hidden"/>
+
+<h2 class="block-headline">${Resource.msg('product.gallery','product',null)}<span class="collapse-all-pdp toggle"></span></h2>
+<div class="prod-gallery-holder PDPFeaturecontent">
+	<div id="tabs">
+		<ul>
+			<isif condition="${mainProduct.custom.pixleeEnableGallery}">		
+				<li class="gallerycommunity"><a href="#community">
+					<isif condition="${!empty(pdict.Product.custom.pixleeTabTitle)}">
+						${pdict.Product.custom.pixleeTabTitle} 
+					<iselse/> 
+						${Resource.msg('product.gallery.community','product',null)}
+					</isif>
+				</a></li>
+			</isif>
+			<iscomment>To hide the link if no contents present for gallery</iscomment>
+			<isscript>
+                var galleryPhotographySamplesObject : Object = getGalleryImages(pdict.Product, 'galleryPhotographySamples'); 
+			</isscript>
+			<isif condition="${!empty(galleryPhotographySamplesObject.items)}">
+		    	<li><a href="#photography-samples">${Resource.msg('product.gallery.photographysamples','product',null)}</a></li>
+		    </isif>
+		    <isscript>
+ 				var galleryProductPhotosObject : Object = getGalleryImages(pdict.Product, 'galleryProductPhotos'); 
+            </isscript>
+            <isif condition="${!empty(galleryProductPhotosObject.items)}">
+		    	<li><a href="#product-photos">${Resource.msg('product.gallery.productphotos','product',null)}</a></li>
+		    </isif>
+		    <isif condition="${!empty(pdict.GalleryVideoUrls)}">
+		        <li><a href="#videos">${Resource.msg('product.gallery.videos','product',null)}</a></li>
+		    </isif>
+	  	</ul>
+	  	<iscomment>Pixlee PDP	</iscomment>
+	  	<isif condition="${mainProduct.custom.pixleeEnableGallery}">
+		  	<div id="community">
+	  			<div id="gallery-community-title" class="gallery-community-header"><isprint value="${pdict.Product.custom.pixleeGalleryTitle}" encoding="off"  /></div>
+	    		<div id="gallery-community-gallery"><isinclude template="widgets/pdpwidget"/></div>
+		  	</div>
+	  	</isif>
+	  	<div id="photography-samples">
+	    	<isinclude template="product/components/gallery/galleryphotographysamples"/>
+	  	</div>
+	  	<div id="product-photos">
+	    	<isinclude template="product/components/gallery/galleryproductphotos"/>
+	  	</div>
+	  	<div id="videos">
+	    	<isinclude template="product/components/gallery/galleryvideos"/>
+	  	</div>
+	</div> 
+</div>
+ <script>
+ 	$( function() {
+    	$( "#tabs" ).tabs();
+  	} );
+ </script>

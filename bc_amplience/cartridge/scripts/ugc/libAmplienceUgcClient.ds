@@ -1,0 +1,189 @@
+/**
+ * Load Ampliennce UGC streams from Amplience API
+ */
+ 
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.util );
+importPackage( dw.web );
+
+importScript( 'bc_amplience:/api/libAmplienceAPIAuth.ds' );
+ 
+var AMP_ASSETS_PATH : String = 'assets';
+var DEFAULT_PAGE_SIZE : Number = 10;
+ 
+ function UgcClient( authParams : Object, queryParams : Object ) {
+ 	
+ 	/**
+ 	 * Set default page size if is not provided, 
+ 	 * default Amplience API page size is 20
+ 	 */
+ 	if ( queryParams && empty(queryParams['pageSize'])) {
+ 		queryParams['pageSize'] = DEFAULT_PAGE_SIZE;
+ 	};
+ 	
+ 	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+		ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+ 	
+ 	/**
+	 * Get Amplience UGC assets
+	 *
+	 * @param {Array} streamsIds - Optional parameter, 
+	 * if parameter is provided will load streams with specific ids, 
+	 * if not will load all streams
+	 *
+	 * @return {Object} responseObj - Object represents parsed json response
+	 *
+	 */
+ 	this.getAssets = function ( streamsIds : Array ) : Object {
+		
+		/**
+		 * Get authorization token
+		 */
+ 		var amplienceAPIAuth : Object = new AmplienceAPIAuth( authParams );
+ 		
+ 		var authToken : Object = amplienceAPIAuth.getAuthToken();
+		if ( empty(authToken) ) {
+			throw new Error('Token not received.');
+		};
+ 		
+  		var httpClient : HTTPClient = new HTTPClient();
+		httpClient.setTimeout(ampTimeout);
+		httpClient.enableCaching(0);
+		
+		/**
+		 * Create URL for API call
+		 */
+		var queryString : String = empty(streamsIds) ? buildSearchQuery(queryParams) : buildIdsQuery(streamsIds);
+ 		
+ 		var url : String = authParams.ampApiURL + AMP_ASSETS_PATH + queryString;
+ 		httpClient.open('GET', url);
+ 		
+ 		var permissionsToken : String = '';
+ 		if ('content' in authToken && 'permissionsToken' in authToken.content) {
+ 			permissionsToken = authToken.content.permissionsToken;
+ 		};
+ 		
+ 		httpClient.setRequestHeader('X-Amp-Auth', permissionsToken);
+ 		
+ 		httpClient.send();
+ 		
+ 		if (httpClient.statusCode != 200) {
+			throw new Error('HTTP Communication error : Status code ' + httpClient.statusCode + ' - ' + httpClient.statusMessage);
+		};
+		
+		return JSON.parse(httpClient.getText('UTF-8'));
+ 	};
+ 	
+ 	/**
+	 * Constructs an URL that you can use to re-execute the exact same query. 
+	 * The search phrase and the sorting option parameters are appended to the provided URL.
+	 *
+	 * @param {URL} url - Current page url
+	 *
+	 * @return {URL} - Search url with query parameters
+	 *
+	 */
+ 	this.constructsSearchURL = function ( url : URL ) : URL {
+		if (!empty(url)) {
+			if (!empty(queryParams['searchPhrase'])) {
+				url.append('q', queryParams['searchPhrase']);
+			};
+			if (!empty(queryParams['sort'])) {
+				url.append('sort', queryParams['sort']);
+			};
+			
+			return url;
+		};
+ 	};
+ 	
+	/**
+	 * Builds search query string for all available streams
+	 *
+	 * @param {Object} params - Object represents request query parameters
+	 *
+	 * @return {String} query - string query parameters
+	 *
+	 */
+ 	var buildSearchQuery = function (params : Object) : String {	
+ 		if (empty(params)) {
+ 			return '';
+ 		};
+ 		
+ 		var paramMap : Object = {
+ 			searchq : 'q',
+ 			pageSize : 'n',
+ 			start : 's',
+ 			sort : 'sort'
+ 		};
+ 		
+ 		var metaParams : Object = {
+	 		select : 'tags',
+	 		filter : 'published:true,type:set'
+	 	};
+ 		
+ 		var paramsSet : Array = [];
+ 		
+ 		var param;
+ 		for (param in params) {
+ 			if (paramMap.hasOwnProperty(param) && !empty(params[param])) {
+ 				paramsSet.push(paramMap[param] + '=' + params[param]);
+ 			}
+ 		};
+ 		
+ 		var searchPhraseQuery : String = paramMap['searchq'] + '=' + '(srcName:ugc_stream+OR+ugcStream.name:*)';
+ 		if ( !empty(params['searchPhrase']) ) {
+ 			searchPhraseQuery += '+AND+' + params['searchPhrase'];
+ 		}
+ 		paramsSet.push(searchPhraseQuery);
+ 		
+ 		for (param in metaParams) {
+ 			paramsSet.push(param + '=' + metaParams[param]);
+ 		};
+ 		
+ 		var queryString : String = paramsSet.join('&');
+ 		if (queryString.length > 0) {
+ 			queryString = '?' + queryString;
+ 		};
+ 		
+ 		return encodeURI(queryString);
+ 	};
+ 	
+ 	
+ 	/**
+	 * Builds request query string for specific streams
+	 *
+	 * @param {Array} streamsIds - List with streams ids
+	 *
+	 * @return {String} query - string query parameters
+	 *
+	 */	
+ 	var buildIdsQuery = function ( streamsIds : Array ) : String {
+ 		
+ 		var metaParams : Object = {
+	 		select : 'tags',
+	 		filter : 'published:true,type:set'
+	 	};
+ 		
+ 		var idsPath : String = '/' + streamsIds.join(','),
+ 			queryString : String = '',
+ 			queryMetaParams : Array = [];
+ 		
+ 		var param;
+ 		for (param in metaParams) {
+ 			queryMetaParams.push(param + '=' +  metaParams[param]);
+ 		}
+ 		
+ 		queryString += queryMetaParams.join('&');
+ 		if (queryString.length > 0) {
+ 			queryString = '?' + queryString;
+ 		}
+ 			
+ 		return encodeURI( idsPath + queryString );
+ 	};
+ 	
+ };
+ 

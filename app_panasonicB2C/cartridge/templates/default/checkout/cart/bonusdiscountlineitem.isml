@@ -1,0 +1,35 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+p_alert_text : alert text
+p_discount_line_item : discount line item
+</iscomment>
+<isif condition="${pdict.p_discount_line_item!=null && pdict.p_discount_line_item.promotion!=null}">
+	<div class="bonus-discount-container" data-lineitemid="${pdict.p_discount_line_item.UUID}">
+		<div class="promotion">
+			<h3><isprint value="${pdict.BonusDiscountLineItem.getPromotion().getName()}"/></h3>
+				<isprint value="${(Resource.msg('cart.selectonebonusproduct','checkout',null))}"/>
+			</div>	
+		<iscomment>
+			<span class="bonus-product-promo">
+				<isprint value="${empty(pdict.p_discount_line_item.promotion.calloutMsg) ? '' : pdict.p_discount_line_item.promotion.calloutMsg.markup}"/>
+			</span>
+			<isif condition="${!empty(pdict.p_discount_line_item.promotion.details)}">
+				<a title="${pdict.p_discount_line_item.promotion.details.markup}">
+					${Resource.msg('promo.seedetail','checkout',null)}
+				</a>
+			</isif>
+				<a class="tooltip" href="#">
+					${Resource.msg('promo.seedetail','checkout',null)}<div class="tooltip-content" data-layout="small">
+						<isprint value="${empty(pdict.p_discount_line_item.promotion.details) ? '' : pdict.p_discount_line_item.promotion.details.markup}"/>
+							<br />
+							${StringUtils.format(Resource.msg('cart.bonusmaxitems','checkout',null), pdict.BonusDiscountLineItem.getMaxBonusItems())}
+							${StringUtils.format(Resource.msg('cart.bonusnumselected','checkout',null),pdict.BonusDiscountLineItem.getBonusProductLineItems().size())}
+					</div>
+				</a>
+		</iscomment>
+		<div class="buttonbar">
+			<button class="select-bonus-btn" type="button"><span>${(Resource.msg('cart.selectbonusproduct','checkout',null)).toUpperCase()}</span></button>	
+			<button class="no-bonus-btn" type="button"><span>${(Resource.msg('global.nothanks','locale',null)).toUpperCase()}</span></button>
+		</div>
+	</div><!-- /.bonusdiscountcontainer -->
+</isif>

@@ -1,0 +1,66 @@
+<!--- TEMPLATENAME: advancednewssearch.isml --->
+<div id="news-search-form" class="news-search-form news-search-form--advanced">
+<isscript>
+	var contentSearchResults = pdict.ContentSearchResult.content,
+		content,
+		contentDates : Collection = new dw.util.SortedSet(),
+		contentDisplayDates : ArrayList,
+		contentFolders : Map = new dw.util.SortedMap();
+		
+		while (contentSearchResults.hasNext()) {
+			var content = contentSearchResults.next();
+            contentDates.add(content.custom.displayDate.getUTCFullYear().toFixed());
+            contentFolders.put(content.classificationFolder.ID, content.classificationFolder.displayName);
+		}
+		
+		if (contentFolders.getLength() >= 2) {
+			contentFolders.put('latest-news', 'Press Releases & News');
+		}
+		
+		while (contentSearchResults.hasNext()) {
+			var content = contentSearchResults.next();
+            contentDates.add(content.custom.displayDate.getUTCFullYear().toFixed());
+            contentFolders.put(content.classificationFolder.ID, content.classificationFolder.displayName);
+		}
+		
+		if (contentFolders.getLength() >= 2) {
+			contentFolders.put('latest-news', 'Press Releases & News');
+		}
+		
+		contentDisplayDates = new dw.util.ArrayList(contentDates);
+		contentDisplayDates.reverse();
+</isscript>
+<form role="search" action="${URLUtils.url('Search-ShowContent','fdid',currentFolder.ID)}" method="get" name="simpleSearchLN">		
+	<fieldset>
+		<legend class="visually-hidden">Search Latest News</legend>
+		<label class="visually-hidden" for="q">Search Latest News</label>
+		<input type="text" id="q" name="q" value="${searchTerms}"  placeholder="Search Latest News" autocomplete="off" />	
+		
+		<iscomment><input type="hidden" name="start" value="0"/></iscomment>
+		<input type="hidden" name="sortBy" value="displayDate"/>
+		<input type="hidden" name="dir" value="2"/>
+		
+		<input type="submit" value="Search" />
+	</fieldset>
+	
+	<isif condition="${contentDisplayDates.length > 0}">
+		<fieldset id="search-filters">
+			<select id="year-filter" class="custom-select">
+				<option value="-1">Filter by Year</option>
+				<isloop iterator = "${contentDisplayDates}" alias="contentDisplayDate">
+					 <option value="${contentDisplayDate}">${contentDisplayDate}</option>
+				</isloop>
+			</select>
+			
+			<select id="content-filter" class="custom-select">
+				<isloop iterator = "${contentFolders.keySet()}" alias = "contentFolderKey">
+					<option value="${contentFolderKey}">${contentFolders.get(contentFolderKey)}</option>
+				</isloop>
+			</select>
+		</fieldset>
+	</isif>
+	
+	<!-- isinclude template="search/components/contentsearchrefinebar.isml" / -->
+</form>
+
+</div>

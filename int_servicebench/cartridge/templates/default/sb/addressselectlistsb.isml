@@ -1,0 +1,22 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isset name="defaultAddress" value="${pdict.CurrentCustomer.profile.addressBook.preferredAddress}" scope="page">
+<select id="${pdict.p_form.htmlName}" name="${pdict.p_form.htmlName}" class="input-select sb-address-select custom-select">
+	<option value="" selected="selected" data-address="">${Resource.msg('forms.address.list.select','forms',null)}</option>	
+	<isloop items="${pdict.p_listaddresses}" var="address">
+		<isscript>
+			var shippingAddress : Object = new Object();
+			shippingAddress.ID=address.ID;
+			shippingAddress.firstName=address.getFirstName();
+			shippingAddress.lastName=address.getLastName();
+			shippingAddress.address1=address.getAddress1();
+			shippingAddress.address2=address.getAddress2();
+			shippingAddress.city=address.getCity();
+			shippingAddress.stateCode=address.getStateCode();
+			shippingAddress.postalCode=address.getPostalCode();
+			shippingAddress.phone=address.getPhone();
+		</isscript>
+		<option value="${address.ID}" data-address='<isprint value="${JSON.stringify(shippingAddress)}" encoding="off"/>' <isif condition="${address.ID.equals(pdict.p_form.value)}">selected="selected"</isif>>
+			<isprint value="${address.address1}"/>, <isprint value="${address.city}"/>, <isprint value="${address.stateCode}"/>, <isprint value="${address.postalCode}"/>
+		</option> 
+	</isloop>
+</select>

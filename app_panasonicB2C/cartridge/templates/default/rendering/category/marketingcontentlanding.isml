@@ -1,0 +1,69 @@
+<!--- TEMPLATENAME: productlaunch.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+<iscomment>FArhan's Dev team PANC-1575 17/12/2015 4:50pm</iscomment> 	
+<script type="text/javascript" src="${URLUtils.staticURL('../js/emailsticky-section.js')}"></script>
+<iscomment>PANC-1575 END</iscomment>
+<div class="panc-category-content-page-wrapper MarketingLandingPage">
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot01" description="Category content slot 1" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot02" description="Category content slot 2" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot03" description="Category content slot 3" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot04" description="Category content slot 4" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot05" description="Category content slot 5" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot06" description="Category content slot 6" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot07" description="Category content slot 7" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot08" description="Category content slot 8" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot09" description="Category content slot 9" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot10" description="Category content slot 10" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot11" description="Category content slot 11" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot12" description="Category content slot 12" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot13" description="Category content slot 13" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot14" description="Category content slot 14" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+	<div class="mktcategory-content-slot">
+		<isslot id="cat-content-slot15" description="Category content slot 15" context="category" context-object="${pdict.ProductSearchResult.category}"/>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+	$(document).on('ready', function() {
+	  if($(window).width() < 1025){
+		$(".marketing3-column").slick({ dots: false,infinite: true,arrows: true, slidesToScroll: 1 });
+		
+		}
+		else{
+		$(".home-business").slick('unslick');
+		}
+	});
+</script>
+
+</isdecorate>

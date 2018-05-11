@@ -1,0 +1,310 @@
+<iscontent type="text/html" charset="UTF-8" compact="true" />
+<!--
+Strands Recommender v2.0.0
+
+Using Strands Recommender Library Version sbsLib-1.0.min.js
+Created By: Strands Recommender
+Last Modified On: 04/22/2013
+-->
+
+<isif condition="${'StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled}">
+
+	<!-- Constants -->
+	<isset name="strandsAuto" value="" scope="page">
+
+	<!-- Attributes for Strands Recommender widgets (they are initialized to "{(auto)}") -->
+	<isset name="strandsTpl" value="${strandsAuto}" scope="page">
+	<isset name="strandsItem" value="${strandsAuto}" scope="page">
+	<isset name="strandsDfilter" value="${strandsAuto}" scope="page">
+
+	<!-- Get the current pipeline name in order to know the current page  -->
+	<isif condition="${'last' in pdict.CurrentSession.clickStream && !empty(pdict.CurrentSession.clickStream.last.pipelineName)}">
+		<!-- Attributes are assigned different values according to the current page -->
+
+		<!-- HOMEPAGE -->
+		<isif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Default-Start'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplStorefront}" scope="page">
+			<isset name="strandsItem" value="" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Home-Show'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplStorefront}" scope="page">
+			<isset name="strandsItem" value="" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+
+		<!-- PRODUCT PAGES -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Product-Show'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplProduct}" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+			<isif condition="${!empty(pdict.Product.ID)}">
+
+				<!-- Set "item" attribute -->
+				<isif condition="${!pdict.Product.variant}">
+					<isset name="strandsItem" value="${pdict.Product.ID}" scope="page">
+				<iselseif condition="${'masterProduct' in pdict.Product}">
+					<isset name="strandsItem" value="${pdict.Product.masterProduct.ID}" scope="page">
+				<iselse>
+					<isset name="strandsItem" value="" scope="page">
+				</isif>
+
+				<!--  If tracking via Javascript is enabled send the "visited" event -->
+				<isif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.JavaScriptEnabled}">
+					<!--  Visited Tracking -->
+					<script type="text/javascript">
+					if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+					StrandsTrack.push({
+						"event": "visited",
+						"item": "${strandsItem}"
+					});
+					</script>
+					<!--  End of Visited Tracking -->
+
+				<!-- If tracking has to be done via API force the execution of "TrackingVisited" pipeline -->
+				<iselse>
+					<iscomponent pipeline="Strands-TrackingVisited" productid="${strandsItem}">
+				</isif>
+			</isif>
+
+		<!-- SHOPPING CART PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Cart-Show'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplBasket}" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+
+			<!-- Inline script to format the "item" attribute as a list delimited by "_._" -->
+			<isscript>
+				var prodsList : String = "";
+				if (pdict.Basket != null) {
+					if (!pdict.Basket.allProductLineItems.isEmpty()) {
+						var prefix : String = "";
+						for each(var item : Product in pdict.Basket.allProductLineItems) {
+							if (item.product){
+								if (!item.product.variant) {
+									prodsList += prefix + item.productID;
+									prefix = "_._";
+								} else if (item.product.masterProduct) {
+									prodsList += prefix + item.product.masterProduct.ID;
+									prefix = "_._";
+								}
+							}
+						}
+					}
+				}
+			</isscript>
+			<isset name="strandsItem" value="${prodsList}" scope="page">
+
+		<!-- ORDER CONFIRMATION PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'COSummary-Submit'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplInvoice}" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+
+			<!-- Inline script to format the "item" attribute as a list delimited by "_._" -->
+			<isscript>
+				var prodsList : String = "";
+				var prodsSet : dw.util.HashSet = new dw.util.HashSet();
+				if (pdict.Order != null) {
+					if (!pdict.Order.allProductLineItems.isEmpty()) {
+						var prefix : String = "";
+						for each(var item : Product in pdict.Order.allProductLineItems) {
+							if (item.product) {
+								if (!item.product.variant) {
+									prodsList += prefix + item.productID;
+									prefix = "_._";
+									prodsSet.add(item.productID);
+								} else if (item.product.masterProduct) {
+									prodsList += prefix + item.product.masterProduct.ID;
+									prefix = "_._";
+									prodsSet.add(item.product.masterProduct.ID);
+								}
+							}
+						}
+					}
+				}
+			</isscript>
+			<isset name="strandsItem" value="${prodsList}" scope="page">
+
+			<isif condition="${pdict.Order != null && !empty(pdict.Order)}">
+				<isif condition="${!empty(pdict.Order.orderNo)}">
+					<!--  If tracking via Javascript is enabled send the "purchased" event -->
+					<isif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.JavaScriptEnabled}">
+	
+						<!-- Inline script to format the "items" attribute of "purchased" event -->
+						<isscript>
+							var prodsStr : String = "";
+							if (pdict.Order != null) {
+								if (!pdict.Order.allProductLineItems.isEmpty()) {
+									prodsStr += "[";
+									var comma : String = "";
+									for each(var prod : Product in pdict.Order.allProductLineItems) {
+										if (prod.product) {
+											if (!prod.product.variant) {
+												prodsStr += comma + "{id:'" + prod.product.ID;
+											} else if (prod.product.masterProduct) {
+												prodsStr += comma + "{id:'" + prod.product.masterProduct.ID;
+											} else {
+												continue;
+											}
+		
+											prodsStr += "',price:'" + prod.price.toNumberString() + "',quantity:'" + prod.quantity.value.toFixed() + "'}";
+											comma = ",";
+		
+										}
+									}
+									prodsStr += "]";
+								}
+							}
+						</isscript>
+						<!--  Tracking Order -->
+						<script type="text/javascript">
+						if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+						StrandsTrack.push({
+							event:"purchased",
+							items:${prodsStr},
+							orderid:"${pdict.Order.orderNo}"
+						});
+						</script>
+						<!-- End of Tracking Order -->
+	
+					<!-- If tracking has to be done via API force the execution of "TrackingOrder" pipeline -->
+					<iselseif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom}">
+						<iscomponent pipeline="Strands-TrackingOrder" orderid="${pdict.Order.orderNo}">
+					</isif>
+				</isif>
+			</isif>
+
+		<!-- SEARCH RESULTS PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Search-Show'}">
+			<isset name="strandsItem" value="" scope="page">
+
+			<!-- TODO: What's the meaning of this condition -->
+			<isif condition="${!empty(pdict.CurrentHttpParameterMap.cgid.stringValue)}">
+				<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplCategory}" scope="page">
+
+				<!-- Assign a value to "dfilter" attribute -->
+				<isif condition="${'category' in pdict.ProductSearchResult && !empty(pdict.ProductSearchResult.category)}">
+					<isscript>
+						var cat : Category = pdict.ProductSearchResult.category;
+						var catStr : String = "catid::";
+						var catName = cat.ID;
+						catStr += catName;
+					</isscript>
+				<iselse>
+					<isscript>
+						var catStr = "catid::";
+						catStr += pdict.CurrentHttpParameterMap.cgid.stringValue;
+					</isscript>
+				</isif>
+				<isset name="strandsDfilter" value="${catStr}" scope="page">
+
+			<!-- TODO: What's the meaning of this condition -->
+			<iselseif condition="${!empty(pdict.CurrentHttpParameterMap.q.stringValue)}">
+
+				<!-- TODO: Why do we assign empty value to tpl here -->
+				<isset name="strandsTpl" value="" scope="page">
+
+				<!-- Assign a value to "dfilter" attribute -->
+				<isset name="strandsDfilter" value="" scope="page">
+
+				<!--  If tracking via Javascript is enabled send the "searched" event -->
+				<isif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.JavaScriptEnabled}">
+					<!-- Searched Tracking -->
+					<script type="text/javascript">
+						if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+						StrandsTrack.push({
+							"event": "searched",
+							"searchstring": "${pdict.CurrentHttpParameterMap.q.stringValue}"
+						});
+					</script>
+					<!-- End of Searched Tracking -->
+
+				<!-- If tracking has to be done via API force the execution of "TrackingSearched" pipeline -->
+				<iselseif condition="${'JavaScriptEnabled' in dw.system.Site.current.preferences.custom}">
+					<iscomponent pipeline="Strands-TrackingSearched" searchstr="${pdict.CurrentHttpParameterMap.q.stringValue}">
+				</isif>
+			</isif>
+
+		<!-- WISHLIST PAGE -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'Wishlist-Add' || pdict.CurrentSession.clickStream.last.pipelineName == 'Wishlist-Show'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplWishlist}" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+			<!-- Inline script to format the "item" attribute as a list delimited by "_._" -->
+			<isscript>
+				var prodsList : String = "";
+				if (!pdict.ProductList.items.isEmpty()) {
+					var prefix : String = "";
+					for each(var item : Product in pdict.ProductList.items) {
+						if (item.product) {
+							if (!item.product.variant) {
+								prodsList += prefix + item.productID;
+								prefix = "_._";
+							} else if (item.product.masterProduct) {
+								prodsList += prefix + item.product.masterProduct.ID;
+								prefix = "_._";
+							}
+						}
+					}
+				}
+			</isscript>
+			<isset name="strandsItem" value="${prodsList}" scope="page">
+
+		<!-- GIFT REGISTRY -->
+		<iselseif condition="${pdict.CurrentSession.clickStream.last.pipelineName == 'GiftRegistryCustomer-Show' || pdict.CurrentSession.clickStream.last.pipelineName == 'GiftRegistry-Start' || pdict.CurrentSession.clickStream.last.pipelineName == 'GiftRegistry-AddProduct'}">
+			<isset name="strandsTpl" value="${dw.system.Site.current.preferences.custom.TplGiftRegistry}" scope="page">
+			<isset name="strandsDfilter" value="" scope="page">
+			<!-- Inline script to format the "item" attribute as a list delimited by "_._" -->
+			<isscript>
+				var prodsList : String = "";
+				if (!pdict.ProductList.items.isEmpty()) {
+					var prefix : String = "";
+					for each(var item : Product in pdict.ProductList.items) {
+						if (item.product) {
+							if (!item.product.variant) {
+								prodsList += prefix + item.productID;
+								prefix = "_._";
+							} else if (item.product.masterProduct) {
+								prodsList += prefix + item.product.masterProduct.ID;
+								prefix = "_._";
+							}
+						}
+					}
+				}
+			</isscript>
+			<isset name="strandsItem" value="${prodsList}" scope="page">
+
+		</isif>
+
+	</isif>
+
+	<!-- Set "page_info" event according to the values given above -->
+	<script type="text/javascript">
+		if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+		StrandsTrack.push({
+			"meta": "page_info",
+			"tpl": "${strandsTpl}",
+			"item": "${strandsItem}",
+			"dfilter": "${strandsDfilter}"
+		});
+	</script>
+
+	<!-- Strands Recommender library and trigger code -->
+	<script type="text/javascript">
+	(function(){
+	    try{
+    	    var s0,sGone=false,sNew = document.createElement("script"),APID="${dw.system.Site.current.preferences.custom.StrandsApiID}";
+	        sNew.async = true;
+    	    sNew.src = (document.location.protocol=="https:"?"https":"http") + "://bizsolutions.strands.com/sbsstatic/js/sbsLib-1.0.min.js";
+	        sNew.onload = sNew.onreadystatechange = function(){
+    	        if ((typeof SBS != "undefined") && !sGone){
+	                sGone = true;
+                	try{
+            	        SBS.Worker.go(APID);
+        	            sNew.onload = sNew.onreadystatechange = null;
+    	            } catch (e){ try{ SBS.alert('g1',e); } catch(e){} }
+	            }
+        	};
+        	s0 = document.getElementsByTagName('script')[0];
+        	s0.parentNode.insertBefore(sNew, s0);
+    	} catch (e) { try{ SBS.alert('g0',e); } catch(e){}}
+	})();
+	</script>
+
+
+</isif>

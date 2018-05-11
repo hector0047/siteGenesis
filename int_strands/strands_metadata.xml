@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+	<type-extension type-id="SitePreferences">
+		<custom-attribute-definitions>
+		
+            <attribute-definition attribute-id="StrandsVersion">
+                <display-name xml:lang="x-default">Version number</display-name>
+                <description xml:lang="x-default">plugin version</description>
+                <type>string</type>
+                <externally-managed-flag>true</externally-managed-flag>
+                <default-value>2.0.0</default-value>
+            </attribute-definition>		
+
+            <attribute-definition attribute-id="StrandsEnabled">
+            	<display-name xml:lang="x-default">Strands Recommender Enabled</display-name>
+            	<description xml:lang="x-default">Check to activate Strands Recommender"</description>
+            	<type>boolean</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>true</default-value>
+            </attribute-definition>
+		
+		    <attribute-definition attribute-id="StrandsCustomerID">
+                <display-name xml:lang="x-default">Strands Customer ID</display-name>
+                <description xml:lang="x-default">Strands Customer ID provided by Strands</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+        
+            <attribute-definition attribute-id="StrandsApiID">
+                <display-name xml:lang="x-default">Strands API ID</display-name>
+                <description xml:lang="x-default">Strands API ID provided by Strands</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+
+            <attribute-definition attribute-id="StrandsValidationToken">
+                <display-name xml:lang="x-default">Strands Customer Validation Token</display-name>
+                <description xml:lang="x-default">Customer Validation Token provided by Strands</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            
+            <attribute-definition attribute-id="StrandsLogin">
+            	<display-name xml:lang="x-default">Strands Login</display-name>
+            	<description xml:lang="x-default">Strands username provided by Strands</description>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            
+            <attribute-definition attribute-id="StrandsPassword">
+            	<display-name xml:lang="x-default">Strands FTP Password</display-name>
+            	<description xml:lang="x-default">This password will match your initial Strands login credentials but can always be changed from the "my account" section in the Strands Dashboard</description>
+            	<type>password</type>
+            	<mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            
+            <attribute-definition attribute-id="SiteUrl">
+            	<display-name xml:lang="x-default">Site Url</display-name>
+            	<description xml:lang="x-default">Your site url. e.g.: http://your.shop.demandware.net   If empty, default location will be used.</description>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            
+            <attribute-definition attribute-id="EmailId">
+            	<display-name xml:lang="x-default">Email Identifier</display-name>
+            	<description xml:lang="x-default">IMPORTANT: changing this setting while LIVE will cause Strands not to be able to link your customers to their previous history before the change. Please contact Strands if you wish to do the change in any case. 
+            	You can choose here what type of user identifier to share with Strands. It will be used to track logged customers in your store and to build the associated user profiles in the Strands backend. Two values are possible: the "e-Mail" and the "Customer Number". Please note that this field will be needed to integrate with 3rd parties such as e-mail providers and should be available to them in order to interact with the Recommender.</description>
+            	<type>boolean</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>false</default-value>
+            </attribute-definition>
+            
+            
+            <attribute-definition attribute-id="StrandsLastCatalogTime">
+            	<display-name xml:lang="x-default">Strands Last Upload Catalog Time</display-name>
+            	<description xml:lang="x-default">Stores last time the catalog was successfully uploaded to Strands Recommender</description>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            
+            
+            <attribute-definition attribute-id="listPriceDefault">
+                <display-name xml:lang="x-default">Default List Price Book ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <default-value>usd-list-prices</default-value>
+            </attribute-definition>
+            
+            
+            <attribute-definition attribute-id="TplProduct">
+            	<display-name xml:lang="x-default">Widget template (tpl) for PRODUCT page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>PROD-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplQuickView">
+            	<display-name xml:lang="x-default">Widget template (tpl) for PRODUCT Quick View page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>QUICK-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplBasket">
+            	<display-name xml:lang="x-default">Widget template (tpl) for CART page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>CART-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplInvoice">
+            	<display-name xml:lang="x-default">Widget template (tpl) for ORDER page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>CONF-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplCategory">
+            	<display-name xml:lang="x-default">Widget template (tpl) for CATEGORY page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>CTGY-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplStorefront">
+            	<display-name xml:lang="x-default">Widget template (tpl) for HOMEPAGE page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>HOME-1</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="TplWishlist">
+            	<display-name xml:lang="x-default">Widget template (tpl) for WISHLIST page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>CART-1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="TplGiftRegistry">
+            	<display-name xml:lang="x-default">Widget template (tpl) for GIFT REGISTRY page</display-name>
+            	<type>string</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>CART-1</default-value>
+            </attribute-definition>
+            
+            
+            <attribute-definition attribute-id="JavaScriptEnabled">
+            	<display-name xml:lang="x-default">JavaScript Enabled</display-name>
+            	<description xml:lang="x-default">Check to activate JavaScript</description>
+            	<type>boolean</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="StrandsLogLevel">
+            	<display-name xml:lang="x-default">Log Level</display-name>
+            	<description xml:lang="x-default">Kind of log level used</description>
+            	<type>int</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>4</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="StrandsRegistered">
+            	<display-name xml:lang="x-default">Strands Registered Label</display-name>
+            	<description xml:lang="x-default">Label to indicate if the customer is registered already</description>
+            	<type>boolean</type>
+            	<mandatory-flag>false</mandatory-flag>
+            	<default-value>false</default-value>
+            </attribute-definition>
+            
+            
+            
+		</custom-attribute-definitions>
+		<group-definitions>
+            
+            <attribute-group group-id="StrandsRecommender">
+                <display-name xml:lang="x-default">Strands Recommender Settings</display-name>
+                <attribute attribute-id="StrandsVersion"/>
+                <attribute attribute-id="StrandsEnabled"/>
+                <attribute attribute-id="StrandsApiID"/>
+                <attribute attribute-id="StrandsValidationToken"/>
+                <attribute attribute-id="StrandsLogin"/>
+                <attribute attribute-id="StrandsPassword"/>
+                <attribute attribute-id="SiteUrl"/>
+                <attribute attribute-id="EmailId"/>
+            </attribute-group>
+            
+            <attribute-group group-id="PriceBook">
+                <display-name xml:lang="x-default">Price Book Settings</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+            </attribute-group>
+            
+            <attribute-group group-id="StrandsRecommenderTemplates">
+            	<display-name xml:lang="x-default">Strands Recommender Widget's Templates</display-name>
+            	<attribute attribute-id="TplProduct"/>
+            	<attribute attribute-id="TplQuickView"/>
+            	<attribute attribute-id="TplBasket"/>
+            	<attribute attribute-id="TplInvoice"/>
+            	<attribute attribute-id="TplCategory"/>
+            	<attribute attribute-id="TplStorefront"/>
+            	<attribute attribute-id="TplWishlist"/>
+            	<attribute attribute-id="TplGiftRegistry"/>
+            </attribute-group>
+            
+        </group-definitions>
+    </type-extension>
+</metadata>

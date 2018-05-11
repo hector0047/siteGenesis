@@ -1,0 +1,74 @@
+/**
+ * Retrieve data related to the client's current basket
+ * @input basket : dw.order.Basket
+ * @output ens_basket : Object An object containing information about the current basket
+ *
+ */
+ 
+importPackage( dw.system );
+importScript( "default/ensightenDataHelper.ds" );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	
+		/**
+			Build basket meta data
+		**/
+		var data = {
+			discount: (pdict.basket.merchandizeTotalNetPrice.value - pdict.basket.adjustedMerchandizeTotalNetPrice.value).toFixed(2),
+			subtotal: pdict.basket.merchandizeTotalNetPrice.value.toFixed(2),
+			tax:((pdict.basket.totalTax)?pdict.basket.totalTax.value.toFixed(2):""),
+			shipping: pdict.basket.adjustedShippingTotalNetPrice.value.toFixed(2),
+			total: (pdict.basket.adjustedMerchandizeTotalGrossPrice.value + pdict.basket.adjustedShippingTotalNetPrice.value + pdict.basket.shippingTotalTax.value).toFixed(2),
+			currency: pdict.basket.currencyCode,
+			productQuantity: pdict.basket.productQuantityTotal
+		};
+		
+		/**
+			Build basket product list
+		**/
+		data.items = parseProductLine(pdict.basket.productLineItems);
+		
+		/**
+			Check for gift cards and adjust
+		**/
+		data.certificates = {
+			quantity: "" + pdict.basket.getGiftCertificateLineItems().length,
+			total: "" + pdict.basket.giftCertificateTotalNetPrice.value.toFixed(2)
+		}
+		/* Add value to total as it's not included */
+		if(data.certificates.quantity){
+			data.subtotal = "" + (parseFloat(data.subtotal) + parseFloat(data.certificates.total)).toFixed(2);
+			data.total = "" + (parseFloat(data.total) + parseFloat(data.certificates.total)).toFixed(2);
+			data.productQuantity = "" + (parseInt(data.productQuantity) + pdict.basket.getGiftCertificateLineItems().length);
+		}
+
+		/**
+			Build basket coupon array
+		**/
+		data.coupons = new Array();
+		if (pdict.basket.couponLineItems != null && pdict.basket.couponLineItems.length != null) {
+			for each(var item : CouponLineItem in pdict.basket.couponLineItems){
+				data.coupons.push(item.couponCode);
+			}
+		}
+		
+		/**
+			Build price adjustment array
+		**/
+		data.adjustments = new Array();
+		if (pdict.basket.priceAdjustments != null && pdict.basket.priceAdjustments.length != null){
+			for each(var item : PriceAdjustment in pdict.basket.priceAdjustments){
+		    	if (item.promotion != null && item.promotion.promotionClass == "ORDER") {
+		    		data.adjustments.push({
+		    			id: "" + (item.promotionID || ""),
+		    			amount: "" + (item.priceValue || "")
+		    		});
+		    	}
+		    }				
+		}
+	
+	pdict.ens_basket = data;
+	
+    return PIPELET_NEXT;
+}

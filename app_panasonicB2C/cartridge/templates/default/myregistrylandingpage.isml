@@ -1,0 +1,8 @@
+<!--- TEMPLATENAME: myregistrylandingpage.isml --->
+<isinclude template="util/modules"/>
+<isdecorate template="content/home/pt_storefront">
+	<isset name="MyRegistryLanding" value="${dw.content.ContentMgr.getContent('MyRegistryLanding')}" scope="page" />
+	<isif condition="${MyRegistryLanding.custom.body != null}"> 
+		<isprint value="${MyRegistryLanding.custom.body}" encoding="off" />
+	</isif>
+</isdecorate>

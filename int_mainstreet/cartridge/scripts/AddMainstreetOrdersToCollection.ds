@@ -1,0 +1,34 @@
+/**
+* This will add the orders from MainStreet to the Collection that was already generated
+* from the demandware system.
+* @author Demandware
+* @creationdate 2011-07-23
+*
+* @input OrderUnpaged : dw.util.Iterator 
+* @input OrderUnpagedCount : Number
+* @input CustomerNo : String
+* @output OrderMixedUnpaged : dw.util.Iterator
+* @output OrderMixedCount : Number 
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importScript("int_mainstreet:library/libMainstreetNew_PANB2C.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+   var orders : List = new ArrayList();
+
+   var mainstreet = new MainStreet();
+   var mainStreetOrders = mainstreet.GetOrderByCustomer(args.CustomerNo);
+   
+   for each(var order in mainStreetOrders.orders) {
+       orders.push(mainstreet.makeDemandwarePanasonicOrder(order));
+   }
+   orders.sort( new PropertyComparator("creationDate", false ) );
+   
+   args.OrderMixedCount =orders.length;
+ 
+   args.OrderMixedUnpaged = orders.iterator();
+
+   return PIPELET_NEXT;
+}

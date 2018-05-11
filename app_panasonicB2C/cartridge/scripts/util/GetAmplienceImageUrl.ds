@@ -1,0 +1,174 @@
+/**
+ * This script provides utility function which returns Amplience url with appended transformation template as parameter. 
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.net );
+importPackage( dw.catalog );
+
+
+/**
+ * Returns a possible equivalent address to the given order address from the 
+ * address book or null, if non equivalent address was found.
+ */
+function getAmplienceImageUrl(imageUrl : String, transformationTemplate : String) : String
+{	
+	return imageUrl + "?" + transformationTemplate;
+}
+
+function getAmplienceImageUrlViewPortWise(imageUrl : String, transformationTemplate : String, viewPort : String) : String
+{	
+	
+	imageUrl =  imageUrl + "?" + transformationTemplate;
+	
+	switch(viewPort) {
+	
+	case "desktop" : 
+			//imageUrl =  imageUrl + "&vw=1024";
+			break;
+	
+	case "tablet" : 
+			imageUrl =  imageUrl + "&vw=768";
+			break; 
+	
+	case "mobile" : 
+			imageUrl =  imageUrl + "&vw=380";
+			break; 		
+	
+	default : 
+			imageUrl =  imageUrl + "&vw=380";
+			break; 
+	
+	}
+	return imageUrl;
+}
+
+
+function getMediaSet(imageProduct : Product) : String
+{	
+	var mediaSetRegEx = /[^\/]*$/;
+	var imgMediaFile : MediaFile = imageProduct.getImage('set');
+	var mediaSet : String = !empty(imgMediaFile) ? imgMediaFile.getURL().toString().match(mediaSetRegEx)[0] : '';
+	return mediaSet;
+}
+
+function getCarouselImages(imageProduct : Product) : Object
+{	
+	var mediaSetObject : Object = new Object();
+	var items : ArrayList = new ArrayList();
+	var carouselImageMediaFiles : List = imageProduct.getImages('carouselImage');
+	var ItemIsYoutubeVideoFlag : Boolean = false;
+	
+	for(var i = 0; i < carouselImageMediaFiles.size(); i++){
+	    var carouselImageMediaFile : Object = carouselImageMediaFiles.get(i);
+	    
+	    var item : Object = new Object();	    
+	    item.src = carouselImageMediaFile.absURL;
+	    item.imagereference = getImageName(item.src.toString());
+	    
+				
+		items[i] = item;
+	}
+	
+	mediaSetObject.items = items;
+	return mediaSetObject;
+}
+
+function getGalleryImages(imageProduct : Product, viewType : String) : Object
+{	
+	var mediaSetObject : Object = new Object();
+	var items : ArrayList = new ArrayList();
+	var carouselImageMediaFiles : List = imageProduct.getImages(viewType);
+	var ItemIsYoutubeVideoFlag : Boolean = false;
+	
+	for(var i = 0; i < carouselImageMediaFiles.size(); i++){
+	    var carouselImageMediaFile : Object = carouselImageMediaFiles.get(i);
+	    
+	    var item : Object = new Object();	    
+	    item.src = carouselImageMediaFile.absURL;
+	    
+				
+		items[i] = item;
+	}
+	
+	mediaSetObject.items = items;
+	return mediaSetObject;
+}
+
+
+
+function getMediaSetObject(mediaSet : String) : Object
+{
+	//fetching json from Amplience
+	var httpClient : HTTPClient = new HTTPClient();
+	var mediaSetJsonString : String;
+	httpClient.open('GET', 'http://i1.adis.ws/s/pcec/' +  mediaSet  + '.json');
+	httpClient.send();
+	mediaSetJsonString = httpClient.text;
+	
+	var getMediaSetObject : Object = JSON.parse(mediaSetJsonString);
+	
+	for(var i = 0; i < getMediaSetObject.items.length; i++){
+	    var item : Object = getMediaSetObject.items[i];
+	    item.imagereference = getImageName(item.src.toString());
+		ItemIsYoutubeVideoFlag = ItemIsYoutubeVideo(item);
+		if(ItemIsYoutubeVideoFlag) {
+			item.videoid = ItemIsYoutubeVideoFlag;			
+		} else {
+			item.videoid = false;	
+		}		    
+	}
+	
+	return getMediaSetObject;
+}
+
+function getImageName(itemsrc){
+	var splitUrl = Array();
+	splitUrl = itemsrc.split("/");
+	return splitUrl[splitUrl.length - 1];
+}
+
+function checkAssetOnAmplience(assetUrl) {
+	
+	
+	var regex = /\s/;
+	var regexObj = new RegExp(regex);
+	
+	if(regexObj.test(assetUrl)){
+		return false;
+	}
+	
+	var httpClient : HTTPClient = new HTTPClient();
+	var assetJsonString : String;
+	//assetUrl = assetUrl + ".json"
+	httpClient.open('GET', assetUrl);
+	httpClient.send();
+	assetJsonString = httpClient.text;
+
+	if(assetJsonString == null) {
+		return false;
+	}
+	var assetJsonObject : Object = JSON.parse(assetJsonString);
+	if(assetJsonObject.status == "error") {
+		return false;
+	} else {
+		return true;	
+	}
+}
+
+// added a function which will check does image name will have video id or not
+function ItemIsYoutubeVideo(item) {
+	var itemImageName = getImageName(item.src);
+	var regex = /(.*)\_(VID)\_(ALT)(\d+)(\_)/;
+	var regexObj = new RegExp(regex);
+	
+	if(regexObj.test(itemImageName)) {
+		var y = regexObj.exec(itemImageName);
+		var z = itemImageName.split(y[0]);
+		return z[1];
+	} else {
+		return false;
+	}
+}
+
+

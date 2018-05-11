@@ -1,0 +1,78 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+*	 @input AddressFormFields : Object
+*	 @input ShippingAddressObj : Object
+*    @output ShipTo : Object
+*    @output BillTo : Object
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importScript('int_cybersource:cybersource/Cybersource_ShipTo_Object.ds');
+importScript('int_cybersource:cybersource/Cybersource_BillTo_Object.ds');
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	var addressFormFields 	: Object 		= args.AddressFormFields;
+	var shippingAddressObj  : Object 		= args.ShippingAddressObj;
+	var shipToObject 		: ShipTo_Object = new ShipTo_Object();
+	var billToObject		: BillTo_Object = new BillTo_Object();
+	var firstName="";
+	var lastName=""
+	var address1="";
+	var address2="";
+	var city="";
+	var state="";
+	var zip="";
+	var country="";
+	var phone="";
+	if(shippingAddressObj!=null){
+			firstName=shippingAddressObj.firstName;
+			lastName=shippingAddressObj.lastName;
+			address1=shippingAddressObj.address1 +" " + shippingAddressObj.address2;
+			address2=shippingAddressObj.address2;
+			city=shippingAddressObj.city;
+			state=shippingAddressObj.stateCode;
+			zip= shippingAddressObj.postalCode;
+			country=shippingAddressObj.countryCode;
+			//phone=shippingAddressObj.phone;
+	}else{
+		firstName=addressFormFields.firstName.htmlValue;
+		lastName=addressFormFields.lastName.htmlValue;
+		address1=addressFormFields.address1.htmlValue + " " + addressFormFields.address2.htmlValue;
+		address2=addressFormFields.address2.htmlValue;
+		city=addressFormFields.city.htmlValue;
+		state=addressFormFields.states.state.htmlValue;
+		zip= addressFormFields.zip.htmlValue;
+		country=addressFormFields.country.htmlValue;
+		phone=addressFormFields.phone.htmlValue;
+	}
+	
+	
+	shipToObject.setFirstName(firstName);
+	billToObject.setFirstName(firstName);
+	shipToObject.setLastName(lastName);
+	billToObject.setLastName(lastName);
+	shipToObject.setStreet1(address1);
+	billToObject.setStreet1(address1);
+	//shipToObject.setStreet2(address2);
+	//billToObject.setStreet2(address2);
+	shipToObject.setCity(city);
+	billToObject.setCity(city);
+	shipToObject.setState(state);
+	billToObject.setState(state);
+	shipToObject.setPostalCode(zip);
+	billToObject.setPostalCode(zip);
+	shipToObject.setCountry(country);
+	billToObject.setCountry(country);
+	shipToObject.setPhoneNumber(phone);
+	billToObject.setPhoneNumber(phone);
+	
+	args.ShipTo = shipToObject;
+	args.BillTo = billToObject;
+   return PIPELET_NEXT;
+}

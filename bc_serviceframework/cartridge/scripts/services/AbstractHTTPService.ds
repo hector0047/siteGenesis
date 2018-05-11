@@ -1,0 +1,116 @@
+var HTTPClient = require("dw/net").HTTPClient;
+/**
+ * Base class of all http web services.
+ *
+ * @class
+ * @augments AbstractBaseService
+ */
+var AbstractHTTPService = require('./AbstractBaseService').extend(
+/** @lends AbstractHTTPService.prototype */
+{
+	/**
+	*	@constructs AbstractHTTPService
+	*	Initialises the Base service and important properties for the HTTP Service 
+	*/
+	init : function(callFrom : String, serviceObject : Object) {
+		this._super(callFrom, serviceObject);
+		/**	Use this Array to push a key followed by a value to change the request headers	*/
+		this.requestHeader = {};
+		/**	You can change this in the createRequest Method to make a GET-Request */
+		this.requestType = "POST";
+		/**	If this is set, the response will be saved in the given file */
+		this.outfile = this.outfile || null;
+		// set encoding to UTF-8 as default
+		this.encoding = this.encoding || "UTF-8";
+		// BASIC or REQUEST (%username% and %password% can will be replaced with credentials)
+		this.authentication = this.authentication ||"BASIC";
+		
+		this.initServiceClient();	
+	},
+	
+	/**
+	 * Adds a header which is sent with the request.
+	 *
+     * @param {String} header The name of the header
+     * @param {String} value The value of the header
+	 */
+	setRequestHeader : function(header, value) : Object {
+		// log request and response message if feature is enabled
+		this.requestHeader[header] = value;
+	},
+
+	/**
+	*	initialises the service object
+	*/
+	initServiceClient : function(){
+		/** the service object @type dw.net.HTTPClient */ 
+		this.serviceClient = new HTTPClient();
+		this.serviceClient.setTimeout(this.configuration.getTimeout());		
+	},
+	
+	/**
+	*	returns the URL from the web service configuration, this allows a 
+	*   subclass to modify the URL before it is used by the service.
+	*/
+	getUrl: function() {
+		return this.configuration.getCredentials().getUrl();
+	},
+	
+	/**
+	 * Sends XML request with the configured parameters
+     *
+     * It is assumed that a credentials object is present which defines url, username and password
+	 */
+	executeServiceCall : function() {		
+		var request = this.request || "";
+		 
+		for (var header in this.requestHeader){
+			this.serviceClient.setRequestHeader(header, this.requestHeader[header]);
+		}
+		if(this.authentication == "BASIC"){
+			this.serviceClient.open(this.requestType, this.getUrl(), this.credentials.getUser(), this.credentials.getPassword());
+		}else{
+			this.serviceClient.open(this.requestType, this.getUrl());
+			request = request.replace(/%username%/g, this.credentials.getUser());
+			request = request.replace(/%password%/g, this.credentials.getPassword());
+		}
+
+		if(this.outfile == null){			
+			   //Workaround platform issue when setting UTF-8 specifically.
+			if (this.encoding != "UTF-8") {
+				this.serviceClient.send(request, this.encoding);
+			} else {
+				this.serviceClient.send(request);
+			}
+		}else{
+			if(this.requestType == "GET"){
+				this.serviceClient.sendAndReceiveToFile(request, this.outfile);
+			}else{
+				this.serviceClient.sendAndReceiveToFile(this.outfile);
+			}
+		}
+		return this.serviceClient.text;
+	},
+
+	logCommunication : function() : Object {
+		// log request and response message if feature is enabled
+		this.serviceClientLogger.logCommunicationPlain(this.request, this.response, this.serviceName, this.configuration);
+	},
+
+	/**
+	*	uses the standard http status return code to determine whether the call was sucessful or not.
+	*/
+	initStatusFromResponse : function(){
+		if(this.serviceClient.statusCode == 200){
+			this.status.code = 'OK';
+		}else{
+			this.status.code = 'ERROR';
+			this.status.error = this.serviceClient.statusCode;
+			this.status.errorMessage = this.serviceClient.errorText;
+		}
+		this.status.msg = this.serviceClient.statusMessage;
+	}
+
+});
+
+module.exports = AbstractHTTPService;

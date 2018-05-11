@@ -1,0 +1,74 @@
+<!--- TEMPLATENAME: viewers_table.isml --->
+
+<isscript>
+	importPackage( dw.content );
+</isscript>
+
+<div class="ugc-viewers-container">
+	<form class="viewers-form">
+		<table class="viewers-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<thead>
+				<tr>
+					<th class="table_header viewer-select center w e s n">
+						<isprint value="${Resource.msg('ugc.viewerstable.select', 'locale', null)}" />
+					</th>
+					<th class="table_header viewer-id s e n">
+						<isprint value="${Resource.msg('ugc.viewerstable.id', 'locale', null)}" />
+					</th>
+					<th class="table_header viewer-name s e n">
+						<isprint value="${Resource.msg('ugc.viewerstable.name', 'locale', null)}" />
+					</th>
+				</tr>
+			</thead>
+			
+			<tbody>
+				<iscomment>
+				<isloop items="${pdict.DisabledViewers}" var="viewer" status="loopstate">
+					
+					<isscript>
+						var viewerId = viewer.ID;
+						var viewerName = viewer.name;
+					</isscript>
+						
+					<tr class="disabled-viewer">
+						<td class="table_detail w e s middle center"></td>
+						<td class="table_detail e s middle">${viewerId}</td>
+						<td class="table_detail e s middle">${viewerName}</td>
+					</tr>
+				</isloop>
+				</iscomment>
+				
+				<isif condition="${pdict.AvailableViewers.length > 0}">
+				<isloop items="${pdict.AvailableViewers}" var="viewer" status="loopstate">
+					
+					<isscript>
+						var viewerId = viewer.ID;
+						var viewerName = viewer.name;
+					</isscript>
+						
+					<tr class="available-viewer">
+						<td class="table_detail w e s middle center">
+							<input type="radio" class="viewer-id" value="${viewerId}" name="viewer-id">
+						</td>
+						<td class="table_detail e s middle">${viewerId}</td>
+						<td class="table_detail e s middle">${viewerName}</td>
+					</tr>
+				</isloop>
+					<tr class="hidden message-row">
+						<td colspan="3" class="table_detail e s middle center">
+							<p class="message-container"></p>
+						</td>
+					</tr>
+				<iselse>
+					<tr>
+						<td colspan="3" class="table_detail e s middle center">
+							<p class="message-container">
+								<isprint value="${Resource.msg('ugc.viewerstable.noavailable', 'locale', null)}"/>
+							</p>
+						</td>
+					</tr>
+				</isif>
+			</tbody>
+		</table>
+	</form>
+</div>

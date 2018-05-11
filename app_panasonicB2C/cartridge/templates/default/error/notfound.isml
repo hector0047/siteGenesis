@@ -1,0 +1,59 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="error/pt_error">
+<iscache type="relative" hour="24"/>
+<isinclude template="util/modules"/>
+<div class="pnsb2c-error-page">
+<h1 class="err-page-head">${Resource.msg('notfound.pagenotfound','error',null)}</h1>
+
+<iscomment> commented as not present in PSD
+	<isslot id="404-banner" description="Banner for error pages" context="global"/>
+
+		<div class="error-page-message">
+			<iscontentasset aid="404-callout"/>
+		</div>
+</iscomment>
+		<div class="searchbox-head">${Resource.msg('notfound.pagenotfound.searchhead','error',null)}</div>
+		<div class="error-page-search">
+		 	<form action="${URLUtils.url('Search-Show')}" method="get">
+				<fieldset>
+				<div class="form-row label-above">
+					<input type="text" name="q" value="" class="input-text" value placeholder="Enter your model number or keyword" />
+					<label for="q">${Resource.msg('nohits.searchlabel.needhelp','search',null)} <a href="javascript:void(0)" class="more-info">Click here</a></label>
+				</div>
+				<button type="submit" value="${Resource.msg('global.go','locale',null)}" name="simplesearch">
+						${Resource.msg('global.errorpage.search','locale',null)}
+				</button>
+				</fieldset>
+			</form>
+		</div><!-- END: errorssearch -->
+		
+
+	<div class="error-page-footer">
+		<div class="try-footer-links">${Resource.msg('notfound.pagenotfound.tryfooterlinks','error',null)}</div>
+		<iscomment>	commented as not present in PSD	
+			<div class="error-page-footer-asset">
+				<iscontentasset aid="404-service"/>
+			</div>
+			
+			<div class="error-page-footer-slot">
+				<isslot id="404-promo" description="Banner for 404 error" context="global" />
+			</div>
+		</iscomment>	
+	</div>
+	<div class="more-links-container">
+		<div class="footer-menu-links">
+			<iscontentasset aid="footer-copy"/>
+		</div>
+	</div>
+ 	<div class="still-help-block">
+ 		<div class="need-help-asset">
+			<h2>Still Need Help?</h2>
+			<h3 class="pnsb2c-live-chat"><a href="javascript:void(0)">Live Chat</a></h3>
+			<div class="contact-num">or</div>
+			<div class="contact-num">Call us at 800-405-0652</div>
+			<div class="contact-time">Mon-Fri 9am-6pm EST</div>
+			
+		</div>
+ 	</div>
+ </div>
+</isdecorate>

@@ -1,0 +1,78 @@
+importPackage(dw.rpc);
+importPackage(dw.util);
+
+var sf = require("bc_serviceframework");
+var CreateSubscription = require("../objects/CreateSubscription");
+
+importScript('cybersource/Cybersource_BillTo_Object.ds');
+importScript('cybersource/Cybersource_Card_Object.ds');
+importScript('cybersource/Cybersource_PurchaseTotals_Object.ds');
+importScript('cybersource/libCybersource.ds');
+
+var CybersourceHelper = getCybersourceHelper(); 
+
+function getCreateSubscriptionService() {
+	return CreateSubscriptionService;
+}
+
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var CreateSubscriptionService = sf.getService('AbstractSoapService').extend(
+/** @lends CreateSubscriptionService.prototype */ 
+{
+	/**
+	 * @constructs CreateSubscriptionService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("CybersourceService" , new CreateSubscription());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		
+		this.webReference = webreferences.CyberSourceTransaction;
+		this.serviceClient = this.webReference.getService("TransactionProcessor", "portXML");
+		CybersourceHelper.setEndpoint(this.serviceClient);
+	},
+
+	createRequest: function (subscriptionInfoObj) {	
+		
+		var billToObject: BillTo_Object					= subscriptionInfoObj.billToObject;		
+		var cardObject : Card_Object 					= subscriptionInfoObj.cardObject;		
+		var purchaseObject : PurchaseTotals_Object 		= subscriptionInfoObj.purchaseObject;		
+		
+		if(!CybersourceHelper.createHeader(this.serviceClient)){
+			return null;
+		}
+		var request = new this.webReference.RequestMessage();
+
+		CybersourceHelper.addPaySubscriptionCreateService(request, billToObject, purchaseObject, cardObject, "test");
+		
+		return request;			
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		
+		return this.serviceClient.runTransaction(this.request);
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('CybersourceService', CreateSubscriptionService);

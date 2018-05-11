@@ -1,0 +1,265 @@
+var sf = require("bc_serviceframework");
+var MarketoEmailSubscription = require("../objects/MarketoEmailSubscriptionForProfile");
+
+importPackage(dw.system);
+importPackage(dw.net);
+
+
+function getMarketoEmailSubscriptionService() {
+	return MarketoEmailSubscriptionService;
+}
+
+var MarketoEmailSubscriptionService = sf.getService('AbstractHTTPService').extend (
+/** @lends MarketoEmailSubscriptionService.prototype */ 
+{
+	/**
+	 * @constructs MarketoEmailSubscriptionService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("MarketoEmailSubscriptionService", new MarketoEmailSubscription());
+	},
+	
+	createRequest: function (marketoReqObj) {		
+		if(marketoReqObj.isTokenRequest) {
+			return 	marketoReqObj;
+		} else {
+			var jsonRequestObj = new Object();
+			var flag: Boolean = false;
+		 if(marketoReqObj.address!=null && marketoReqObj.address!="" && marketoReqObj.city!=null)
+		   {	
+		   	 if(marketoReqObj.title!="" && marketoReqObj.age == null)
+		   	 {	
+			   jsonRequestObj = {
+			   		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+			   		"input":[
+						      {
+					             "email": marketoReqObj.email,
+					             "firstName":marketoReqObj.firstName,
+                                 "lastName":marketoReqObj.lastName,
+                                 "salutation":marketoReqObj.title,
+                                 "address":marketoReqObj.address,
+                                 "city":marketoReqObj.city,
+                                 "phone":marketoReqObj.phone,
+                                 "state":marketoReqObj.state,
+                                 "postalCode":marketoReqObj.postalCode,
+                                 "emailable":marketoReqObj.emailable,
+                                 "unsubscribed":marketoReqObj.unsubscribed,
+								 "shopPCECmember":marketoReqObj.shopPCECmember
+								                                 
+                               }
+					         ]};
+					         flag=true;
+		   	 }
+		   	if(marketoReqObj.title!="" && marketoReqObj.age != null)
+		   	 {
+		   	   jsonRequestObj = {
+		   	   		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						      {
+					             "email": marketoReqObj.email,
+					             "firstName":marketoReqObj.firstName,
+                                 "lastName":marketoReqObj.lastName,
+                                 "address":marketoReqObj.address,
+                                 "salutation":marketoReqObj.title,
+                                 "city":marketoReqObj.city,
+                                 "phone":marketoReqObj.phone,
+                                 "state":marketoReqObj.state,
+                                 "postalCode":marketoReqObj.postalCode,
+                                 "emailable":marketoReqObj.emailable,
+                                 "unsubscribed":marketoReqObj.unsubscribed,
+                                 "shopPCECmember":marketoReqObj.shopPCECmember
+                               }
+					         ]};
+					         flag=true;
+		   	 }
+		   	if(marketoReqObj.title=="" && marketoReqObj.age != null)
+		   	 {
+		   	   jsonRequestObj = {
+		   	   		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						      {
+					             "email": marketoReqObj.email,
+					             "firstName":marketoReqObj.firstName,
+                                 "lastName":marketoReqObj.lastName,
+                                 "address":marketoReqObj.address,
+                                 "city":marketoReqObj.city,
+                                 "phone":marketoReqObj.phone,
+                                 "state":marketoReqObj.state,
+                                 "postalCode":marketoReqObj.postalCode,
+                                 "emailable":marketoReqObj.emailable,
+                                 "unsubscribed":marketoReqObj.unsubscribed,
+                                 "shopPCECmember":marketoReqObj.shopPCECmember
+                               }
+					         ]};
+					   flag=true;
+		   	 }
+		   	 if(marketoReqObj.title=="" && marketoReqObj.age == null)
+		   	 {
+		   	     jsonRequestObj = {
+		   	     	"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						      {
+					             "email": marketoReqObj.email,
+					             "firstName":marketoReqObj.firstName,
+                                 "lastName":marketoReqObj.lastName,
+                                 "address":marketoReqObj.address,
+                                 "city":marketoReqObj.city,
+                                 "phone":marketoReqObj.phone,
+                                 "state":marketoReqObj.state,
+                                 "postalCode":marketoReqObj.postalCode,
+                                 "emailable":marketoReqObj.emailable,
+                                 "unsubscribed":marketoReqObj.unsubscribed,
+                                 "shopPCECmember":marketoReqObj.shopPCECmember
+                               }
+					         ]};
+					   flag=true;
+		   	 }
+		 }
+			
+	        if(marketoReqObj.age==null && marketoReqObj.title!="" && flag!=true)
+	        {
+	          jsonRequestObj = {
+	          		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						{
+					         "email": marketoReqObj.email,
+					         "firstName":marketoReqObj.firstName,
+					         "lastName":marketoReqObj.lastName,
+					         "salutation":marketoReqObj.title,
+					         "emailable":marketoReqObj.emailable,
+					         "unsubscribed":marketoReqObj.unsubscribed,
+					         "shopPCECmember":marketoReqObj.shopPCECmember 
+					    }
+					]};
+	        }
+	       	if(marketoReqObj.title=="" && marketoReqObj.age==null && flag!=true)
+	          {   
+	       	     jsonRequestObj = {
+	       	     	"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						{
+					         "email": marketoReqObj.email,
+					         "firstName":marketoReqObj.firstName,
+					         "lastName":marketoReqObj.lastName,
+					         "emailable":marketoReqObj.emailable,
+					         "unsubscribed":marketoReqObj.unsubscribed,
+					         "shopPCECmember":marketoReqObj.shopPCECmember
+					    }
+					]
+				};
+	        }
+	    	if(marketoReqObj.title=="" && marketoReqObj.age!=null && flag!=true)
+	    	{
+	    	   jsonRequestObj = {
+	    	   		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						{
+					         "email": marketoReqObj.email,
+					         "firstName":marketoReqObj.firstName,
+					         "lastName":marketoReqObj.lastName,
+					         "emailable":marketoReqObj.emailable,
+					         "unsubscribed":marketoReqObj.unsubscribed,
+					         "shopPCECmember":marketoReqObj.shopPCECmember
+					    }
+					]};
+	    	}
+	    	if(marketoReqObj.title!="" && marketoReqObj.age!=null && flag!=true)
+	    	{
+	    	   jsonRequestObj = {
+	    	   		"action":marketoReqObj.action,
+				   	"lookupField":"email",
+				   	"partitionName":"Default",
+					"input":[
+						    {
+					         "email": marketoReqObj.email,
+					         "firstName":marketoReqObj.firstName,
+					         "lastName":marketoReqObj.lastName,
+					         "salutation":marketoReqObj.title,
+					         "emailable":marketoReqObj.emailable,
+					         "unsubscribed":marketoReqObj.unsubscribed,
+					         "shopPCECmember":marketoReqObj.shopPCECmember 
+					        }
+					]};
+	    	}
+			marketoReqObj.jsonRequestObj = JSON.stringify(jsonRequestObj);
+			if(marketoReqObj.address!=null && marketoReqObj.address!="" && marketoReqObj.city!=null)
+			{
+				if(marketoReqObj.title!="" && marketoReqObj.age == null)
+				{
+				Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+"  title:"+marketoReqObj.title+" address:"+marketoReqObj.address+" city:"+marketoReqObj.city+" phone:" +marketoReqObj.phone +" state:"+marketoReqObj.state+" postalCode:"+marketoReqObj.postalCode+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+				}
+				if(marketoReqObj.title!="" && marketoReqObj.age != null)
+				{
+				Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+"  title:"+marketoReqObj.title+" address:"+marketoReqObj.address+" city:"+marketoReqObj.city+" phone:" +marketoReqObj.phone +" state:"+marketoReqObj.state+" postalCode:"+marketoReqObj.postalCode+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+				}
+				if(marketoReqObj.title=="" && marketoReqObj.age != null)
+				{
+				Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+" address:"+marketoReqObj.address+" city:"+marketoReqObj.city+" phone:" +marketoReqObj.phone +" state:"+marketoReqObj.state+" postalCode:"+marketoReqObj.postalCode+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+				}
+				if(marketoReqObj.title=="" && marketoReqObj.age == null)
+				{
+				 Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+" address:"+marketoReqObj.address+" city:"+marketoReqObj.city+" phone:" +marketoReqObj.phone +" state:"+marketoReqObj.state+" postalCode:"+marketoReqObj.postalCode+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+				}
+			}
+			if(marketoReqObj.age==null && marketoReqObj.title!="" && flag!=true)
+	        {
+	         Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+"  title:"+marketoReqObj.title+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+	        }
+	        if(marketoReqObj.title=="" && marketoReqObj.age==null && flag!=true)
+	        {
+	         Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+	        }
+	        if(marketoReqObj.title=="" && marketoReqObj.age!=null && flag!=true)
+	        {
+	         Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+	        }
+	        if(marketoReqObj.title!="" && marketoReqObj.age!=null && flag!=true)
+	        {
+	         Logger.debug(" Request being sent to marketo:"+" email:"+marketoReqObj.email+" firstName:"+marketoReqObj.firstName+" lastName:"+marketoReqObj.lastName+"  title:"+marketoReqObj.title+" emailable:"+marketoReqObj.emailable+" unsubscribed:"+marketoReqObj.unsubscribed);
+	        }
+    		return marketoReqObj;
+		}
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var httpService : HTTPClient = this.serviceClient;
+		httpService.setRequestHeader("Content-Type", "application/json");
+		if(this.request.isTokenRequest){
+			httpService.open("POST", this.request.marketoTokenEndpointUrl+"&client_id="+this.request.marketoClientId+"&client_secret="+this.request.marketoClientSecretKey);
+			httpService.send();
+			return httpService.text;
+		} else {			
+			httpService.open("POST", this.request.marketoEndpointUrl+"?access_token="+this.request.accessToken);
+			httpService.send(this.request.jsonRequestObj);
+			return httpService.text;
+		}
+	},
+	
+	
+	getDummyResponse: function() : Object 
+	{
+		return this.object.dummy();
+	}
+	
+});
+
+sf.registerService("MarketoEmailSubscriptionService", MarketoEmailSubscriptionService);

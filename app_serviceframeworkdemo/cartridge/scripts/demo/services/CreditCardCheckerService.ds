@@ -1,0 +1,55 @@
+var sf = require("bc_serviceframework");
+var CreditCardInformation = require("../objects/CreditCardInformation");
+ 
+function getCreditCardCheckerService() {
+	return CreditCardCheckerService;
+}
+
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var CreditCardCheckerService = sf.getService('AbstractSoapService').extend(
+/** @lends CreditCardCheckerService.prototype */ 
+{
+	/**
+	 * @constructs CreditCardCheckerService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("CreditCardCheckerService" , new CreditCardInformation());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.LuhnChecker;			
+		this.serviceClient = this.webReference.getDefaultService();	
+	},
+
+	createRequest: function (creditCardNumber) {		
+		var requestObject = new this.webReference.CheckCC();
+		requestObject.setCardNumber(creditCardNumber);		
+		return requestObject;			
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.checkCC(this.request);
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('CreditCardCheckerService',CreditCardCheckerService);

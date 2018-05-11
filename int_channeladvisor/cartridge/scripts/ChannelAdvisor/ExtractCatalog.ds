@@ -1,0 +1,752 @@
+/**
+
+*
+
+*	Demandware ChannelAdvisor Catalog Extract File v15.1.0
+
+*
+
+*	Originally Based on SiteGenesis version 2.10.6, Demandware API version 13.5
+
+*	Created By: Precision Design Studios
+
+*	Last Modified On: 1/15/2015 
+
+*	Last Modified By: Mike Wolff, ChannelAdvisor	
+
+*
+
+*/
+
+importPackage( dw.system );
+
+importPackage( dw.util );
+
+importPackage( dw.catalog );
+
+importPackage( dw.customer );
+
+importPackage( dw.io );
+
+importPackage( dw.net );
+
+importPackage( dw.object );
+
+importPackage( dw.campaign );
+
+importPackage( dw.web );
+
+importPackage( dw.order );
+
+importPackage( dw.value);
+
+
+/**
+ * Iterates through all site products, creates an XML representation of the data, and FTP's that data based on the settings in the custom preferences.
+ *
+ * @param PipelineDictionary pdict
+ * @return Number  The next Pipelet to fire
+ */
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+	var productCounter : Number = 0;
+	
+	var caStringWriter : StringWriter = new StringWriter();
+
+	(new dw.io.File(dw.io.File.IMPEX +'/src/channeladvisor/')).mkdirs();
+	
+	
+	caStringWriter.write('<?xml version="1.0" encoding="iso-8859-1"?>\n');
+	
+	caStringWriter.write('<Offers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://ssc.channeladvisor.com/files/cageneric.xsd">\n');
+	
+	caStringWriter.flush();
+	
+	if (!writeToFile(caStringWriter.toString(), false))	{
+		
+		return PIPELET_ERROR;
+		
+	}
+	
+	caStringWriter.close();
+	
+	
+		
+	var prods : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	
+	
+	while (prods.hasNext()) {
+		
+		var product : Product = prods.next();
+		
+		var isMaster : Boolean = product.isMaster();
+		
+		var isVariant : Boolean = product.isVariant();
+		
+		if(product.isOnline() && product.isSearchable() && !product.isProductSet() && (isMaster || (!isMaster && !isVariant) )  && (!('supportOnly' in product.custom && product.custom.supportOnly)) && (!product.categories.contains(CatalogMgr.getCategory('support-only'))) ) {
+			
+			var CurrentOffer : XML = buildProductNode(product);
+			
+	 		productCounter++;
+	 		
+			var xmlString : String = CurrentOffer.toXMLString()+"\n";
+			
+ 			
+ 			if (!writeToFile(xmlString, true))	{
+		
+				return PIPELET_ERROR;
+		
+			}
+			
+ 						
+			if (isMaster) {
+				
+				for (var x : Number = 0; x < product.variationModel.variants.size(); x++) {
+					
+					var varient  = product.variationModel.variants[x];
+					
+					if(!('supportOnly' in varient.custom && varient.custom.supportOnly) && !varient.categories.contains(CatalogMgr.getCategory('support-only'))){
+						var CurrentOffer : XML = buildProductNode(product.variationModel.variants[x]);
+						
+						productCounter++;
+						
+						var xmlString : String = CurrentOffer.toXMLString()+"\n";
+	
+	 					if (!writeToFile(xmlString, true))	{
+			
+							return PIPELET_ERROR;
+			
+						}
+					}	
+				}	
+				
+			}
+				
+		} else if (!isVariant){
+			//we don't send product sets
+		}
+		
+	}
+	
+	prods.close(); //close the seekable iterator
+	
+	if (!writeToFile('</Offers>\n', true))	{
+		
+		return PIPELET_ERROR;
+		
+	}
+	
+	Logger.info("Total products in CA feed: "+ productCounter);
+	
+	/* NOT REQUIRED TO CONNECT FROM CODE.WE WILL USE INTEGRATION FRAMEWORK
+	
+	var ftp : FTPClient = new FTPClient(); 
+	
+	ftp.setTimeout(60*1000*30); 
+
+	if(ftp.connect(dw.system.Site.getCurrent().preferences.custom.CA_FTP_Hostname , dw.system.Site.getCurrent().preferences.custom.CA_FTP_Username, dw.system.Site.getCurrent().preferences.custom.CA_FTP_Password)) {
+		
+		ftp.cd('Inventory/Transform');
+		
+		Logger.info('Connected to Channel Advisor FTP');
+
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/channeladvisor/Catalog.xml');
+	
+		if(!file.exists()) {
+			
+			return PIPELET_ERROR;
+			
+		} else {
+			ftp.putBinary(file.name, file);
+		}
+			
+		ftp.disconnect();
+		
+	} else {
+		
+		Logger.info('FTP Connection failed');	
+		
+	}
+  */
+    return PIPELET_NEXT;
+
+}
+
+/**
+ * Given a product,  extract the data and create the XML representation of that product.
+ *
+ * @param Product product  The content to be written to the file
+ * @return XML the full product XML representation
+ */
+function buildProductNode(product : Product) : XML
+{
+	var Offer : XML = <Offer></Offer>;
+	
+	/*****************************************NEW ATTRIBUTE ARRANGEMENTS**************************************************/
+	
+	Offer.Model = !empty(product.ID) ? cdata(product.ID,'Model') : '' ;
+	
+	Offer.Title = !empty(product.getShortDescription()) ? cdata(product.getShortDescription(),'Title') : '';
+	
+	if(product.describe().getCustomAttributeDefinition('condition') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Condition = product.custom.condition != null ? cdata(product.custom.condition,'Condition') : '' ;
+	}
+	
+	Offer.UPC = !empty(product.UPC) ? cdata(product.UPC,'UPC') : '';
+	
+	Offer.ShortDescription = !empty(product.getLongDescription()) ? cdata(product.getLongDescription(),'ShortDescription') : '';
+	
+	if(product.describe().getCustomAttributeDefinition('overview') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Description = product.custom.overview != null ? cdata(product.custom.overview,'Description') : '' ;
+	}
+	
+	if(product.describe().getCustomAttributeDefinition('height') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Height = product.custom.height != null ? cdata(product.custom.height,'Height') : '' ;
+	}
+	
+	if(product.describe().getCustomAttributeDefinition('length') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Length = product.custom.length != null ? cdata(product.custom.length,'Length') : '' ;
+	}
+	
+	if(product.describe().getCustomAttributeDefinition('width') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Width = product.custom.width != null ? cdata(product.custom.width,'Width') : '' ;
+	}
+	
+	if(product.describe().getCustomAttributeDefinition('weight') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Weight = product.custom.weight != null ? cdata(product.custom.weight,'Weight') : '' ;
+	}
+	
+	//IMAGE URLS 
+	appendImageUrls(Offer,product);
+	
+	//VIDEO URLS
+	if(!empty(getVideoUrls(product))){
+		for(var i = 0 ; i< getVideoUrls(product).size() ; i++){
+				var urlName : String = "Video";
+				urlName = urlName.concat(i+1);
+				Offer[urlName] = cdata(getVideoUrls(product)[i],urlName);
+			}
+	}
+	
+	
+	if(product.describe().getCustomAttributeDefinition('technicalSpecAttributes') instanceof dw.object.ObjectAttributeDefinition){
+	    Offer.Specifications = product.custom.technicalSpecAttributes != null ? cdata(product.custom.technicalSpecAttributes,'Specifications') : '' ;
+	}
+	
+	//SHIPPING METHODS
+	appendShippingMethods(Offer,product);
+	
+	//CATEGORY
+	var category : Category = product.primaryCategory;
+	if (category == null) {
+		category = product.classificationCategory;
+	}
+	if(category == null && !product.onlineCategories.empty) {
+		category = product.onlineCategories[0];
+	}
+	var path : dw.util.ArrayList = new dw.util.ArrayList();
+	while (category != null && category.parent != null) {
+		if (category.online) {
+			path.addAt( 0, category );
+		}
+		category = category.parent;
+	}
+	var pathStr : String = '';
+	var isFirst : Boolean = true;
+	var c : Category = null;
+	for each (c in path)	{
+		if (!isFirst) {
+			pathStr += " - ";
+		}
+		pathStr += c.displayName;
+		isFirst = false;
+	}
+	Offer.MerchantCategory = !empty(pathStr) ? cdata(pathStr,'MerchantCategory') : '';
+	
+	if(product.describe().getCustomAttributeDefinition('caMarketPlace') instanceof dw.object.ObjectAttributeDefinition){
+		Offer.CAMarketplace = product.custom.caMarketPlace != null ? cdata(product.custom.caMarketPlace,'CAMarketplace') : '' ;
+	}
+	
+	Offer.ActionURL = !empty(product.ID) ?  cdata(URLUtils.http('Product-Show', 'pid', product.ID),'ActionURL') : '';
+	
+	/* NOT REQUIRED
+	 
+	Offer.Model = !empty(product.ID) ? product.ID : '' ; //Model is a required field, so this should never be empty
+	
+	Offer.Manufacturer = !empty(product.manufacturerName) ? cdata(product.manufacturerName,'Manufacturer') : '';
+	
+	Offer.ManufacturerModel = !empty(product.manufacturerSKU) ? cdata(product.manufacturerSKU, 'ManufacturerModel') : '';
+	
+	Offer.MPN = !empty(product.manufacturerSKU) ? cdata(product.manufacturerSKU,'MPN') : '';
+	
+	Offer.UPC = !empty(product.UPC) ? cdata(product.UPC,'UPC') : '';
+	
+	
+	var category : Category = product.primaryCategory;
+	
+	if (category == null) {
+		
+		category = product.classificationCategory;
+	}
+	
+	if(category == null && !product.onlineCategories.empty) {
+		
+		category = product.onlineCategories[0];
+		
+	}
+	
+	var path : dw.util.ArrayList = new dw.util.ArrayList();
+	
+	while (category != null && category.parent != null) {
+		
+		if (category.online) {
+			
+			path.addAt( 0, category );
+			
+		}
+		
+		category = category.parent;
+		
+	}
+	
+	
+	
+	var pathStr : String = '';
+	
+	var isFirst : Boolean = true;
+	
+	var c : Category = null;
+	
+	for each (c in path)	{
+		
+		if (!isFirst) {
+			
+			pathStr += " - ";
+			
+		}
+		
+		pathStr += c.displayName;
+		
+		isFirst = false;
+		
+	}
+	
+	Offer.MerchantCategory = !empty(pathStr) ? cdata(pathStr,'MerchantCategory') : '';
+	
+	Offer.Brand = !empty(product.brand) ? cdata(product.brand,'Brand') : '';
+	
+	var pb : String = ''; 
+
+	if (('listPriceDefault' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.listPriceDefault)) {
+		
+		pb = dw.system.Site.current.preferences.custom.listPriceDefault;
+		
+	} else {
+		
+	    pb = 'list-prices';
+	    
+	}
+	
+	Offer.RegularPrice = !empty(product.priceModel.getPriceBookPrice(pb).toNumberString()) && product.priceModel.getPriceBookPrice(pb).toNumberString() != 'N/A' ? product.priceModel.getPriceBookPrice(pb).toNumberString() : ''; 
+	
+	Offer.CurrentPrice = !empty(product.getPriceModel().getPrice().toNumberString()) && product.getPriceModel().getPrice().toNumberString() != 'N/A' ? product.getPriceModel().getPrice().toNumberString() : '';
+		
+	Offer.InStock = product.availabilityModel.inStock ? '1' : '0';
+	
+	Offer.ReferenceImageURL = product.getImage('HeroImage',0) != null ? cdata(product.getImage('HeroImage',0).absURL,'ReferenceImageURL')  :   cdata(URLUtils.httpStatic('/images/noimagemedium.png'),'ReferenceImageURL');
+	
+	Offer.OfferName = !empty(product.name) ? cdata(product.name,'OfferName') : '';
+	
+	Offer.OfferDescription = !empty(product.longDescription) || !empty(product.name) ?  cdata((product.longDescription ? product.longDescription.markup : product.name),'OfferDescription') : ''; 
+	
+	Offer.ProductCost = product.activeData.costPrice != null ? product.activeData.costPrice.toFixed(2) : '';
+	
+	Offer.ProductMargin = product.activeData.avgGrossMarginValueYear != null ? product.activeData.avgGrossMarginValueYear.toFixed(2) : '';
+	
+	Offer.Quantity = product.availabilityModel.inventoryRecord != null ? StringUtils.stringToXml(product.availabilityModel.inventoryRecord.ATS.value) : StringUtils.stringToXml(0);
+    */
+	
+	
+	var parentSKU : String = '';
+	
+	var parentProduct : Product;
+	
+	var relationshipName : String = '';
+	
+	var myClassification : String = '';
+	
+	if (product.isMaster() && product.variationModel.variants.size() > 0) {
+		
+		parentSKU = 'PARENT';
+		
+		var primaryCategory : Category = product.classificationCategory;
+		
+		if (primaryCategory == null) {
+			
+			primaryCategory = product.primaryCategory;
+		}
+		
+		if (primaryCategory == null && !product.onlineCategories.empty) {
+			
+			primaryCategory = product.onlineCategories[0];
+			
+		}
+		
+		if (primaryCategory != null) {
+			
+			relationshipName = primaryCategory.ID;
+			
+			myClassification = primaryCategory.ID;
+			
+		}
+		
+	} else if (product.isVariant()) {
+		
+		parentProduct = product.getMasterProduct();
+		
+		parentSKU = parentProduct.ID;
+		
+		var primaryCategory : Category = parentProduct.classificationCategory;
+		
+		if (primaryCategory == null) {
+			
+			primaryCategory = parentProduct.primaryCategory;
+			
+		}
+		
+		if (primaryCategory == null && !parentProduct.onlineCategories.empty) {
+			
+			primaryCategory = parentProduct.onlineCategories[0];
+			
+		}
+		
+		if (primaryCategory != null) {
+			
+			relationshipName = primaryCategory.ID;
+			
+			myClassification = primaryCategory.ID;
+			
+		}
+		
+	} else {
+		
+		parentSKU = '';	
+		
+		relationshipName = '';
+		
+		var primaryCategory : Category = product.classificationCategory;
+		
+		if (primaryCategory == null) {
+			primaryCategory = product.primaryCategory;
+		}
+		
+		if (primaryCategory == null && !product.onlineCategories.empty) {
+			
+			primaryCategory = product.onlineCategories[0];
+			
+		}
+		
+		if(primaryCategory != null) {
+			
+			myClassification = primaryCategory.ID;
+			
+		}
+		
+	}
+
+	Offer.ParentSKU = parentSKU;
+	
+	Offer.RelationshipName = cdata(relationshipName,'RelationshipName');
+	
+	Offer.Classification = cdata(myClassification,'Classification');
+	
+	if(!product.isMaster() && product.isVariant()){
+
+		var myAttributeDefs : Collection = product.getVariationModel().getProductVariationAttributes();
+		
+		var myAttributes = product.getVariationModel().getSelectedVariant().custom;
+		
+		for (var y : Number = 0; y < myAttributeDefs.length ; y ++) {
+			
+			Offer[myAttributeDefs[y].attributeID] = cdata(myAttributes[myAttributeDefs[y].attributeID].toString(), myAttributeDefs[y].attributeID); 
+			
+		}	
+		
+
+	} else if (!product.isMaster()) {
+
+		var myAttributeModel : ProductAttributeModel = product.getAttributeModel();
+		
+		var myAttributeGroups : Collection = myAttributeModel.getVisibleAttributeGroups(); 
+		
+		var myAttributes = product.custom; 
+		
+		for(var z : Number = 0; z < myAttributeGroups.length; z++) {
+			
+			var myAttributeDefs : Collection = myAttributeModel.getVisibleAttributeDefinitions(myAttributeGroups[z]);
+			
+			for (var w : Number = 0; w < myAttributeDefs.length ; w ++) {
+				
+				if (myAttributeDefs[w].multiValueType){
+					
+					var myVal : String = '';
+					
+					for (var v : Number = 0; v < myAttributes[myAttributeDefs[w].ID].length; v++) {
+						
+						myVal += myAttributes[myAttributeDefs[w].ID][v].toString();
+						
+						if (v < myAttributes[myAttributeDefs[w].ID].length - 1) {
+							
+							myVal += ', ';
+							
+						}
+					} 
+					
+					Offer[myAttributeDefs[w].ID] = cdata(myVal,myAttributeDefs[w].ID);
+					
+				} else {
+					
+					Offer[myAttributeDefs[w].ID] = cdata(myAttributes[myAttributeDefs[w].ID].toString(), myAttributeDefs[w].ID) ; 
+					
+				}
+				
+			}	
+			
+		}
+		
+	} 
+	
+	return Offer;
+
+}
+
+
+/**
+ * Adds a CDATA tag to the content of an XML Node
+ *
+ * @param String content  The content of the XML node
+ * @param String nodeName  The name of the XML node
+ * @return XML  The resulting XML node
+ */
+function cdata(content : String, nodeName: string) : XML {
+	
+	var result : XML = new XML("<"+nodeName+"><![CDATA["+content+"]]>"+"</"+nodeName+">");
+	
+	return result;
+		
+}
+
+
+/**
+ * Writes the content to an xml file (Catalog.xml) in the Impex /src/channeladvisor/ folder.
+ *
+ * @param String content  The content to be written to the file
+ * @param Boolean isAppend  Should the string be appended, or replace existing content
+ * @return Boolean returns true if the write succeeded, false if it failed
+ */
+function writeToFile(content : String, isAppend : Boolean) : Boolean 
+{
+	try	{
+
+		var file : File = new dw.io.File(dw.io.File.IMPEX + '/src/channeladvisor/Catalog.xml');
+		
+		if (!file.exists()) {
+			
+			if (!file.createNewFile()) {
+				
+				Logger.error("File "+file.name+" could not be created!");
+				
+				return false;
+				
+			}
+			
+		} 
+		
+		var out : FileWriter = new FileWriter(file, isAppend);
+		
+		out.write(content);
+		
+		out.flush();
+		
+		out.close();
+		
+	}
+	
+	catch (e) {
+		
+		Logger.error("An error occured while exporting channel advisor XML products {0}.", e);
+		
+		return false;
+		
+	}	
+	
+	return true;
+}
+
+/**
+* New methods for getting product video urls
+*/
+function getVideoUrls(product : Product) : Collection 
+{
+	
+	var videoUrls : LinkedHashSet = new LinkedHashSet();
+	try	{
+		var videoData  : String = "";
+		for each(var s : String in product.custom.videos.toString().trim().split('\n')){
+			videoData = videoData+s.replace("&","&amp;");
+		}
+		videoUrls = returnVideoUrls(videoData);
+	}
+	catch (e) {
+		Logger.error("An error occured while exporting channel advisor XML products for video urls {0}.", e);
+		return null;
+	}	
+	
+	return videoUrls;
+}
+function returnVideoUrls(fileString : String) {
+		var inputXmlFile : String = '<?xml version="1.0" encoding="UTF-8"?>'+fileString.trim().toString();
+		var xmlReader : XMLStreamReader = new XMLStreamReader(new Reader(inputXmlFile));
+		var urlList : LinkedHashSet = new LinkedHashSet();
+		var myObject : XML = null;
+			while (xmlReader.hasNext())
+			{
+			  if (xmlReader.next() == XMLStreamConstants.START_ELEMENT)
+			  {
+			     var localName : String = xmlReader.getLocalName();
+			     if (localName == "resourceList")
+			     {			       
+			       myObject = xmlReader.getXMLObject();
+			       					      
+			     }
+			  }
+			}
+		
+		var childElements : XMLList = myObject.children();			
+		var localeName : String = myObject.localName();
+		xmlReader.close();				
+		return iterateVideoXml(childElements, localeName);
+	
+}
+function iterateVideoXml(myObjects : XMLList , localeName : String) {
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	    for each ( var xmlObject : XML in myObjects) {
+	    	var url : String = xmlObject.@["externalURL"].toString().trim();
+		    	if(!empty(url) && url.length > 0){
+		    		urlList.add(url);
+		    	}
+		    }
+	 return urlList;
+}
+
+/**
+* New method for shipping methods
+*/
+function appendShippingMethods(Offer : XML,product : Product) { 
+	var shippingMethodIds : String ="";
+	if(product.ID.substring(0,3).equals('RD-')){
+		for each(var shippingMethod : ShippingMethod in ShippingMgr.getProductShippingModel(product).applicableShippingMethods){
+			if(shippingMethod.ID == 'soft-shipping'){
+				shippingMethodIds = shippingMethod.ID; 
+				break;
+			}
+		}
+	}else{
+		for each(var shippingMethod : dw.order.ShippingMethod in dw.order.ShippingMgr.getProductShippingModel(product).applicableShippingMethods){
+			if(shippingMethod.ID != 'soft-shipping'){
+				if(shippingMethodIds.length > 0){
+					shippingMethodIds = shippingMethodIds+","+shippingMethod.ID;
+				}else{
+					shippingMethodIds = shippingMethod.ID;
+				}
+			}
+		}
+	}
+	Offer.ShippingMethod = (shippingMethodIds.length > 0) ? cdata(shippingMethodIds,'ShippingMethod') : '' ;
+}
+/**
+* New method for image urls
+*/
+function appendImageUrls(Offer : XML,product : Product) { 
+	var imageUrls : dw.util.LinkedHashSet = new dw.util.LinkedHashSet();
+	var imageProduct : Product = product;
+		if(product.isMaster() && (product.getVariationModel().variants.size() > 0)){
+			try{
+				if(product.getVariationModel().getDefaultVariant()){
+					imageProduct = product.getVariationModel().getDefaultVariant();
+				}else if(product.getVariationModel().variants.size() > 0){
+					imageProduct = product.getVariationModel().variants[0];
+				}else{
+					//No need to do anything
+				}
+			}catch(e){
+				//IF default product is not checked in BM
+				imageProduct = product.getVariationModel().variants[0];
+			}
+		}
+
+	if(!empty(imageProduct.getImage('HeroImage'))){ //Main Image
+		imageUrls.add(imageProduct.getImage('HeroImage'));
+	}
+	if(!empty(imageProduct.getImages('carouselImage')) && imageProduct.getImages('carouselImage').size() > 0){ //Thum images
+		imageUrls.addAll(imageProduct.getImages('carouselImage'));
+	}
+	if(imageProduct.ID == "DMC-SZ10K"){
+	 var yrl ="";
+	}
+	
+	if(!empty(imageUrls) && imageUrls.size() > 0 ){
+		var imgURL : String ="";
+		for(var i = 0 ; i<imageUrls.size() ; i++){
+				if(imgURL.length > 0){
+					imgURL = imgURL.concat(",").concat((fileExist(imageUrls[i].getAbsURL().toString()))?(imageUrls[i].getAbsURL().toString()):(URLUtils.absStatic('/images/noimagemedium.png').toString()));
+				}else{
+					imgURL = (fileExist(imageUrls[i].getAbsURL().toString()))?(imageUrls[i].getAbsURL().toString()):(URLUtils.absStatic('/images/noimagemedium.png').toString());
+				}
+		}
+		if(imgURL.length > 0){
+			Offer.ITEMIMAGEURL1 = cdata(imgURL,'ITEMIMAGEURL1');
+		}else{
+			Offer.ITEMIMAGEURL1 = cdata(URLUtils.absStatic('/images/noimagemedium.png').toString(),'ITEMIMAGEURL1');
+		}
+	}else{
+		Offer.ITEMIMAGEURL1 = cdata(URLUtils.absStatic('/images/noimagemedium.png').toString(),'ITEMIMAGEURL1'); // No image found
+	}
+}
+
+/** New method to check Media file existing or not **/
+function fileExist(url : String) {
+
+			var baseImageURL : String = url;
+			baseImageURL = baseImageURL.substr(baseImageURL.indexOf("/on/demandware.static/") + 22);
+			var baseImageURLArray : Array = baseImageURL.split( '/' );
+			var filePathArray : Array = [ dw.io.File.CATALOGS ];
+			
+			for ( var i : Number = 0; i < baseImageURLArray.length; i++) {
+				if ( i == 0 || i == 3 ) {
+					continue;
+				} else if ( i == 1 ) {
+					filePathArray.push( baseImageURLArray[i].replace('Sites-', '') );
+				} else {
+					filePathArray.push( baseImageURLArray[i] );
+				}
+			}
+			
+			var filePath : String = filePathArray.join( dw.io.File.SEPARATOR );
+			var mediaFile : dw.io.File = new dw.io.File( filePath );
+			
+			// locale fallback
+			if(!mediaFile.exists()){
+				filePathArray[2] = filePathArray[2].replace(/_[A_Z]{2}/,"");
+				filePath = filePathArray.join( dw.io.File.SEPARATOR );
+				mediaFile = new dw.io.File( filePath );
+				if(!mediaFile.exists()){
+					filePathArray[2] = "default";
+					filePath = filePathArray.join( dw.io.File.SEPARATOR );
+					mediaFile = new dw.io.File( filePath );
+				}
+			}
+
+	return mediaFile.exists();
+} 

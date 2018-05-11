@@ -1,0 +1,1099 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <description>Amplience User Generated Content</description>
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Default UGC Pipeline</description>
+        </text-node>
+        <node-display x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_2">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display Available UGC Streams</description>
+        </text-node>
+        <node-display x="3" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Start">
+    <segment>
+      <node>
+        <start-node call-mode="public" name="Start" secure="false"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SetActiveTabsUGC.ds"/>
+          <key-binding alias="CurrentHttpParameterMap" key="CurrentHttpParameterMap"/>
+          <key-binding alias="ActiveTabs" key="ActiveTabs"/>
+          <key-binding alias="PageTabs" key="PageTabs"/>
+          <key-binding alias="ActiveTab" key="ActiveTab"/>
+          <key-binding alias="PageContext" key="PageContext"/>
+          <key-binding alias="PageDecorator" key="PageDecorator"/>
+          <key-binding alias="AbsPageURL" key="AbsPageURL"/>
+          <key-binding alias="TabsHelper" key="TabsHelper"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="CurrentHttpParameterMap" key="HttpParameterMap"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+              <bend-point relative-to="target" x="1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="TabsHelper.getActiveTab() == &quot;imported_streams&quot;" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <jump-node start-name-ref="UserGeneratedContent-GetImportedStreams"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <jump-node start-name-ref="UserGeneratedContent-GetAvailableStreams"/>
+        <node-display x="1" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetAvailableStreams">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="GetAvailableStreams" secure="false"/>
+        <node-display x="3" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadAvailableUGCStreams.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 5000 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="CurrentHttpParameterMap.q.stringValue" key="SearchPhrase"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="LoadedContent" key="LoadedContent"/>
+          <key-binding alias="UgcClient" key="UgcClient"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/CreateCustomUGCPaging.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="LoadedContent" key="LoadedContent"/>
+          <key-binding alias="UgcPagingResult" key="UgcPagingModel"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/available_streams"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_5">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display Imported UGC Streams</description>
+        </text-node>
+        <node-display x="5" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetImportedStreams">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="GetImportedStreams" secure="false"/>
+        <node-display x="5" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GetImportedUGCStreams.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedStreams" key="ImportedStreams"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-2"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadImportedUGCStreams.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedStreams" key="ImportedStreams"/>
+          <key-binding alias="LoadedStreams" key="LoadedStreams"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="LoadedStreamsMap" key="LoadedStreamsMap"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateImportedUGCStreamsStatusLists.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedStreams" key="ImportedStreams"/>
+          <key-binding alias="LoadedStreams" key="LoadedStreams"/>
+          <key-binding alias="LoadedStreamsMap" key="LoadedStreamsMap"/>
+          <key-binding alias="OfflineStreams" key="OfflineStreams"/>
+          <key-binding alias="OnlineStreams" key="OnlineStreams"/>
+          <key-binding alias="GoOfflineStreamsList" key="GoOfflineStreamsList"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="GoOnlineStreamsList" key="GoOnlineStreamsList"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b5.1/b2.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('ampEnableOnlineUpdate')" key="From_0"/>
+          <key-binding alias="SetAssetToOnline" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="GoOfflineStreamsList.length &gt; 0 || (GoOnlineStreamsList.length &gt; 0 &amp;&amp; SetAssetToOnline)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b5" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <config-property key="OnError" value="PIPELET_ERROR"/>
+                <config-property key="ScriptFile" value="amplience/pipelets/GenerateUGCStreamUpdateXML.ds"/>
+                <key-binding alias="null" key="ScriptLog"/>
+                <key-binding alias="SetAssetToOnline" key="SetAssetToOnline"/>
+                <key-binding alias="GoOnlineStreamsList" key="GoOnlineStreamsList"/>
+                <key-binding alias="GoOfflineStreamsList" key="GoOfflineStreamsList"/>
+                <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+                <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="error">
+                <transition target-connector="in1"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="2" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../b3.1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+                <key-binding alias="GeneratedContentAssetPath" key="File"/>
+                <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+                <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+                <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+                <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+                <key-binding alias="LibraryValidationStatus" key="Status"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b3" source-connector="error">
+                <transition target-connector="in1"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="2" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../b4.1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+                <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+                <key-binding alias="'MERGE'" key="ImportMode"/>
+                <key-binding alias="null" key="Library"/>
+                <key-binding alias="null" key="ErrorCode"/>
+                <key-binding alias="null" key="ErrorMsg"/>
+                <key-binding alias="null" key="LogFileName"/>
+                <key-binding alias="null" key="Status"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b4" source-connector="error">
+                <transition target-connector="in1"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="2" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../../+2/b2.1"/>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in1" target-path="../+2"/>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="1" y="0"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="target" x="2" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="4"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GetImportedOnlineAndOfflineUGCStreams.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedStreams" key="ImportedStreams"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="OfflineStreams" key="OfflineStreams"/>
+          <key-binding alias="OnlineStreams" key="OnlineStreams"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="target" x="4" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="!empty(CurrentHttpParameterMap.q.stringValue)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="Search" pipelet-set-identifier="bc_api">
+                <config-property key="SearchProduct" value="false"/>
+                <config-property key="SearchContent" value="true"/>
+                <config-property key="DisallowOfflineCategory" value="false"/>
+                <config-property key="RecursiveCategorySearch" value="false"/>
+                <config-property key="RecursiveFolderSearch" value="false"/>
+                <key-binding alias="null" key="SortBy3"/>
+                <key-binding alias="null" key="SortBy2"/>
+                <key-binding alias="null" key="SortBy1Direction"/>
+                <key-binding alias="null" key="SortBy2Direction"/>
+                <key-binding alias="null" key="SortBy3Direction"/>
+                <key-binding alias="null" key="PriceMax"/>
+                <key-binding alias="null" key="PriceMin"/>
+                <key-binding alias="null" key="RefineBy1Name"/>
+                <key-binding alias="null" key="RefineBy1Phrase"/>
+                <key-binding alias="null" key="RefineBy1Min"/>
+                <key-binding alias="null" key="RefineBy1Max"/>
+                <key-binding alias="null" key="RefineBy2Name"/>
+                <key-binding alias="null" key="RefineBy2Phrase"/>
+                <key-binding alias="null" key="RefineBy2Min"/>
+                <key-binding alias="null" key="RefineBy2Max"/>
+                <key-binding alias="null" key="RefineBy3Name"/>
+                <key-binding alias="null" key="RefineBy3Phrase"/>
+                <key-binding alias="null" key="RefineBy3Min"/>
+                <key-binding alias="null" key="RefineBy3Max"/>
+                <key-binding alias="null" key="RefineBy4Name"/>
+                <key-binding alias="null" key="RefineBy4Phrase"/>
+                <key-binding alias="null" key="RefineBy4Min"/>
+                <key-binding alias="null" key="RefineBy4Max"/>
+                <key-binding alias="null" key="RefineBy5Name"/>
+                <key-binding alias="null" key="RefineBy5Phrase"/>
+                <key-binding alias="null" key="RefineBy5Min"/>
+                <key-binding alias="null" key="RefineBy5Max"/>
+                <key-binding alias="null" key="CategoryID"/>
+                <key-binding alias="null" key="ProductID"/>
+                <key-binding alias="SearchResult" key="ContentSearchModel"/>
+                <key-binding alias="null" key="RefineByNamePrefix"/>
+                <key-binding alias="null" key="RefineByPhrasePrefix"/>
+                <key-binding alias="null" key="RefineByMinPrefix"/>
+                <key-binding alias="null" key="RefineByMaxPrefix"/>
+                <key-binding alias="null" key="OrderableProductsOnly"/>
+                <key-binding alias="null" key="SortingRuleID"/>
+                <key-binding alias="null" key="PromotionID"/>
+                <key-binding alias="null" key="PromotionProductType"/>
+                <key-binding alias="ProductSearchResult" key="ProductSearchModel"/>
+                <key-binding alias="&quot;amp_modules_ugc&quot;" key="FolderID"/>
+                <key-binding alias="CurrentHttpParameterMap.q.stringValue" key="SearchPhrase"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+                <config-property key="DefaultPageSize" value="10"/>
+                <key-binding alias="SearchResult.content" key="Objects"/>
+                <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 5000 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+                <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+                <key-binding alias="PagingResult" key="PagingModel"/>
+                <key-binding alias="SearchResult.count" key="ObjectsCount"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+          <config-property key="DefaultPageSize" value="10"/>
+          <key-binding alias="OnlineStreams" key="Objects"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 5000 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+          <key-binding alias="PagingResult" key="PagingModel"/>
+          <key-binding alias="OnlineStreams.size()" key="ObjectsCount"/>
+        </pipelet-node>
+        <node-display x="1" y="2"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/imported_streams"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_7">
+    <segment>
+      <node>
+        <text-node>
+          <description>Delete Imported UGC Streams</description>
+        </text-node>
+        <node-display x="8" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_8">
+    <segment>
+      <node>
+        <text-node>
+          <description>Imports UGC Stream to DW as a Content Asset.</description>
+        </text-node>
+        <node-display x="10" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="DeleteImportedStream">
+    <segment>
+      <node>
+        <start-node name="DeleteImportedStream" secure="false"/>
+        <node-display x="8" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.importedStreamIds.stringValue" key="From_0"/>
+          <key-binding alias="assetids" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="'amp_modules_ugc'" key="From_1"/>
+          <key-binding alias="ParentFolderId" key="To_1"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateContentAssetsDeteleXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="assetids" key="assetids"/>
+          <key-binding alias="ParentFolderId" key="parentFolderId"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'DELETE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="AssetsDelete" key="To_0"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="AssetsDelete" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/delete_assets_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ImportStream">
+    <segment>
+      <node>
+        <start-node name="ImportStream" secure="false"/>
+        <node-display x="10" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.streamId.stringValue" key="From_0"/>
+          <key-binding alias="AmpStreamId" key="To_0"/>
+          <key-binding alias="CurrentHttpParameterMap.streamName.stringValue" key="From_1"/>
+          <key-binding alias="AmpStreamName" key="To_1"/>
+          <key-binding alias="CurrentHttpParameterMap.viewerId.stringValue" key="From_2"/>
+          <key-binding alias="AmpViewerId" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateUGCStreamImportXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="AmpViewerId" key="ampViewerId"/>
+          <key-binding alias="AmpStreamId" key="ampStreamId"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="AmpStreamName" key="ampStreamName"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'MERGE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="StreamImported" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="StreamImported" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/import_stream_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_11">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display UGC Edit Stream Dialog</description>
+        </text-node>
+        <node-display x="12" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_12">
+    <segment>
+      <node>
+        <text-node>
+          <description>Get Available UGC Viewers</description>
+        </text-node>
+        <node-display x="14" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="EditStream">
+    <segment>
+      <node>
+        <start-node name="EditStream" secure="false"/>
+        <node-display x="12" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.streamId.stringValue" key="From_0"/>
+          <key-binding alias="AmpStreamId" key="To_0"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GetUGCIFrameUrl.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="AmpStreamId" key="StreamID"/>
+          <key-binding alias="IFrameURL" key="IFrameURL"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="EditConfigName" key="EditConfigName"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+              <bend-point relative-to="target" x="1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/edit_stream_dialog"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetViewers">
+    <segment>
+      <node>
+        <start-node name="GetViewers" secure="false"/>
+        <node-display x="14" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.streamId.stringValue" key="From_0"/>
+          <key-binding alias="AmpStreamId" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadAmplienceUGCViewers.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="AvailableViewers" key="AvailableViewers"/>
+          <key-binding alias="DisabledViewers" key="DisabledViewers"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="AmpStreamId" key="StreamID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+              <bend-point relative-to="target" x="1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/ugc/viewers_table"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

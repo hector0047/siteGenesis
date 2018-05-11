@@ -1,0 +1,34 @@
+/**
+ * This script creates a collection of all products in a product set
+ * @input ProductIn : dw.catalog.Product The product set ID
+ * @output ens_products : Object An object containing product page informatoin
+ *
+ */
+ 
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importScript( "default/ensightenDataHelper.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+			
+	var collection : Collection = pdict.ProductIn.getProductSetProducts();
+	
+		var product_set = new Array();
+		for each(var productSet in collection){
+			var prod = parseProduct(productSet);
+			product_set.push(prod);
+		}
+		var temp = parseProduct(pdict.ProductIn);
+		var data = new Object();
+
+		data.item = product_set;
+		data.isSet = true;
+		data.name = temp.name;
+		data.sku = temp.sku;
+	
+	pdict.ens_products = data;
+	
+    return PIPELET_NEXT;
+}

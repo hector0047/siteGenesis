@@ -1,0 +1,85 @@
+var sf = require("bc_serviceframework");
+var OrderDetailsSoap = require("../objects/OrderDetailsSoap");
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage (dw.value);
+importScript("int_mainstreet:library/libMainstreetNew_PANB2C.ds");
+
+
+var mainstreet = getMainstreetHelper();
+
+
+function getOrderDetailsSoapService() {
+	return OrderDetailsSoapService;
+}
+
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var OrderDetailsSoapService = sf.getService('AbstractSoapService').extend(
+/** @lends OrderDetailsSoapService.prototype */ 
+{
+	/**
+	 * @constructs OrderDetailsSoapService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("OrderDetailsSoapService" , new OrderDetailsSoap());
+	},
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.Website_panb2c;		
+		this.serviceClient = this.webReference.getService("Website","BasicHttpBinding_IWebsite");				
+		if(!empty(mainstreet.MainStreetEndpoint)) {
+			this.serviceClient._setProperty(Stub.ENDPOINT_ADDRESS_PROPERTY, mainstreet.MainStreetEndpoint);
+		}
+	},
+		
+	createRequest: function (orderIds) {
+		var request = new mainstreet.mainstreetReference.GetOrders();
+		request.request = new mainstreet.mainstreetReference.GetOrdersRequest();
+		request.request.credentials = mainstreet.getCredentials();
+		request.request.orderIds = orderIds;
+		return request;
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var ordersResponse = null;	   	
+		// send request		
+		try {
+			ordersResponse = this.serviceClient.getOrders(this.request);
+		} catch(e) {
+			var x=e.name+""+e.message;
+			Logger.error(e.name+""+e.message);
+			return null;
+		}
+		Logger.debug(ordersResponse.getOrdersResult.orders.toString());
+		var orders : List = new ArrayList();   	    
+	    for each(var order in ordersResponse.getOrdersResult.orders) {
+	        orders.push(mainstreet.makeDemandwarePanasonicOrder(order));
+	    }
+	    orders.sort( new PropertyComparator("creationDate", false ) );
+   	    return orders;   	       	    						
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('OrderDetailsSoapService',OrderDetailsSoapService);

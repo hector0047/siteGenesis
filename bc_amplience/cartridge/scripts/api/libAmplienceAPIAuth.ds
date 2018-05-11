@@ -1,0 +1,63 @@
+/**
+ * AmplienceAPIAuth.ds
+ */
+ 
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.util );
+importPackage( dw.web );
+
+var AMP_AUTH_PATH : String = 'auth';
+
+/**
+ * This class is used to get authentication token for a user from the Amplience API 
+ */
+function AmplienceAPIAuth( params : Object ) {
+ 	
+ 	var ampApiURL : String = params[ 'ampApiURL' ];
+ 	var username  : String = params[ 'username' ];
+ 	var password  : String = params[ 'password' ];
+ 	
+ 	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+		ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+
+ 	 /**
+	 * Get Authorize tokoen for the current user
+	 *
+	 * @return {Object} authToken - authenticatin token value
+	 */
+ 	this.getAuthToken = function () {
+ 		
+ 		if (empty(username) || empty(password)) {
+ 			throw new Error('Missing credentials.');
+ 		}
+ 		
+ 		var data : String = JSON.stringify({
+			username : username,
+			password : password 
+		});
+ 		
+ 		var httpClient : HTTPClient = new HTTPClient();
+		httpClient.setTimeout(ampTimeout);
+
+		var url : String = ampApiURL + AMP_AUTH_PATH;
+		httpClient.open('POST', url);
+		
+		httpClient.setRequestHeader('Content-Type', 'application/json');
+		
+		httpClient.send(data);
+		
+		if ( httpClient.statusCode != 200 ) {
+			
+			throw new Error('HTTP Communication error : Status code ' + httpClient.statusCode + ' - ' + httpClient.statusMessage);
+		}
+		
+		var authToken : Object = JSON.parse(httpClient.getText('UTF-8'));
+		
+		return authToken;
+ 	};
+ };
+ 

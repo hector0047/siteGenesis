@@ -1,0 +1,92 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+---------------
+Request Summary
+---------------
+Exchage   Fee : $0 
+Return    Fee : $0
+Estimated Tax : $0
+__________________
+Estimated total : $0
+</iscomment>
+
+<div class="request-summary-holder">
+	<isif condition="${PageName != null && PageName == 'sb_EstimationPage'}" >
+		<span class="block-header">Request Summary</span>
+	<iselse/>
+		<isif condition="${pdict.CurrentSession.custom.exchangeable=='0'}"> 
+			<span class="block-header">Repair Summary</span>
+		<iselse/>
+			<span class="block-header">Exchange Summary</span>
+		</isif>
+		
+	</isif>
+	<div class="top-block">
+		<ul class="calculation-block">
+			<li class="operand-block">
+				<isif condition="${pdict.CurrentSession.custom.exchangeable == '0'}" >
+					<span class="factor-label">Repair Fee</span>
+				<iselse/>
+					<span class="factor-label">Exchange Fee</span>
+				</isif>
+				<isif condition="${pdict.CurrentSession.custom.warrantyExchangeAmount != null}" >
+					<span class="factor-value"><isprint value="${pdict.CurrentSession.custom.warrantyExchangeAmount}" /></span>
+				<iselse/>
+					<span class="factor-value">$0.00</span>
+				</isif>
+			</li>
+			<li class="operand-block">
+				<span class="factor-label">Return Shipping</span>
+				<isif condition="${pdict.CurrentSession.custom.warrantyShipAmount != null}" >
+					<span class="factor-value"><isprint value="${pdict.CurrentSession.custom.warrantyShipAmount}" /></span>
+				<iselse/>
+					<span class="factor-value">$0.00</span>
+				</isif>
+			</li>
+			<li class="operand-block">
+				<span class="factor-label">Estimated Tax</span>
+				<span class="factor-value">$0.00</span>
+			</li>
+		</ul>
+		<div class="total-block">
+			<span class="total-label estimated-total">Estimated Total</span>
+			<isscript>
+				 var estimatedTotal = pdict.CurrentSession.custom.warrantyShipAmount + pdict.CurrentSession.custom.warrantyExchangeAmount;
+			</isscript>
+			<span class="total-value estimated-total-value">$<isprint value="${estimatedTotal}"/></span>
+		</div>
+		
+		<isif condition="${PageName != null && PageName != 'sb_ConfirmationPage'}">
+			<span class="estimate-ques tooltip-holder">
+				<a href="${URLUtils.url('Page-Show', 'cid', 'help-telephone')}" class="tooltip">
+					${Resource.msg('servicebench.estimate.why','account',null)}
+					<div class="tooltip-content"  data-layout="small">
+						<span class="estimated-total">Estimated Total</span> 
+						</br>
+						${Resource.msg('checkout.whyEstimateContent','sb_forms',null)}
+					</div>
+				</a>
+			</span>
+		</isif>
+	</div>	
+	<div class="submit-btn-holder">
+		<isif condition="${PageName != null && PageName == 'sb_ReviewPage'}" >
+			<!--<button  class="button button-blue goto-shipping" url="${dw.web.URLUtils.https('SBCheckout-Review')}" type="submit"  value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>
+			<a href="javascript:void(0)" class="button-blue warranty-continue sb-waranty-dlg-btn" id="sb_continueToReviewPage"><span>CONTINUE</span></a>-->
+			<!--  <button  class="button button-blue goto-shipping" url="${dw.web.URLUtils.https('SBCheckout-Authorize')}" type="submit"  value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button> -->
+			<a href="${URLUtils.url('SBCheckout-Authorize')}" class="button-blue warranty-continue sb-waranty-dlg-btn"><span>SUBMIT</span></a>
+		<iselseif condition="${PageName != null && PageName == 'sb_EstimationPage'}">
+			<button  class="button button-blue goto-shipping"  url="${dw.web.URLUtils.https('SBCheckout-Shipping')}" type="submit"  value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>
+		<iselseif condition="${PageName != null && PageName != 'sb_ConfirmationPage'}">
+			<button  class="button button-blue goto-shipping <isif condition="${PageName == 'sb_BillingPage'}">sbbillingcontinue<iselsif condition="${PageName == 'sb_ShippingPage'}">sbshippingcontinue</isif>" url="${dw.web.URLUtils.https('SBCheckout-Shipping')}" type="submit"  value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>
+		</isif>
+		
+		<isif condition="${PageName != null && PageName == 'sb_ConfirmationPage'}">
+			<div class="conInfo">
+				<div class="Contact-Us">${Resource.msg('checkout.confirmationInfo','sb_forms',null)}</div>
+				<div class="Call-Number">${Resource.msg('checkout.confirmationInfonext','sb_forms',null)}</div>
+			</div>
+		</isif>
+		
+	</div>
+</div>

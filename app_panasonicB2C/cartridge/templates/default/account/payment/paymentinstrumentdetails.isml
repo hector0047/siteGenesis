@@ -1,0 +1,50 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isset name="DecoratorTemplate" value="account/pt_account" scope="page"/>
+<isif condition="${pdict.CurrentHttpParameterMap.format.stringValue == 'ajax' || pdict.CurrentHttpParameterMap.ajax.stringValue == 'true' }">
+	<isset name="DecoratorTemplate" value="util/pt_empty" scope="page"/>
+</isif>
+<isdecorate template="${DecoratorTemplate}">
+	<isset name="bcurl2" value="${URLUtils.https('PaymentInstruments-List')}" scope="pdict"/>
+	<isset name="bctext2" value="Payment Methods" scope="pdict"/>
+<div class="CreditCardCont"> 
+	<isif condition="${!empty(pdict.Action) && pdict.Action == 'add'}">
+		<h1 id="pnsb2c-myaccount-payment">${Resource.msg('paymentinstrumentlist.addacreditcard','account',null)}</h1>
+		
+	<iselse/>
+		<h1 id="pnsb2c-myaccount-payment">${Resource.msg('paymentinstrumentlist.editacreditcard','account',null)}</h1>
+	</isif>
+			<form id="CreditCardForm" name="CreditCardForm" action="${URLUtils.httpsContinue()}"  method="post" id="newcreditcard">
+			<fieldset>
+				<div class="creditcardfileds">
+					<div class="success-fail-msg error-msg"></div>
+					<isinputfield formfield="${pdict.CurrentForms.paymentinstruments.creditcards.newcreditcard.owner}" type="input" maxlength="40" size="40" attribute1="autocomplete" value1="off" requiredtext="${Resource.msg('creditcard.ownermissingerror','forms',null)}" requiredtextstar="true" attribute1="tabindex" value1="10"/>
+					<isinputfield formfield="${pdict.CurrentForms.paymentinstruments.creditcards.newcreditcard.type}" type="select" rowclass="hide"/>
+										<isinputfield formfield="${pdict.CurrentForms.paymentinstruments.creditcards.newcreditcard.number}" type="input" maxlength="16" size="17" attribute1="autocomplete" value1="off" xhtmlclass="positivenumber" rowclass="ccrow loginfieldright" requiredtext="${Resource.msg('creditcard.numbermissingerror','forms',null)}" attribute1="tabindex" value1="11"/>
+					<div class="form-label-text">
+						${Resource.msg('paymentinstrumentdetails.expires','account',null)}
+					</div>
+					<isinputfield formfield="${pdict.CurrentForms.paymentinstruments.creditcards.newcreditcard.month}" type="select" requiredtext="${Resource.msg('creditcard.monthmissingerror','forms',null)}" attribute1="tabindex" value1="12"/>
+					<isinputfield formfield="${pdict.CurrentForms.paymentinstruments.creditcards.newcreditcard.year}" type="select" requiredtext="${Resource.msg('creditcard.yearmissingerror','forms',null)}" rowclass="loginfieldright" attribute1="tabindex" value1="13"/>
+				</div>				 
+					<div class="form-row form-acctions">
+						<button id="applyBtn" type="submit" class="button-blue" value="${Resource.msg('global.apply','locale',null)}" name="${pdict.Action == 'add' ? pdict.CurrentForms.paymentinstruments.creditcards.create.htmlName : pdict.CurrentForms.paymentinstruments.creditcards.edit.htmlName}">
+								${Resource.msg('global.apply','locale',null)}
+							</button>	
+						<a href="${URLUtils.url('PaymentInstruments-List')}" class="button-blue button-cancel" >
+							${Resource.msg('global.cancel','locale',null)}
+						</a>
+					</div>
+					
+					<input type="hidden" name="${pdict.CurrentForms.paymentinstruments.secureKeyHtmlName}" value="${pdict.CurrentForms.paymentinstruments.secureKeyValue}"/>
+				
+				</fieldset>
+			
+		</form>
+
+	<div class="confirmation-container dialog-content" id="confirmation-container" style="display:none;">
+		<div class="error-form">${Resource.msg('account.forbidden','account',null)}</div>
+		<button type="button">${Resource.msg('global.close','locale',null)}</button>			
+	</div>
+</div>	
+</isdecorate>

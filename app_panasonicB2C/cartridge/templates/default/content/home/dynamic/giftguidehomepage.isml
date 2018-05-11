@@ -1,0 +1,71 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+<isinclude template="search/components/productsearchbreadcrumbs"/>
+<iscomment>this is the template rendering the gift guide home page</iscomment>
+<div class="gift-guide-page gift-guide-home">
+	<div class="gift-home-banner-holder">
+		<isslot id="giftguide-home-banner" context="global" description="Giftguide home page"/>
+		<iscomment>
+			<div class="banner-img-holder">
+				<img src="${URLUtils.staticURL('/images/gift-banner-background-home.jpg')}" alt="gift-home-banner"/>
+			</div>
+			<div class="cat-icon-holder">
+				<a href="javascript:void(0)" class="cat-icon-home-gift">
+					<span class="cat-icon-name-holder">
+						THE PROFESSIONAL
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-professional-icon.png')}" alt="gift-home-banner" />
+				</a>
+				<a href="javascript:void(0)" class="cat-icon-home-gift middle">
+					<span class="cat-icon-name-holder">
+						The "Cave" Man
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-cave-man-icon.png')}" alt="gift-home-banner" />
+				</a>
+				<a href="javascript:void(0)" class="cat-icon-home-gift">
+					<span class="cat-icon-name-holder">
+						The Adventurer
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-adventurer-icon.png')}" alt="gift-home-banner" />
+				</a>
+				<a href="javascript:void(0)" class="cat-icon-home-gift">
+					<span class="cat-icon-name-holder">
+						The Handyman 
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-handyman-icon.png')}" alt="gift-home-banner" />
+				</a>
+				<a href="javascript:void(0)" class="cat-icon-home-gift middle">
+					<span class="cat-icon-name-holder">
+						The Audiophile
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-audio-icon.png')}" alt="gift-home-banner" />
+				</a>
+				<a href="javascript:void(0)" class="cat-icon-home-gift">
+					<span class="cat-icon-name-holder">
+						The Tech Junkie
+					</span>
+					<img src="${URLUtils.staticURL('/images/gift-home-tech-junkie-icon.png')}" alt="gift-home-banner" />
+				</a>
+			</div>
+			<div class="cta-button-holder">
+				<a href="javascript:void(0)" class="shop-price-btn cta-btn-gift">SHOP BY PRICE</a>
+				<a href="javascript:void(0)" class="shop-all-btn cta-btn-gift">SHOP ALL GIFTS</a>
+			</div>
+		</iscomment>
+	</div>
+	
+	<div class="home-bottom-slots">
+		<div class="post-container product-content giftguide-page">
+			<isslot id="giftguide-featured-products" context="global" description="Giftguide Featured product content "/> 
+			<div class="ctc-link-holder">
+				<isslot id="giftguide-see-all" context="global" description="Giftguide shop button "/>
+			</div>
+		</div>
+	</div>
+	<div>
+		<div class="search-promo"><isslot id="giftGuidePage-promo" description="Promotional Content at the bottom of Search Results" context="global"/></div>
+		<div class="search-promo"><isslot id="giftGuidePage-promo-2" description="Promotional Content at the bottom of Search Results" context="global"/></div>	
+	</div>
+</div>
+</isdecorate>

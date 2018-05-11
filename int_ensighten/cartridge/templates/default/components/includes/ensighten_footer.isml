@@ -1,0 +1,54 @@
+<!--- TEMPLATENAME: ensighten_footer.isml --->
+<isif condition="${dw.system.Site.current.preferences.custom.ensighten_client_id != null}">
+	<isscript>
+		/*Changes for Support pages tracking. PANC-888 : Support Analytics DWQA*/
+		var supportpage = null;
+		if('supportpage' in pdict.CurrentHttpParameterMap){
+			supportpage = pdict.CurrentHttpParameterMap.supportpage.value;
+		}
+		/* Product and Product Set */
+		var productID = null; 
+		if(!empty(pdict.CurrentHttpParameterMap.pid)){ productID = pdict.CurrentHttpParameterMap.pid.stringValue; }
+		if(!customPageName) var customPageName = "";
+		/* Category */
+		var categoryID = null;
+		if(!empty(pdict.CurrentHttpParameterMap.stringValue)){ 
+			categoryID = pdict.CurrentHttpParameterMap.cgid.stringValue; 
+		}
+		/* Search */
+	    var searchTerm = null,
+	    	searchResults = null;
+	    if(!empty(pdict.CurrentHttpParameterMap.q)){
+	    	searchTerm = pdict.CurrentHttpParameterMap.q.stringValue;
+	    	if(pdict.ProductSearchResult != null){
+	    	searchResults = pdict.ProductSearchResult.count+'';
+	    	}
+	    }
+		/* Order Confirmation */
+		var orderID = null;
+		if(pdict.Order != null && pdict.Order.orderNo != null && pdict.Order.orderNo != ""){
+			orderID = pdict.Order.orderNo;
+		}
+		/* Content Search */
+		var contentAsset = null;
+		if(pdict.Content != null){
+			contentAsset = pdict.Content;
+		}
+		/* Content Search */
+		var contentResultCount = null;
+		if(pdict.ContentSearchResult != null && pdict.ContentSearchResult.count != null){
+			contentResultCount = pdict.ContentSearchResult.count+'';
+		}
+	</isscript>
+	<isif condition="${productID != null}">
+		<iscomponent pipeline="EnsightenFooterInjection-ProductStart"  pid="${productID}" supportpage="${supportpage}" />
+	<iselseif condition="${searchTerm != null}">
+		<iscomponent pipeline="EnsightenFooterInjection-SearchStart" cgid="${categoryID}" searchterm="${searchTerm}" resultcount="${searchResults}" supportpage="${supportpage}" />
+	<iselseif condition="${orderID != null}">
+		<iscomponent pipeline="EnsightenFooterInjection-OrderStart" orderno="${orderID}" />
+	<iselseif condition="${contentAsset != null}">
+		<iscomponent pipeline="EnsightenFooterInjection-ContentAsset" contentAsset="${contentAsset.ID}"/>
+	<iselse>
+		<iscomponent pipeline="EnsightenFooterInjection-GenericStart" cgid="${categoryID}" contentresultcount="${contentResultCount}" supportpage="${supportpage}"/>
+	</isif>
+</isif>

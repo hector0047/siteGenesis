@@ -1,0 +1,83 @@
+Index: jsdoc-toolkit/app/lib/JSDOC/Walker.js
+===================================================================
+--- jsdoc-toolkit/app/lib/JSDOC/Walker.js	(revision 799)
++++ jsdoc-toolkit/app/lib/JSDOC/Walker.js	(working copy)
+@@ -151,6 +151,8 @@
+ 				symbol = new JSDOC.Symbol(name, params, "FUNCTION", doc);
+ 				if (isInner) symbol.isInner = true;
+ 
++				symbol.type = this.resolveECMATypeDef();
++				
+ 				if (this.ts.look(1).is("JSDOC")) {
+ 					var inlineReturn = ""+this.ts.look(1).data;
+ 					inlineReturn = inlineReturn.replace(/(^\/\*\* *| *\*\/$)/g, "");
+@@ -163,7 +165,7 @@
+ 				
+ 				var matching = this.ts.getMatchingToken("LEFT_CURLY");
+ 				if (matching) matching.popNamescope = name;
+-				else LOG.warn("Mismatched } character. Can't parse code in file " + symbol.srcFile + ".");
++				else LOG.warn("Mismatched } character. Can't parse code in file " + symbol.srcFile + " for function "+name+".");
+ 			}
+ 			// foo = function() {}
+ 			else if (this.ts.look(1).is("ASSIGN") && this.ts.look(2).is("FUNCTION")) {
+@@ -182,6 +184,8 @@
+ 				symbol = new JSDOC.Symbol(name, params, "FUNCTION", doc);
+ 				if (isInner) symbol.isInner = true;
+ 				
++				symbol.type = this.resolveECMATypeDef();
++				
+ 				if (this.ts.look(1).is("JSDOC")) {
+ 					var inlineReturn = ""+this.ts.look(1).data;
+ 					inlineReturn = inlineReturn.replace(/(^\/\*\* *| *\*\/$)/g, "");
+@@ -249,6 +253,8 @@
+ 					symbol = new JSDOC.Symbol(name, params, "FUNCTION", doc);
+ 				}
+ 				
++				symbol.type = this.resolveECMATypeDef();
++				
+ 				if (this.ts.look(1).is("JSDOC")) {
+ 					var inlineReturn = ""+this.ts.look(1).data;
+ 					inlineReturn = inlineReturn.replace(/(^\/\*\* *| *\*\/$)/g, "");
+@@ -301,6 +307,7 @@
+ 					symbol = new JSDOC.Symbol(name, params, "OBJECT", doc);
+ 					if (isInner) symbol.isInner = true;
+ 					
++					symbol.type = this.resolveECMATypeDef();
+ 				
+ 					if (doc) JSDOC.Parser.addSymbol(symbol);
+ 				}
+@@ -386,6 +393,8 @@
+ 				
+ 				symbol = new JSDOC.Symbol(name, params, "FUNCTION", doc);
+ 				
++				symbol.type = this.resolveECMATypeDef();
++				
+ 				JSDOC.Parser.addSymbol(symbol);
+ 				
+ 				this.namescope.push(symbol);
+@@ -466,9 +475,23 @@
+ 				params.push({type: paramType, name: paramTokens[i].data});
+ 			}
+ 		}
+-		else if (paramTokens[i].is("NAME")) {
+-			params.push({name: paramTokens[i].data});
++		else if (paramTokens[i].is("NAME")) {
++			if(paramTokens[i+1].is("COLON")){
++				params.push({name: paramTokens[i].data, type: paramTokens[i+2].data});
++				i+=2;
++			}else{
++				params.push({name: paramTokens[i].data});
++			}
+ 		}
+ 	}
+ 	return params;
+ }
++
++JSDOC.Walker.prototype.resolveECMATypeDef = function() {
++	// consume ECMA type declaration if there is one an
++	if (this.ts.look(1).is("COLON") && this.ts.look(2).is("NAME")) {
++		this.ts.next(); // swallow colon
++		return this.ts.next();
++	}
++	return "";
++}

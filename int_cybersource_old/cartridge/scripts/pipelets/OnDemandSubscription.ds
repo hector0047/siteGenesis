@@ -1,0 +1,106 @@
+/**
+*	OnDemandSubscription.ds
+*	Perfroms the on demand subscription info service and returns the response.
+*
+*	@input 	subscriptionID : String
+*	@input 	purchaseTotals : Object
+* 	@input  billTo : Object 
+* 	@input  shipTo : Object
+*	@output amount : String
+* 	@output authorizationCode : String
+*	@output authorizedDateTime : String
+*	@output processorResponse : String
+*	@output reconciliationID : String
+*	@output customSubscriptionID : String
+*	@output decision : String
+* 	@output reasonCode : Object
+* 	@output requestID : Object
+* 	@output requestToken : Object
+* 	@output invalidField : Array
+* 	@output missingField : Array
+* 	@output DAVReasonCode : Number The DAV reason code returned by Cybersource (100 = Success)
+* 	@output StandardizedAddress : Object Contains any 'corrections' made to the address from standards point of view
+*
+*/
+importPackage( dw.system );
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+
+var sf = require("bc_serviceframework");
+require("../services/OnDemandSubscriptionService");
+
+function execute(pdict) {
+	
+	try{
+		var OnDemandSubscriptionService = sf.getService('CybersourceService');
+		var service = new OnDemandSubscriptionService();
+		
+		var subscriptionID : String = pdict.subscriptionID;
+		
+		var subscriptionInfoObj : Object	= new Object();
+	 	subscriptionInfoObj.subscriptionID = pdict.subscriptionID;
+		subscriptionInfoObj.purchaseObject = pdict.purchaseTotals;
+		subscriptionInfoObj.billToObject   = pdict.billTo;
+		subscriptionInfoObj.shipToObject   = pdict.shipTo;
+		
+		service.call(subscriptionInfoObj);
+		
+		var response = service.response;
+		
+		if(response == null){
+			return PIPELET_ERROR;
+		}
+		else
+		{
+			if(null!=response.ccAuthReply)
+			{
+				pdict.amount = response.ccAuthReply.amount;
+				pdict.authorizationCode = response.ccAuthReply.authorizationCode;
+				pdict.authorizedDateTime = response.ccAuthReply.authorizedDateTime;
+				pdict.processorResponse = response.ccAuthReply.processorResponse;
+				pdict.reasonCode = response.ccAuthReply.reasonCode;
+				pdict.reconciliationID = response.ccAuthReply.reconciliationID;
+				pdict.decision = response.decision;
+				pdict.requestID = response.requestID;
+				pdict.requestToken = response.requestToken;
+				pdict.customSubscriptionID = subscriptionID;
+			}
+			else
+			{
+				pdict.decision = response.decision;
+				pdict.requestID = response.requestID;
+				pdict.requestToken = response.requestToken;
+				pdict.reasonCode = response.reasonCode;
+				pdict.invalidField = response.invalidField;
+				pdict.missingField = response.missingField;
+			}
+			
+			/**********************************************/
+			/* DAV-related WebService response processing */
+			/**********************************************/
+			if(null != response.davReply){
+				pdict.DAVReasonCode = response.davReply.reasonCode.get();			
+				if( !empty(response.davReply.standardizedAddress1) ) {
+					var stdAddress : Object = new Object();
+					stdAddress.firstName = pdict.shipTo.firstName;
+					stdAddress.lastName = pdict.shipTo.lastName;
+					stdAddress.address1 = response.davReply.standardizedAddress1;
+					stdAddress.address2 = response.davReply.standardizedAddress2;
+					stdAddress.city = response.davReply.standardizedCity;
+					stdAddress.state = response.davReply.standardizedState;
+					stdAddress.postalCode = response.davReply.standardizedPostalCode;
+					stdAddress.country = response.davReply.standardizedCountry;
+					pdict.StandardizedAddress = stdAddress;
+				}
+			}
+			/* End of DAV response processing */
+		}	
+	}catch(e){
+		Logger.error("Error while executing the script OnDemandSubscription.ds. Error.."+e.message);
+		return PIPELET_ERROR;
+	}
+   	return PIPELET_NEXT;
+}

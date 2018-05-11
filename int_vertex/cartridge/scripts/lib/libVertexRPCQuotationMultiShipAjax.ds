@@ -1,0 +1,521 @@
+/**
+*	libVertexRPCQuotationAjax.ds
+*
+*   Helper class for Vertex
+*
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+importPackage(dw.web);
+importPackage(dw.customer);
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.order );
+
+
+var VertexRPCQuotationHelper = {
+	
+	vtxsoapError : String ,
+	getUsername : function () {
+		return Site.getCurrent().getCustomPreferenceValue("VertexUsername");
+	},	
+	
+	getPassword : function () {
+		return Site.getCurrent().getCustomPreferenceValue("VertexPassword");
+	},	
+	
+	gettrustedID : function(){
+		return Site.getCurrent().getCustomPreferenceValue("VertexTrustedID");
+	},
+	getSellerLocationCode : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerLocationCode");
+	},
+
+	getSellerCompany : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerCompany");
+	},
+	
+	getTransactionType : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexTransactionType");
+	},
+	getWebURL : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexWebUrl");
+	},
+	getTimeout : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexTimeOut");
+	},
+	getDivisionCode : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerDivisionCode");
+	},
+	getSellerStreet : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerStreetAddr");
+	},
+	getSellerCity : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerCity");
+	},
+	getSellerState : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerMainDivison");
+	},
+	getSellerPostalCode : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerPostalCode");
+	},
+	getSellerCountry : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerCountry");
+	},	
+
+	/*****************************************************************************	
+	 * calculateTax
+	   Creates the request and sends to Vertex server
+	   If request fails due to address error send the request without city and street.
+	   If request failes due to timeout or request without city and street fails apply default tax
+	   If response comes back parses the response and apply the taxes
+	 *****************************************************************************/	
+	
+	calculateTax :function (basket :Basket, multiShipData : String){
+		
+		try {
+			 Logger.debug("calculateTax Started.");
+			 Logger.debug("calculateTax creating request string.");
+			 var multiShipData :String = multiShipData;
+			 var avalableShipments : ArrayList = new ArrayList();
+			 var formShipments :ArrayList = multiShipData.split('|');
+			 for(i=0; i< formShipments.length;i++ ){
+			 	 var CurrentShipment : String = formShipments[i];
+			 	 var CurrentShipmentDetails : ArrayList = CurrentShipment.split(',');
+			 	 var shipmentObject = new Object();
+			 	 shipmentObject.shipmentid =CurrentShipmentDetails[0];
+			 	 shipmentObject.stateCode =CurrentShipmentDetails[1];
+			 	 shipmentObject.postalCode =CurrentShipmentDetails[2];
+			 	 shipmentObject.shippingmethodId =CurrentShipmentDetails[3];
+			 	 avalableShipments.push(shipmentObject);
+			 }
+			
+			 var requestString : String = this.getQuotationRequestString(basket, avalableShipments);
+			 if(requestString.length == null) {
+			 	Logger.debug("Request string is null. ");
+			 	return  PIPELET_NEXT;
+			 }
+			 if(requestString.length <= 0){ 
+			 	Logger.debug("Request string is null.");
+			 	return  PIPELET_NEXT;
+			 }
+			 Logger.debug("calculateTax request string" + requestString);
+			 var responseString :String = this.sendSoapRequest(requestString);
+			 if(this.vtxsoapError == "Timeout" ||  this.vtxsoapError == "VertexInvalidAddressException" || responseString == null  || responseString.length <= 0){
+			 	Logger.debug("Ubable to get tax from Vertex. Error={0}. Using default tax.",this.vtxsoapError);
+			 	this.applyDefaultTax(basket);
+			 } 
+			 else {
+				Logger.debug("Received response. Response string="+responseString );
+				this.parseQuotationResponseString(basket,responseString);
+				Logger.debug("Response string parsed and Basket updated."+responseString );
+			 }
+			// besides shipment line items, we need to calculate tax for possible order-level price adjustments
+		    // this includes order-level shipping price adjustments
+		    Logger.debug("Perform price adjustments on basket." );
+		    if(!basket.getPriceAdjustments().empty || !basket.getShippingPriceAdjustments().empty)
+		    {
+		        // calculate a mix tax rate from
+		        var basketPriceAdjustmentsTaxRate : Number = (basket.getMerchandizeTotalGrossPrice().value / basket.getMerchandizeTotalNetPrice().value) - 1; 	
+			        	
+			    var basketPriceAdjustments : Iterator = basket.getPriceAdjustments().iterator();
+			    while(basketPriceAdjustments.hasNext())
+			    {
+					var basketPriceAdjustment : PriceAdjustment = basketPriceAdjustments.next();
+					basketPriceAdjustment.updateTax(basketPriceAdjustmentsTaxRate);        	
+			    }
+		
+			    var basketShippingPriceAdjustments : Iterator = basket.getShippingPriceAdjustments().iterator();
+			    while(basketShippingPriceAdjustments.hasNext())
+			    {
+					var basketShippingPriceAdjustment : PriceAdjustment = basketShippingPriceAdjustments.next();
+					basketShippingPriceAdjustment.updateTax(basketPriceAdjustmentsTaxRate);        	
+			    }
+			}
+			basket.updateTotals();
+			Logger.debug("calculateTax Completed.");
+			return PIPELET_NEXT;
+		}catch(e){
+			// handle exception
+			var strError : String = e;
+			Logger.error(" calculateTax Exception thrown. Error=" + e );
+		}
+		Logger.debug("calculateTax Completed after exception.");
+	 	return PIPELET_NEXT;
+	},
+		
+	getQuotationRequestString : function (basket : Basket, avalableShipments : ArrayList){
+		
+	try{
+		Logger.debug("getQuotationRequestString Started.");
+		
+		if(basket == null)
+		{
+			Logger.debug("getQuotationRequestString Basket is null.");
+			return null;
+		}
+		else if( basket.shipments ==  null)
+		{
+			Logger.debug("getQuotationRequestString No shipments in Basket.");
+			return null;
+		}
+		
+		 var xmlVertexQuotationReq :String = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:vertexinc:o-series:tps:6:0\">";
+		 xmlVertexQuotationReq  +=  "<soapenv:Header/>";
+    	xmlVertexQuotationReq  +=  "<soapenv:Body>";
+	    xmlVertexQuotationReq  +=  " <urn:VertexEnvelope>";
+	    xmlVertexQuotationReq  +=  "     <urn:Login>";
+	    /*xmlVertexQuotationReq  +=  "        <urn:UserName>";
+	   
+		 var strUser:String = "admin";
+		 var strPwd:String 	= "vertex";
+		 
+		 var strTemp: String = 	this.getUsername();				     
+		 if(strTemp != null && strTemp.length > 0)
+		 	strUser = strTemp;
+		 strTemp = this.getPassword();
+		  if(strTemp != null && strTemp.length > 0)
+		 	strPwd = strTemp;
+		 	
+		 xmlVertexQuotationReq  +=  strUser;
+		 xmlVertexQuotationReq  +=  "</urn:UserName>";
+		 xmlVertexQuotationReq  +=  "<urn:Password>";
+		 xmlVertexQuotationReq  +=  strPwd;
+		 xmlVertexQuotationReq  += "</urn:Password>";*/
+		 
+		 var strTemp: String = 	this.gettrustedID();
+		 var strtrustedID:String = "admin";				     
+		 if(strTemp != null && strTemp.length > 0){
+		 	strtrustedID = strTemp;
+		 }
+		 xmlVertexQuotationReq  +=  "<urn:TrustedId>";
+		 xmlVertexQuotationReq  +=  strtrustedID;
+		 xmlVertexQuotationReq  +=  "</urn:TrustedId>";
+		 xmlVertexQuotationReq  +=  "</urn:Login>";
+		 
+		 var atrTrans :String = "SALE"; 
+		 strTemp = VertexRPCQuotationHelper.getTransactionType();
+		  if(strTemp != null && strTemp.length > 0)
+		 	atrTrans = strTemp;
+		 var atrDocdt : String = "9999-12-12";
+		 var atrDocNo : String = "WEB-99991212";
+		 var today : Date = new Date();
+   		 var currentYear : String = today.getFullYear().toString();
+   		 var currentMonth :String =  (today.getMonth() + 1).toString();
+   		 var currentDate :String = today.getDate().toString();
+   		 var currentHour : String = today.getHours().toString();
+   		 var currentMin : String = today.getMinutes().toString();
+   		 var currentSec : String = today.getSeconds().toString();
+   		 var milliSec : String = today.getMilliseconds().toString();
+   		 atrDocdt = currentYear + "-" + currentMonth + "-" + currentDate;
+   		 atrDocNo = "WEB" + currentYear +  currentMonth +  currentDate + currentHour + currentMin +  currentSec + milliSec;
+   		 var atrTransId: String = "TRANSACTION " + atrDocNo;
+   		 
+   		 var xmlCustomer: XML = <Customer>
+   		 	</Customer>;
+	
+		var seller :XML = <Seller>
+				<Company>
+					<Division></Division>
+				</Company>
+				<PhysicalOrigin>
+					<StreetAddress></StreetAddress>
+					<City></City>
+					<MainDivision></MainDivision>
+					<PostalCode></PostalCode>
+					<Country></Country>
+				</PhysicalOrigin>
+			</Seller>;
+	
+		seller.Company 						= this.getSellerCompany();
+  	    seller.Company.Division 			= this.getDivisionCode();
+  	    seller.PhysicalOrigin.StreetAddress = this.getSellerStreet();
+  	    seller.PhysicalOrigin.City			= this.getSellerCity();
+  	    seller.PhysicalOrigin.MainDivision 	= this.getSellerState();
+  	    seller.PhysicalOrigin.PostalCode	 = this.getSellerPostalCode();
+  	    seller.PhysicalOrigin.Country 		= this.getSellerCountry();
+
+		var xmlQuotationReq :XML = <QuotationRequest documentDate={atrDocdt} documentNumber={atrDocNo} transactionId={atrTransId} transactionType={atrTrans}     postingDate={atrDocdt} >
+		 </QuotationRequest>;
+		var xmlCurrency : XML = <Currency isoCurrencyCodeAlpha="USD" isoCurrencyCodeNum="840" ></Currency>;
+		xmlQuotationReq.appendChild(xmlCurrency);
+		xmlQuotationReq.appendChild(seller); 
+		xmlQuotationReq.appendChild(xmlCustomer);
+		
+		//iterate through the each shipment in the basket to create line item array.
+			
+		var lineItemNo : Number  = 1;
+		for each (var shipment : Shipment in basket.shipments) {
+			for each (var avilableShipment : Object in avalableShipments){
+				if(avilableShipment.shipmentid == shipment.getID()){
+					var currentState :String = avilableShipment.stateCode;
+					var currentPostalCode : String = avilableShipment.postalCode;
+					var currentShippingMethod :String = avilableShipment.shippingmethodId;
+					var currentCountry :String = "US";
+					break;
+				}
+			}
+				if(!empty(currentState) && !empty(currentCountry) && !empty(currentPostalCode)){
+					// get all product line items for this shipment
+					for each (var lineItem : LineItem in shipment.allLineItems) {
+						//if(lineItem instanceof dw.order.PriceAdjustment) {
+						//	continue;
+						//}
+						var atrTaxClass : String = "STANDRAD";
+						var atrLineItemId : String =  "";
+						var atrLineItemNo : String =  lineItemNo.toString();
+						var extendedPrice : Number = 0;
+						var lineItemUuid : String = lineItem.UUID;
+						var shipMethodId : String = atrLineItemId;
+			  			 if(shipment.getShippingMethod() != null){
+		  				 	shipMethodId = shipment.getShippingMethod().getID();
+		  				 }
+						 var itemPrice : Money = new Money(0,"USD");
+						 if(lineItem instanceof dw.order.PriceAdjustment) {
+						 	itemPrice = lineItem.basePrice;
+						 }
+						 else if(lineItem.adjustedPrice != null)
+		  				 {
+		  				 	itemPrice = lineItem.adjustedPrice;
+		  				 }
+		  				 else  if(lineItem.adjustedGrossPrice != null)
+		  				 {
+		  				 	itemPrice  = lineItem.adjustedGrossPrice;
+		  				 }
+		  				 else  if(lineItem.adjustedNetPrice != null)
+		  				 {
+		  				 	itemPrice  = lineItem.adjustedNetPrice;
+		  				 }
+		  				 extendedPrice = itemPrice.getValue();
+						
+						if( lineItem instanceof dw.order.ProductLineItem ) {
+							atrLineItemId  =  lineItem.productID;
+							atrTaxClass  = "STANDRAD";
+							if(lineItem.optionID != null) {
+				  				atrTaxClass = this.getProductOptionTaxClass(lineItem.optionID);
+				  			}
+				  			else {
+				  				atrTaxClass = lineItem.getTaxClassID();
+				  			}
+			  			}
+						else if( lineItem instanceof dw.order.ShippingLineItem ) {
+							atrLineItemId =  lineItem.ID;
+							atrTaxClass = "FREIGHT";
+						}
+						else if( lineItem instanceof dw.order.PriceAdjustment ) {
+							atrLineItemId =  "PROMOTION";
+							atrTaxClass = "STANDRAD";
+						}
+						
+						Logger.info("LineItem No={0} ID={1} UUID={2} Price={3} TaxClass={4}",lineItemNo,atrLineItemId,lineItemUuid,extendedPrice,atrTaxClass);
+						
+						var xmlProduct : XML = <Product productClass={atrTaxClass}> {atrLineItemId} </Product>; 
+						var xmlLineItem : XML = <LineItem lineItemId={lineItemUuid} lineItemNumber={lineItemNo} >  </LineItem>;
+						if(!empty(currentState) && !empty(currentPostalCode) && !empty(currentCountry)) {
+							xmlLineItem.Customer.Destination.MainDivision=currentState;
+				  			xmlLineItem.Customer.Destination.PostalCode=currentPostalCode;
+				  			xmlLineItem.Customer.Destination.Country=currentCountry;
+						}
+						xmlLineItem.appendChild(xmlProduct);
+						xmlLineItem.ExtendedPrice = extendedPrice;
+						xmlQuotationReq.appendChild(xmlLineItem);
+						lineItemNo++;
+					}// End for-loop all line items in shipping
+			  	} else { 
+			  	Logger.error("getQuotationRequestString Shipping address is null");
+	 			} // End of if Shopping address is null
+			
+		}// End of for-loop all shipments in basket
+		
+		xmlVertexQuotationReq += xmlQuotationReq.toXMLString();
+		xmlVertexQuotationReq  +=  " </urn:VertexEnvelope>";
+    	xmlVertexQuotationReq  +=  "</soapenv:Body>";
+   		xmlVertexQuotationReq  +=  "</soapenv:Header>";
+		 return xmlVertexQuotationReq;
+		 }catch(e){
+		// handle exception
+		var strError : String = e;
+		Logger.error("VertexRPCQuotationHelper:getQuotationRequestString Exception thrown. Error=" + e );
+		}
+		Logger.debug("getQuotationRequestString Completed.");
+	},
+
+	sendSoapRequest : function (strTaxRequest :String)	{
+	try{
+		 this.vtxsoapError = "";
+		 Logger.debug("sendSoapRequest Started.");
+		 var request : HTTPClient = new dw.net.HTTPClient();
+		 var url : String = this.getWebURL();
+		 
+		 request.open('POST', url);
+	     request.setRequestHeader("Content-Type", "text/xml; charset=utf-8" ); 
+	     request.setRequestHeader("SOAPAction", "calculateTax60" ); 
+	     request.timeout = this.getTimeout();
+	     if(request.timeout  <= 0)
+	     	request.timeout = 6000;
+	     request.send(strTaxRequest);
+	     Logger.debug("Send completed");
+		 var response : String = request.getText();
+		 if(response == null){
+		 	var strErrMsg = request.getErrorText();
+		 	Logger.error("sendSoapRequest Response is null. Error=" + strErrMsg );
+		 	this.parseVertexError(strErrMsg);
+		 }
+		 Logger.debug("sendSoapRequest Completed.");
+		 return response;
+	}
+	catch(e){
+		// handle exception
+		var strError : String = e.causeFullName;
+		if(strError.indexOf("SocketTimeoutException") > 0){
+			this.vtxsoapError = "Timeout";
+		}
+		Logger.error("sendSoapRequest Exception thrown. Error=" + e );
+		}
+		Logger.debug("sendSoapRequest Completed after exception.");
+	} ,
+	
+		parseQuotationResponseString : function (basket : Basket , responseStr :String){
+		try{
+			Logger.debug("*****************************************************   Parsing the Response"+ responseStr);
+			Logger.debug("       +++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			var xmlResponseStr : XML;
+			
+			Logger.debug("Assigning the response to XML object");
+			xmlResponseStr = responseStr;
+			Logger.debug("Assigning  completed");
+			
+			var responseXmlReader : XMLStreamReader = new XMLStreamReader( new Reader( responseStr ) );
+			while(responseXmlReader.hasNext() ){
+				var eventType : Number =  responseXmlReader.next();
+				if(eventType == XMLStreamConstants.START_ELEMENT)
+				{
+					//Logger.info("Local Name=" + responseXmlReader.localName);
+					if(responseXmlReader.localName == "LineItem"){
+						var lineItemXml : XML = responseXmlReader.XMLObject;
+						var lineItemId : String = lineItemXml.@["lineItemId"].toString();
+						var totalTax : XML = lineItemXml.*::["TotalTax"];
+						var extendedPrice : XML = lineItemXml.*::["ExtendedPrice"];
+						
+						for each (var shipment : Shipment in basket.shipments) {
+						for each (var lineItem : LineItem in shipment.allLineItems) {
+							var basketLineItemId : String =  lineItem.UUID;
+							 if(basketLineItemId == lineItemId)
+							 {
+							 	//var sTax : String = totalTax.toString();
+							 	//var nTax : Number = Number(sTax);
+							 	//var tax = new dw.value.Money(nTax,"USD");
+							 	//var sPrice : String = extendedPrice.toString();
+							 	//var nPrice : Number =  Number(sPrice);
+							 	var taxRate = Number(0);
+							 	//var tax = 0;
+							 	for each (var Taxes : XML in lineItemXml.*::["Taxes"]) {
+							 		taxRate += Number(Taxes.*::["EffectiveRate"]);
+							 	}
+							 	//taxRate = nTax / nPrice;
+							 	Logger.debug("LineItemId=" + lineItemId + "Basket lineItemId="+basketLineItemId + "Tax=" + taxRate.toString());
+							 	lineItem.setTaxRate(taxRate);
+							 	lineItem.updateTax(taxRate);
+							 	Logger.info("LineItemId={0} TaxRate={1} Tax={2} Base Price={3} Gross Price={4} Price={5} Net Price={6} Tax Basis={7}",lineItem.UUID,taxRate,lineItem.tax,lineItem.basePrice,lineItem.grossPrice,lineItem.price,lineItem.netPrice,lineItem.taxBasis);
+							} // End of if(basketLineItemId == lineItemId)
+								
+							} // End of for-loop shipment.allLineItems
+						} // End of for-loop basket.shipments
+					}
+				}
+			}
+		
+		Logger.debug("parseQuotationResponseString Completed.");
+		return;
+		}	
+		catch(e){
+		// handle exception
+		var strError : String = e;
+		Logger.error("VertexRPCQuotationHelper:parseQuotationResponseString Exception thrown. Error=" + e );
+		}
+		Logger.debug("parseQuotationResponseString Completed after exception..");
+	},
+	getProductOptionTaxClass : function ( productOption :String){
+		var taxClass : String = "";
+		try{
+			 var arrTaxPair : Array = Site.getCurrent().getCustomPreferenceValue("VertexProductOptions");
+			 if( arrTaxPair == null || arrTaxPair.length <= 0 ){
+			 	Logger.error("VertexRPCQuotationHelper:getProductOptionTaxClass() null value returned from VertexProductOptions" );
+			 	return taxClass;
+			 }
+			for each( var taxPair : String in arrTaxPair) {
+				if ( taxPair.indexOf( "|") > 0 )
+				{
+					var taxValue:Array = taxPair.split("|");
+					var optionValue : String = taxValue[0];
+					if(optionValue == productOption)
+						return taxValue[1];
+				}
+			}
+		}
+		catch(e){
+		// handle exception
+		var strError : String = e;
+		Logger.error("VertexRPCQuotationHelper:getProductOptionTaxClass Exception thrown. Error=" + e );
+		}
+		return taxClass;
+	},
+	
+	parseVertexError : function ( strErrorMsg :String){
+		var xmlResponseStr : XML;
+		
+		try{
+			Logger.debug("Parsing the error"+ strErrorMsg);
+			var xmlStr : XML;
+			xmlStr = strErrorMsg;
+			var xmlReader : XMLStreamReader = new XMLStreamReader( new Reader( xmlStr ) );
+			if(xmlReader.hasNext() ){
+				var eventType : Number =  xmlReader.next();
+				if(eventType == XMLStreamConstants.START_ELEMENT){
+					if ( xmlReader.localName == "Envelope" && xmlReader != null ){
+					var xmlErrorStr : XML =  xmlReader.XMLObject;
+					var vertexException : XMLList = xmlErrorStr.*::["Body"].*::["Fault"].*::["detail"].*::["VertexException"];
+					this.vtxsoapError = vertexException.*::["exceptionType"].toString();
+					var rootCause : String = vertexException.*::["rootCause"].toString();
+					Logger.error("Vertex Exception Type={0} Cause={1}=",this.vtxsoapError,rootCause);
+					}
+				}
+			}
+		}
+		catch(e){
+		// handle exception
+		var strError : String = e;
+		Logger.error("parseVertexError Exception thrown. Error=" + e );
+		}
+	},
+	
+	
+	applyDefaultTax :function (basket :Basket ){
+		try{
+			for each (var shipment : Shipment in basket.shipments) {
+			for each (var lineItem : LineItem in shipment.allLineItems) {
+				lineItem.updateTax(0);
+				} 
+			}
+			basket.updateTotals(); 
+		}catch(e){
+			Logger.error(" GetTax Exception thrown. Error=" + e );
+				
+		}
+	}
+	
+}
+
+
+
+function getVertexRPCQuotationHelper()
+{
+	return VertexRPCQuotationHelper;
+}
+
+
+
+

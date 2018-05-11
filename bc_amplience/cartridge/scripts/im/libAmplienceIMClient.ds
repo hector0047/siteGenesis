@@ -1,0 +1,136 @@
+/**
+ * libAmplienceIM_REST.ds
+ */
+ 
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.util );
+importPackage( dw.web );
+
+importScript( 'bc_amplience:/api/libAmplienceAPIAuth.ds' );
+ 
+var AMP_ASSETS_PATH : String = 'assets';
+ 
+function IMClient( params : Object ) {
+	
+	var ampApiURL : String = params[ 'ampApiURL' ];
+ 	var username  : String = params[ 'username' ];
+ 	var password  : String = params[ 'password' ];
+ 	var ampIMApiURL : String = params[ 'ampIMAPI' ];
+ 	
+ 	var authToken;
+ 	
+ 	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom;
+	
+	var ampApiURL : String = customPreferences['ampAPI'];
+	var ampAPIUser : String = customPreferences['ampAPIUser'];
+	var ampAPIPassword : String = customPreferences['ampAPIPassword'];
+	var ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+ 
+  	/**
+	 * Authorize current user
+	 */
+ 	this.auth = function () { 		
+ 		var ampAuth = new AmplienceAPIAuth({
+ 			ampApiURL : ampApiURL,
+ 			username : ampAPIUser,
+ 			password : ampAPIPassword
+ 		});
+ 		
+ 		authToken = ampAuth.getAuthToken();
+ 	};
+ 	
+ 	/**
+	 * Get Amplience IM assets
+	 *
+	 * @return {Object} responseObj - Object represents parsed json response
+	 *
+	 */
+ 	this.getAssets = function () {
+  		var httpClient : HTTPClient = new HTTPClient();
+		httpClient.setTimeout(ampTimeout);
+		httpClient.enableCaching(0);
+		
+ 		var queryString : String = buildAssetsQuery(params);
+ 		var url : String = ampApiURL + AMP_ASSETS_PATH + queryString;
+ 		httpClient.open('GET', url);
+ 		
+ 		var permissionsToken : String = '';
+ 		if ('content' in authToken && 'permissionsToken' in authToken.content) {
+ 			permissionsToken = authToken.content.permissionsToken;
+ 		};
+ 		
+ 		httpClient.setRequestHeader('X-Amp-Auth', permissionsToken);
+ 		
+ 		httpClient.send();
+ 		
+ 		if (httpClient.statusCode != 200) {
+			throw new Error('HTTP Communication error : Status code ' + httpClient.statusCode + ' - ' + httpClient.statusMessage);
+		};
+		
+		return JSON.parse(httpClient.getText('UTF-8'));
+ 	};
+ 	
+ 	/**
+	 * Constructs an URL that you can use to re-execute the exact same query. 
+	 * The search phrase and the sorting option parameters are appended to the provided URL.
+	 *
+	 * @param {URL} url - Current page url
+	 *
+	 * @return {URL} - Search url with query parameters
+	 *
+	 */
+ 	this.constructsSearchURL = function ( url : URL ) {
+		if (!empty(url)) {
+			if (!empty(params.searchPhrase)) {
+				url.append('q', params.searchPhrase);
+			}
+			if (!empty(params.sort)) {
+				url.append('sort', params.searchPhrase)
+			}
+			
+			return url;
+		}
+ 	}
+ 	
+	/**
+	 * Build Request query string
+	 *
+	 * @param {Object} queryParams - Object represents request query parameters
+	 *
+	 * @return {String} url - request url with query parameters
+	 *
+	 */
+ 	var buildAssetsQuery = function (queryParams : Object) {	
+ 		if (empty(queryParams)) {
+ 			return '';
+ 		}
+ 		
+ 		var paramMap : Object = {
+ 			searchPhrase : 'q',
+ 			pageSize : 'n',
+ 			start : 's',
+ 			sort : 'sort'
+ 		}
+ 		
+ 		var paramsSet : Array = [];
+ 		
+ 		var param;
+ 		for (param in queryParams) {
+ 			if (paramMap.hasOwnProperty(param) && !empty(queryParams[param])) {
+ 				paramsSet.push(paramMap[param] + '=' + queryParams[param]);
+ 			}
+ 		}
+ 		
+ 		var queryString : String = paramsSet.join('&');
+ 		if (queryString.length > 0) {
+ 			queryString = '?' + queryString;
+ 		}
+ 		
+ 		return encodeURI(queryString);
+ 	};
+ };
+ 

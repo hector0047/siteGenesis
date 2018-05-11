@@ -1,0 +1,45 @@
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+
+	<isscript>var pageContext={title:'Storefront',type:'storefront',ns:'storefront'};</isscript>
+	<isinclude template="util/modules"/>
+
+	<iscomment>This page must be cachable. It inherits the caching attributes by the decorated template.</iscomment>
+
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="content/home/pt_storefront_UI"/>
+
+	<iscomment>Add page specific header information here.</iscomment>
+	<link rel="canonical" href="${URLUtils.httpHome().toString().replace('/home','')}"/>
+	<link rel="alternate" href="http://www.panasonic.com/us/" hreflang="en-us" />
+</head>
+<body>
+	<div id="wrapper" class="pt_storefront">
+	
+	<isset name="HomeTeamPage" value="${pdict.HomeTeamPage}" scope="page" />
+	
+		<iscomment><isif condition="${!empty(pdict.HomeTeamPage)}">Removing HomeTeam Condition</iscomment>
+			<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',true,'isHomeTeamPage',HomeTeamPage)}"/>
+		
+		
+		<div id="main" role="main">
+			<isreplace/>
+			<isinclude template="components/browsertoolscheck"/>
+		</div>
+
+	    <isinclude template="components/footer/footer"/>
+		<isinclude template="content/home/pt_storefront_VARS"/>
+		<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<script type="text/javascript"> 
+			pageTypeCode = "home";  	
+			pageData = {}; 
+		</script> 
+		<iscomment>End of PANC-1672</iscomment>
+
+	</div><!--  /wrapper -->
+</body>
+</html>

@@ -1,0 +1,127 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isif condition="${('cgid' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.cgid.value))}">
+	<isset name="cgid" value="${pdict.CurrentHttpParameterMap.cgid.value}" scope="page"/>
+<iselse>
+	<isset name="cgid" value="${null}" scope="page"/>
+</isif>
+
+
+<isif condition="${!empty(cgid) && !empty(pdict.CategoryStack)}">
+<isset name="currentCategory" value="${dw.catalog.CatalogMgr.getCategory(cgid)}" scope="page"/>
+<isif condition="${(currentCategory.getOnlineSubCategories().size() > 0 || currentCategory.getOnlineProducts().size() > 0)}">
+	<isset name="currentCategoryChildFlag" value="${true}" scope="page"/>
+<iselse>
+	<isset name="currentCategoryChildFlag" value="${false}" scope="page"/>
+</isif>
+ <!-- Iterate all the drops from root -->
+ 	
+	<isloop items="${pdict.CategoryStack}" var="category" status="loopstate">
+	    <isif condition="${loopstate.index <= (pdict.CategoryStack.size()-2)}"> 
+	    	<isset name="nextCategory" value="${pdict.CategoryStack[loopstate.index+1]}" scope="page"/>
+		    <table class="prod-cat-holder-tab">
+				
+					<tr class="headers-holder">
+						<td><label for="Product Category"><isif condition="${loopstate.index > 0}">${Resource.msg('global.contactus.prodsubcategory','locale',null)}<iselse>${Resource.msg('global.contactus.prodcategory','locale',null)}</isif><sup>*</sup></label></td>
+					</tr>
+					<tr>
+						<td class="form-row required" data-text="${(loopstate.index > 0)?Resource.msg('forms.productsubcategory','forms',null):Resource.msg('forms.productcategory','forms',null)}"  data-required-text="${(loopstate.index > 0)?Resource.msg('forms.productsubcategory','forms',null):Resource.msg('forms.productcategory','forms',null)}">
+							<span class="custom-slct-holder"> 
+								<select name="select-${loopstate.index}" id="prodcat-${loopstate.index}"  sb="19509846" class="custom-select  cat-select required <isif condition="${(currentCategory.ID == nextCategory.ID) && (!currentCategoryChildFlag)}">error no-sub-onlineitems</isif>" required="required">
+										<option value="">Select</option>
+										<isloop items="${category.getOnlineSubCategories()}" var="subcategory" status="loops">
+											  <isif condition="${(category.root)}"> 
+											    <isif condition="${('showInSalesforceForm' in subcategory.custom && subcategory.custom.showInSalesforceForm) && (ProductUtils.checkOnlineSucategoriesOrProducts(subcategory,null))}"> 
+													<option value="${subcategory.ID}" <isif condition="${subcategory.ID == nextCategory.ID}">selected="selected"</isif>>${subcategory.getDisplayName()}</option> 
+												</isif>
+											 <iselse>
+												 <isif condition="${(ProductUtils.checkOnlineSucategoriesOrProducts(subcategory,null))}"> 
+											 		<option value="${subcategory.ID}" <isif condition="${subcategory.ID == nextCategory.ID}">selected="selected"</isif>>${subcategory.getDisplayName()}</option> 
+											 	</isif>
+											 </isif>
+										</isloop>
+								</select>
+								<isif condition="${(currentCategory.ID == nextCategory.ID) && (!currentCategoryChildFlag)}">
+									<span for="prodcat-${loopstate.index}"  class="drop-error">${Resource.msg('global.contactus.errormsg','locale',null)}</span>
+								</isif>
+							</span>
+						</td>
+					</tr>
+				
+			</table>
+	    </isif>
+	</isloop>
+	
+	<!-- Looping the next lebel of current category if it has inline childs -->
+	<isif condition="${currentCategoryChildFlag}">
+		<isif condition="${(currentCategory.getOnlineSubCategories().size() > 0)}">
+		 	<table class="prod-cat-holder-tab">
+				
+					<tr class="headers-holder">
+						<td><label for="Product Category">${Resource.msg('global.contactus.prodsubcategory','locale',null)}<sup>*</sup></label></td>
+					</tr>
+					<tr>
+						<td class="form-row required" data-required-text="${Resource.msg('forms.productsubcategory','forms',null)}">
+							<span class="custom-slct-holder"> 
+								<select name="select-sub" id="prodcat"  sb="19509846" class="custom-select cat-select required" required="required">
+										<option value="">Select</option>
+										<isloop items="${currentCategory.getOnlineSubCategories()}" var="subcategory" status="loops">
+											 <isif condition="${ProductUtils.checkOnlineSucategoriesOrProducts(subcategory,null)}"> 
+												<option value="${subcategory.ID}">${subcategory.getDisplayName()}</option>
+											</isif>
+										</isloop>
+								</select>
+							</span>
+						</td>
+					</tr>
+				
+			</table>
+		<iselseif condition="${(currentCategory.getOnlineProducts().size() > 0)}">
+			<table class="prod-cat-holder-tab">
+				
+					<tr class="headers-holder">
+						<td><label for="Product Category">${Resource.msg('global.contactus.models','locale',null)}<sup>*</sup></label></td>
+					</tr>
+					<tr>
+						<td class="form-row required" data-required-text="${Resource.msg('forms.productmodel','forms',null)}">
+							<span class="custom-slct-holder"> 
+								<select name="${('modelNumID' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.modelNumID))?dw.system.Site.getCurrent().getCustomPreferenceValue('modelNumID'):'modelno'}" id="${('modelNumID' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.modelNumID))?dw.system.Site.getCurrent().getCustomPreferenceValue('modelNumID'):'modelno'}" name="${('modelNumID' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.modelNumID))?dw.system.Site.getCurrent().getCustomPreferenceValue('modelNumID'):'modelno'}"  sb="19509846" class="custom-select prod-select required"  required="required" >
+										<option value="">Select</option>
+										<isloop items="${currentCategory.getOnlineProducts()}" var="product" status="loops">
+											 
+												<option value="${product.ID}">${product.ID}</option>
+											
+										</isloop>
+								</select>
+							</span>
+						</td>
+					</tr>
+				
+			</table>
+	    </isif>
+	</isif>
+<iselse>
+	<table class="prod-cat-holder-tab">
+		
+			<tr class="headers-holder">
+				<td><label for="Product Category">${Resource.msg('global.contactus.prodcategory','locale',null)}<sup>*</sup></label></td>
+			</tr>
+			<tr>
+				<td class="form-row required" data-required-text="${Resource.msg('forms.productcategory','forms',null)}">
+					<span class="custom-slct-holder"> 
+						<select name="select-pageload" id="prodcat" class="custom-select cat-select required" sb="19509846" required="required">
+								<option value="">Select</option>
+								<isloop items="${dw.catalog.CatalogMgr.getSiteCatalog().getRoot().getOnlineSubCategories()}" var="category" status="loopstate">
+									 <isif condition="${('showInSalesforceForm' in category.custom && category.custom.showInSalesforceForm) && (ProductUtils.checkOnlineSucategoriesOrProducts(category,null))}"> 
+										<option value="${category.ID}">${category.getDisplayName()}</option>
+									</isif>
+								</isloop>
+						</select>
+					</span>
+				</td>
+			</tr>
+		
+	</table>	
+</isif>
+
+
+

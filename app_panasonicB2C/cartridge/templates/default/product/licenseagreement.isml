@@ -1,0 +1,12 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules.isml"/>
+<iscomment>
+	<div class="error license-error">Error</div>
+ </iscomment>
+ <div class="pnsb2n-license-content"><iscontentasset aid="user-license-agreement"/></div>
+ <span class="ULA-check"><input type="checkbox" class="accept-license" value="true"/>Yes, I agree to the above terms and conditions.</span> 
+ <div class="button-container">
+	<a href="javascript:void(0)" class="apply-download-file button">Download</a>
+	<a href="javascript:void(0)" class="cancel-download-file button">Cancel</a>
+ </div> 
+ 

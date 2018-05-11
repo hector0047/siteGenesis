@@ -1,0 +1,128 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<iscomment>In the product pipeline, if a product was not found for the selected attributes, we need to refresh the ProductVariationModel using the default selected variant</iscomment>
+<isset name="Product" value="${pdict.Product}" scope="page"/>
+<isscript>		
+		var masterId = pdict.Product.isVariant() ? pdict.Product.masterProduct.ID : pdict.Product.ID; 
+		var avm = pdict.Product.availabilityModel;
+		pdict.available = avm.availability>0;
+						
+		var availableCount = "0";
+		if (pdict.available && !empty(avm.inventoryRecord)) {						
+			availableCount = avm.inventoryRecord.perpetual ? "999" : avm.inventoryRecord.ATS.value.toFixed().toString();
+		}
+	</isscript>
+<isset name="isQuickView" value="${pdict.CurrentHttpParameterMap.source.stringValue == 'quickview' || pdict.CurrentHttpParameterMap.source.stringValue == 'cart' || pdict.CurrentHttpParameterMap.source.stringValue == 'giftregistry' || pdict.CurrentHttpParameterMap.source.stringValue == 'wishlist'}" scope="page"/>
+<iscomment> *****Not req as per PSD
+	<isif condition="${isQuickView && pdict.CurrentHttpParameterMap.source.stringValue != 'cart'}">	
+		<div class="quick-view-navigation">
+			<button class="quickview-prev">< ${Resource.msg('global.previous','locale',null)}</button>
+			<button class="quickview-next" style="float:right">${Resource.msg('global.next','locale',null)} ></button>	
+		</div>
+	</isif>	
+ </iscomment>
+<!-- dwMarker="product" dwContentID="${pdict.Product.UUID}" -->
+
+<div class="product-col-1 product-image-container">
+	<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceEnabled')}"> 
+	 		<isinclude template="product/components/productimages_amplience_carouselimage"/> 
+		<iselse> 
+	 		<isinclude template="product/components/productimages"/> 
+		</isif>
+	<iscomment>End of PANC-1672 </iscomment>
+
+
+	<div class="prdctWarnty">
+	<isif condition="${'carouselSealProduct' in pdict.Product.custom && !empty(pdict.Product.custom.carouselSealProduct)}">
+		 <isif condition="${!empty(dw.content.ContentMgr.getContent(pdict.Product.custom.carouselSealProduct))}"> 
+			<iscontentasset aid="${pdict.Product.custom.carouselSealProduct}"/>
+		 <iselse>
+			<isif condition="${('globalCarouselSealProduct' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.globalCarouselSealProduct) && !empty(dw.content.ContentMgr.getContent(dw.system.Site.current.preferences.custom.globalCarouselSealProduct))}">
+				<iscontentasset aid="${dw.system.Site.current.preferences.custom.globalCarouselSealProduct}"/>
+			</isif>
+		</isif>
+	</isif>
+	</div>
+	
+	<div class="pnsb2c-clr-promo-atc-container">
+		<div class="pnsb2c-pdp-clr-pro-price-holder">
+			<div class="promo-holder <isif condition="${isQuickView}">hide</isif>">
+					<isinclude template="product/components/promotions"/>
+			</div>
+		</div>
+	</div>
+
+
+
+</div>
+<div class="mobilestick mobileBlock"></div>
+<div class="clr-price-holder belowPdtImg  mobileBlock">	
+	<iscomment>Commenting static include and adding remote include for avoiding chache issue PANC-594</iscomment>
+	<iscomment><isinclude template="product/components/variations"/></iscomment>
+	<isinclude url="${URLUtils.url('Product-ShowSwatches' , 'pid' , pdict.Product.ID,'compPage',false,'source',pdict.CurrentHttpParameterMap.source.stringValue)}"/>
+	<isset name="showTieredPrice" value="${true}" scope="page"/>
+</div>
+<div class="product-col-2  product-detail">
+<span class="visually-hidden" id="pnsb2c-pdp-overview">overview</span>
+<isset name="date" value="${('productBadgeExpirationDate' in pdict.Product.custom)?pdict.Product.custom.productBadgeExpirationDate:null}" scope="page" />
+  
+ <h1 class="product-name" itemprop="name"> 
+	<isif condition="${(date !=null) && new Date(date) >= new Date()}">
+		 <span class="pdp-prod-badge">NEW!</span>
+	<iselseif condition="${pdict.Product.custom.isSale}" >
+		<span class="pdp-prod-badge sale">SALE!</span>
+	</isif>
+	<span class="pdp-prod-name"><isprint value="${pdict.Product.shortDescription}" encoding="off"/></span>
+</h1>
+	<div id="product-content">
+		<isinclude template="product/productcontent"/>
+	</div>
+<iscomment>PANC-1930 Public promotional messaging showing in EPP stores</iscomment>
+<isset name="promos" value="${dw.campaign.PromotionMgr.activeCustomerPromotions.getProductPromotions(Product)}" scope="page"/>
+<isscript>
+var containsSourceCodePromos : dw.util.Collection = new dw.util.ArrayList();
+var containsCouponCodePromos : dw.util.Collection = new dw.util.ArrayList();
+if(!empty(promos)){
+	 for each(var promotion in promos){
+		  if(promotion.isBasedOnCoupons()){
+		  	 containsCouponCodePromos.add(promotion);
+		  }
+		  else if(promotion.isBasedOnSourceCodes()){
+		  	 containsSourceCodePromos.add(promotion);
+		  }
+	 }
+}
+if(!empty(containsCouponCodePromos)){
+  	promos = containsCouponCodePromos;
+}else{
+	if(!empty(containsSourceCodePromos)){
+	 promos = containsSourceCodePromos;
+	}
+}
+</isscript>		
+	
+	<isif condition="${isQuickView}">
+		<isif condition="${!empty(promos)}">
+			 <div class="opt-promo-block-quickvw">
+			<isset name="count" value="${1}" scope="page" />
+				<isloop items="${promos}" var="promo" status="promoloopstate" begin="0" end="1"  > 
+				<isset name="first" value="${promoloopstate.first? 'first' : '' }" scope="page"/>
+				<isif condition="${!empty(promo.calloutMsg)}">
+					<isset name="count" value="${count+1}" scope="page" />
+					<div <isif condition="${!empty(promo.details) && promo.details != null}"> title="${promo.details}" </isif> class="promo-block ${first}">					
+						<span class="promo-text"><isprint value="${promo.calloutMsg}" encoding="off"/></span>
+					</div>
+				</isif>
+				<iscomment>END PANC-1502</iscomment>
+				</isloop>
+			</div> 
+		</isif>
+	</isif>
+</div>
+
+
+
+
+
+

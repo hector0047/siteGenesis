@@ -1,0 +1,84 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+
+	<isscript>var pageContext={title:'Store Locator', type:'StoreLocator'};</isscript>
+	<isinclude template="util/modules"/>
+
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="components/footer/footer_UI"/>
+	<isinclude template="storelocator/pt_storelocator_UI"/>
+	
+	<iscomment>Add  template-specific header information here.</iscomment>	
+	
+</head>
+<body>
+<!--- TEMPLATENAME: pdfgeneration.isml --->
+<iscomment>Printing the shipping address entered by the customer</iscomment>
+<div class="print-pagesection Co-pdf-wrapper">
+<div class="main">
+	<div class="top-alligned-confirmation pdf-generation-btn-holder">
+					<a href="javascript:void(0)" class="print-link print-page">
+						<input type="button" value="PRINT"/>
+					</a>
+</div>
+<div class="pdf-generation-shipping-label-wrapper">
+		<div class="Shipping-Label">Shipping Label</div>
+
+	<div class="pdf-generation-From-Address">
+			<div class="pdf-From-Address frm-to-holder">
+				From :
+			</div>
+		
+			<div class="addrs-fields">
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.firstName}" encoding="off" /> <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.lastName}" encoding="off" />
+			</div>
+			<div class="addrs-fields">
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address1}" encoding="off" /><isif condition="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address2 != null}" >, <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.address2}" encoding="off" /></isif>
+			</div>
+			<div class="addrs-fields">
+				<isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.city}" encoding="off" />, <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.state}" encoding="off" />, <isprint value="${pdict.CurrentSession.privacy.serviceBenchObject.shippingAddress.postal}" encoding="off" />
+			</div>
+	
+				
+	</div>
+	
+	
+		<div class="pdf-generation-To-Address">	
+		
+			<div class="pdf-To-Address frm-to-holder">
+				To :
+			</div>
+		  
+			<div class="pn-cst-add">
+				<div class="addrs-fields">
+					PANASONIC CUSTOMER SERVICE
+				</div>
+				<div class="addrs-fields">
+					4900 GEORGE MCVAY DRIVE
+				</div>
+				<div class="addrs-fields">
+					SUITE B - DOOR 12
+				</div>
+				<div class="addrs-fields">
+					MC ALLEN, TX 78503
+				</div>
+				<div class="addrs-fields">
+		${Resource.msg('checkout.referencePDF','sb_forms',null)} ${pdict.CurrentHttpParameterMap.referenceNum.value}
+	</div>
+			</div>
+	
+	              
+	
+</div>
+	</div>
+</div>
+</div>
+</body>
+</html>
+
+

@@ -1,0 +1,17 @@
+<iscontent type="text/html" charset="UTF-8" compact="true">
+<isif condition="${'ChannelAdvisorEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.ChannelAdvisorEnabled}">
+	
+	<script type="text/javascript">
+		var _caq = _caq || [];
+		var products = [];
+		
+		<isloop iterator = "${pdict.Order.allProductLineItems}" alias = "item">
+			products.push({Sku: '${item.productID}', UnitPrice : '${item.adjustedNetPrice.valueOf()/item.quantityValue}' , Quantity: '${item.quantityValue}'});
+		</isloop>
+		
+		_caq.push(["Order", {EventTypeID: '${pdict.EventTypeID}',OrderId: '${pdict.Order.orderNo}', Revenue: '${pdict.Order.getAdjustedMerchandizeTotalPrice(true).toNumberString()}', CurrencyCode: '${pdict.Order.allProductLineItems[0].adjustedNetPrice.currencyCode}', Products: products}]);
+	
+	</script>
+	
+	
+</isif> 

@@ -1,0 +1,106 @@
+/*************************************************************************************
+*	FileName : SAPPricebookFeedXMLWriter
+*	Description : This script is used to create SAP pricebook XML file. 
+*
+***************************************************************************************
+*	Copyright (C) 2016-2017 Panasonic.  All Rights Reserved.
+***************************************************************************************
+*   @input FileNamePrefix : String
+*   @input TargetFolder : String
+*   @input PriceBookMap : dw.util.HashMap
+*   @input PriceBookCount : Number
+*   @output ErrorMsg : String
+***************************************************************************************/
+importPackage( dw.system );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage ( dw.util );
+
+function execute( pdict : PipelineDictionary ) : Number {
+	try{
+		var targetFolder : String = pdict.TargetFolder;
+		var fileNamePrefix : String = pdict.FileNamePrefix;
+		if (targetFolder.charAt(0) == File.SEPARATOR) {
+			targetFolder = targetFolder.substring(1);
+		}
+		if (targetFolder.charAt(targetFolder.length-1) == File.SEPARATOR) {
+			targetFolder = targetFolder.substring(0,targetFolder.length-1);
+		}
+		if (fileNamePrefix.charAt(targetFolder.length-1) == "_") {
+			fileNamePrefix = fileNamePrefix.substring(0,targetFolder.length-1);
+		}
+		var path : String = File.IMPEX +File.SEPARATOR + targetFolder + File.SEPARATOR + fileNamePrefix +"_"+StringUtils.formatCalendar(System.getCalendar(), "yyyyMMddHHmm")+"_"+pdict.PriceBookCount+".xml";
+		var file : File = new File( path );
+	 	var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+	 	var xsw : XMLStreamWriter = new XMLStreamWriter(fileWriter);
+	    var pricebookMap : HashMap = pdict.PriceBookMap;
+	 	initializePriceBookFeed(xsw);
+	 	if(pricebookMap.size()>0){
+	 		writePriceBookElement(xsw,pricebookMap);
+	 	}
+		finalizePriceBookFeed(xsw);	
+		fileWriter.close();
+	}catch(ex) {
+		Logger.error("[SAPPricebookFeedXMLWriter.ds] Error in file ( {0} )",ex.message);
+		pdict.ErrorMsg = ex.toString();
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}
+
+function initializePriceBookFeed( xsw : XMLStreamWriter){
+	xsw.writeRaw('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>');
+		xsw.writeStartElement("pricebooks");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/pricebook/2006-10-31");
+}
+function writePriceBookElement(xsw : XMLStreamWriter, pricebookMap : HashMap){
+ 	var pricebookEntriesIterator : Iterator = pricebookMap.entrySet().iterator(); 
+	while(pricebookEntriesIterator.hasNext()){
+		var pricebook = pricebookEntriesIterator.next();
+		var priceBookId : String = pricebook.getKey();
+		var priceBookElements : ArrayList = pricebook.getValue();
+		xsw.writeStartElement("pricebook");
+		writeHeaderElement(xsw , priceBookId);
+		writePriceTablesElement(xsw , priceBookElements );
+		xsw.writeEndElement();
+	}
+}
+function writeHeaderElement( xsw : XMLStreamWriter , priceBookId){
+	xsw.writeStartElement("header");
+	xsw.writeAttribute("pricebook-id", priceBookId);
+		xsw.writeStartElement("currency");
+			xsw.writeCharacters("USD");
+		xsw.writeEndElement();
+	xsw.writeEndElement();
+}
+
+function writePriceTablesElement( xsw : XMLStreamWriter , priceBookElements ){
+	xsw.writeStartElement("price-tables");    
+	for each(var pricetableElement in priceBookElements ) {
+	    writeProductPriceTable(xsw,pricetableElement);
+	}
+	xsw.writeEndElement();
+}
+
+function writeProductPriceTable( xsw : XMLStreamWriter , pricetableElement : Object ){
+	xsw.writeStartElement("price-table");
+	xsw.writeAttribute("product-id", pricetableElement.productId);
+		xsw.writeStartElement("online-from");
+			xsw.writeCharacters(pricetableElement.onlineFrom);
+		xsw.writeEndElement();
+		xsw.writeStartElement("online-to");
+			xsw.writeCharacters(pricetableElement.onlineTo);
+		xsw.writeEndElement();
+		xsw.writeStartElement("amount");
+			xsw.writeAttribute("quantity", "1");
+			xsw.writeCharacters(pricetableElement.amount);
+		xsw.writeEndElement();
+	xsw.writeEndElement();
+}
+/* Finalizes XML Feed */
+function finalizePriceBookFeed( xsw : XMLStreamWriter){
+	xsw.writeEndElement();
+	xsw.flush();
+	xsw.close();
+}

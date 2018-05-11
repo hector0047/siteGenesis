@@ -1,0 +1,98 @@
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+</isscript>
+
+	<isset name="imageProduct" value="${pdict.Product}" scope="page"/>
+
+
+<isset name="mainImage" value="${ProductImage.getImage('pdpmainimage430X334', imageProduct, 0)}" scope="page"/>
+<isif condition="${!empty(mainImage)}">
+	<isset name="imageUrl" value="${mainImage.getURL()}" scope="page"/>
+	<isset name="imageAlt" value="${mainImage.alt}" scope="page"/>
+	<isset name="imageTitle" value="${mainImage.title}" scope="page"/>
+<iselse/>
+	<isset name="imageUrl" value="${URLUtils.staticURL('/images/noimagemedium.png')}" scope="page"/>
+	<isset name="imageAlt" value="${pdict.Product.name}" scope="page"/>
+	<isset name="imageTitle" value="${pdict.Product.name}" scope="page"/>
+</isif>
+
+<div class="product-primary-image">
+		<span class="visually-hidden">Images</span>			
+		<isset name="hiResImage" value="${ProductImage.getImage('pdpmainimage1500X1500', imageProduct, 0)}" scope="page"/>
+		<isif condition="${!empty(hiResImage)}">
+			<isset name="hi_res" scope="page" value="${hiResImage.getURL().toString()}" />
+			<isset name="href" scope="page" value="${'href='+hi_res+' target=_blank'}" />
+		<iselse/>
+			<isset name="hi_res" scope="page" value="${''}" />
+			<isset name="href" scope="page" value="${'name=product_detail_image'}" />
+		</isif>
+
+	<a ${href} class="product-image main-image" title="${imageTitle}">
+		<img itemprop="image" class="primary-image" src="${imageUrl}" alt="${imageAlt}" title="${imageTitle}"/>
+	</a>
+</div>
+<isset name="largeImagesSize" value="${ProductImage.getImages(imageProduct,'pdpimage430X334').length}" scope="page"/>
+<isset name="smallImagesSize" value="${ProductImage.getImages(imageProduct,'image80X80').length}" scope="page"/>
+<isset name="noOfImages" value="${largeImagesSize > smallImagesSize ? smallImagesSize : largeImagesSize}" scope="page"/>
+<isif condition="${(smallImagesSize >= 1)||(!empty(pdict.VideoUrls))}">
+	<div id="thumbnails" class="product-thumbnails">		
+		<iscomment><h2>${Resource.msg('productthumbnails.title','product',null)}</h2></iscomment>
+		<ul id="pdp-aleternative-images" class="horizontal-carousel">
+				<li class="thumb">
+					<isset name="mainimg" value="${${ProductImage.getImages(pdict.Product,'image80X80')}}" scope="page" />
+					<isset name="lgmainImage" value="${ProductImage.getImages(pdict.Product,'pdpimage430X334')[0]}" scope="page"/>
+						<isset name="hi_res" scope="page" value="${ProductImage.getImages(pdict.Product,'image1500X1500')[0].getURL()}" />
+							<isset name="href" scope="page" value="${'href="'+hi_res+'" target="_blank"'}" />
+					<a ${href} class="thumbnail-link">
+						<img class="productthumbnail" src="${mainImage.getURL()}" alt="${mainImage.alt}" title="${pdict.Product.name}${mainImage.title}" data-lgimg='{"url":"${lgmainImage.getURL()}", "title":"<isprint value="${lgmainImage.title}" encoding="on"/>", "alt":"<isprint value="${lgmainImage.alt}" encoding="on"/>", "hires":"${hi_res}"}'/>								 
+					</a>
+				</li>					
+						
+				<isloop items="${pdict.ProductSetList}" var="imageProduct" status="loopstatus">  
+					<isloop items="${ProductImage.getImages(imageProduct,'image80X80')}" var="img" status="imgSmStatus">
+						<iscomment>we only show the smallest of large or small images, there is 1-1 correspondence</iscomment>
+						<isif condition="${imgSmStatus.first}">
+							<isif condition="${imgSmStatus.count > noOfImages}">
+								<isbreak/>
+							</isif>					
+							<isset name="lgImage" value="${ProductImage.getImages(imageProduct,'pdpimage430X334')[imgSmStatus.index.toFixed(0)]}" scope="page"/>
+								<isif condition="${!empty(ProductImage.getImages(pdict.Product,'image1500X1500')) && ProductImage.getImages(imageProduct,'image1500X1500').length>imgSmStatus.index}">
+									<isset name="hi_res" scope="page" value="${ProductImage.getImages(imageProduct,'image1500X1500')[imgSmStatus.index.toFixed(0)].getURL()}" />
+									<isset name="href" scope="page" value="${'href="'+hi_res+'" target="_blank"'}" />
+								<iselse/>
+									<isset name="hi_res" scope="page" value="${''}" />
+									<isset name="href" scope="page" value="${'name=product_detail_image'}"/>
+								</isif>
+							<li class="thumb">
+								<a ${href} class="thumbnail-link">
+									<img class="productthumbnail" src="${img.getURL()}" alt="${img.alt}" title="${pdict.Product.name}${img.title}" data-lgimg='{"url":"${lgImage.getURL()}", "title":"<isprint value="${lgImage.title}" encoding="on"/>", "alt":"<isprint value="${lgImage.alt}" encoding="on"/>", "hires":"${hi_res}"}'/>								 
+								</a>
+							</li>	
+						 </isif>									
+					</isloop>	
+				</isloop>
+			
+			<!-- This below section is for video -->
+			<isif condition="${!empty(pdict.VideoUrls)}"> 
+		         <isloop items="${pdict.VideoUrls}" var="videoItemPath">
+	                <isscript>
+	                       var videoItem = videoItemPath.trim().split('$');
+	                </isscript>
+	                <isif condition="${!empty(videoItem[0]) && !empty(videoItem[1]) && !empty(videoItem[2])}"> 
+	             		 <li class="thumb">
+							<a href="javascript:void(0)" class="thumbnail-link video-link">
+								<span class="video-thumb"></span>
+								<isset name="tpath" value="${'http://img.youtube.com/vi/'+videoItem[2].trim().split('/')[videoItem[2].trim().split('/').length-1]+'/default.jpg'}" scope="page"/>
+								<img src="${tpath}" data-lgimg='{"url":"${lgImage.getURL()}", "title":"<isprint value="${videoItem[0].trim()}" encoding="on"/>", "alt":"<isprint value="${lgImage.alt}" encoding="on"/>", "hires":"${hi_res}", "videopath":"${videoItem[2].trim()}", "thumbpath":"${tpath}"}'/>							 
+							</a>
+						</li>
+				  </isif>
+		         </isloop>
+		 	</isif>
+		</ul>		
+	</div>
+</isif>
+
+
+
+

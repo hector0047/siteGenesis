@@ -1,0 +1,210 @@
+<!--- TEMPLATENAME: paymentmethods.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isif condition="${true}">
+	<fieldset>
+<div class="paymentmethodsCont">
+		<legend>
+			<isif condition="${pdict.CurrentCustomer.registered}">
+			${Resource.msg('billing.paymentheader','checkout',null)}
+		 <iselse/>
+		 	${Resource.msg('billing.guestpaymentheader','checkout',null)}	
+		</isif>	
+		</legend>
+		<isif condition="${false}">
+			
+				<div class="error-form"><isprint value="${Resource.msg('billing.invalicarddetails','checkout',null)}"/></div>
+			   //Error
+		</isif>
+		
+		<div class="payment-method-options">
+		
+			<isloop items="${pdict.CurrentForms.billingsb.paymentMethods.selectedPaymentMethodID.options}" var="paymentMethodType">
+			
+				<iscomment>Ignore GIFT_CERTIFICATE method, GCs are handled separately before other payment methods.</iscomment>
+				<isif condition="${paymentMethodType.value.equals(dw.order.PaymentInstrument.METHOD_GIFT_CERTIFICATE) ||paymentMethodType.value.equals('PayPal')}"><iscontinue/></isif>
+				
+				<div class="form-row"> 
+					<isset name="radioID" value="${paymentMethodType.value}" scope="page"/>
+					<span class="custom-radio">
+					<isif condition="${paymentMethodType.checked || (!empty(pdict.selectedPaymentID) && paymentMethodType.htmlValue == pdict.selectedPaymentID)}">
+						<input type="radio" checked="checked" class="input-radio" name="${pdict.CurrentForms.billingsb.paymentMethods.selectedPaymentMethodID.htmlName}" value="${paymentMethodType.htmlValue}" id="is-${radioID}" />
+					<iselse/>
+						<input type="radio" class="input-radio" name="${pdict.CurrentForms.billingsb.paymentMethods.selectedPaymentMethodID.htmlName}" value="${paymentMethodType.htmlValue}" id="is-${radioID}" />
+					</isif>
+					</span>
+					<label for="is-${radioID}"><isprint value="${Resource.msg(paymentMethodType.label,'forms',null)}"/></label>
+				</div>
+				
+			</isloop>
+		</div>
+		
+		<div class="form-row form-row-button hide">
+			<button id="payment-select-go" name="${pdict.CurrentForms.billingsb.paymentSelect.htmlName}" type="submit" value="Go" class="simple-submit">Select</button>
+		</div>
+		
+		<isif condition="${!empty(pdict.MissingPaymentProcessor)}">
+			<div class="billing-error">${Resource.msg('billing.missingprocessorerror','checkout',null)}</div>
+		</isif>				
+	
+		<iscomment>
+			Credit card block
+			--------------------------------------------------------------
+		</iscomment>
+		
+		<div id="PaymentMethod_CREDIT_CARD" class="payment-method <isif condition="${empty(pdict.selectedPaymentID) || pdict.selectedPaymentID=='CREDIT_CARD'}">payment-method-expanded</isif>">
+		 	<div class="payment-cont">
+			<iscomment>display select box with stored credit cards if customer is authenticated</iscomment>
+			<isif condition="${pdict.CurrentCustomer.authenticated && !empty(pdict.ApplicableCreditCards)}">
+				<div class="form-row credit-select saved-credit-card">
+					<label>
+						<isprint value="${Resource.msg('billing.selectcreditcard','checkout',null)}"/> 
+					</label>
+					<isset name="creditForm" value="${pdict.CurrentForms.billingsb.paymentMethods.creditCard}" scope="page">										
+					<select name="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.ID.htmlName}" id="creditCardList" class="input-select custom-select" tabindex="23">
+						<option value=""><isprint value="${Resource.msg('billing.creditcardlistselect','checkout',null)}"/></option>						
+						<isloop items="${pdict.ApplicableCreditCards}" var="creditCardInstr">		
+							<option value="${creditCardInstr.UUID}"  data-cc="${creditCardInstr.getCreditCardNumber()}" uuid=${pdict.CurrentForms.billingsb.paymentMethods.creditCard.ID.value} <isif condition="${creditCardInstr.UUID.equals(pdict.CurrentForms.billingsb.paymentMethods.creditCard.ID.value)}">selected="selected"</isif> encoding="off"/>								
+								(<isprint value="${Resource.msg(creditCardInstr.creditCardType,'checkout',null)}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber.replace(/\*/g,'X')}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />/<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="00" />
+							</option>
+							<iscomment>
+								<isif condition="${pdict.CurrentForms.billingsb.fulfilled.value && !empty(pdict.basketCardLastFour) && pdict.basketCardLastFour.equals(creditCardInstr.creditCardNumberLastDigits) 
+									&& !empty(pdict.basketcreditCardType) && pdict.basketcreditCardType.equals(creditCardInstr.creditCardType) && 
+									empty(creditCardInstr.custom.subscriptionID)}">							
+									<option value="${creditCardInstr.UUID}"  data-cc="${creditCardInstr.getCreditCardNumber()}"  data-subid="${creditCardInstr.custom.subscriptionID}" selected="selected" encoding="off"/>								
+									(<isprint value="${Resource.msg(creditCardInstr.creditCardType,'checkout',null)}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber.replace(/\*/g,'X')}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />/<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="00" />
+									</option>
+								<iselseif condition="${pdict.CurrentForms.billingsb.fulfilled.value && !empty(pdict.customerSubscriptionID) && pdict.customerSubscriptionID == creditCardInstr.custom.subscriptionID}">
+									<option value="${creditCardInstr.UUID}"  data-cc="${creditCardInstr.getCreditCardNumber()}"  data-subid="${creditCardInstr.custom.subscriptionID}" selected="selected" encoding="off"/>								
+									(<isprint value="${Resource.msg(creditCardInstr.creditCardType,'checkout',null)}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber.replace(/\*/g,'X')}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />/<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="00" />
+									</option>	
+								<iselseif condition="${creditCardInstr.custom.defaultCreditCard && !pdict.CurrentForms.billingsb.fulfilled.value}">
+									<option value="${creditCardInstr.UUID}"  data-cc="${creditCardInstr.getCreditCardNumber()}"  data-subid="${creditCardInstr.custom.subscriptionID}" selected="selected" encoding="off"/>
+									(<isprint value="${Resource.msg(creditCardInstr.creditCardType,'checkout',null)}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber.replace(/\*/g,'X')}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />/<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="00" />
+									</option>
+								<iselse/>
+									<option value="${creditCardInstr.UUID}"  data-cc="${creditCardInstr.getCreditCardNumber()}"  data-subid="${creditCardInstr.custom.subscriptionID}" encoding="off"/>
+									(<isprint value="${Resource.msg(creditCardInstr.creditCardType,'checkout',null)}"/>) <isprint value="${creditCardInstr.maskedCreditCardNumber.replace(/\*/g,'X')}"/> - ${Resource.msg('billing.creditcardlistexp','checkout',null)} <isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />/<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="00" />
+									</option>
+								</isif>
+							</iscomment>
+						</isloop>
+					</select>
+							
+				</div>
+				
+				<div class="form-row form-row-button hide">
+					<button id="credit-card-select-go" name="${pdict.CurrentForms.billingsb.creditCardSelect.htmlName}" type="submit" value="Go" class="simple-submit">Select</button>
+				</div>
+					
+				<isloop items="${pdict.ApplicableCreditCards}" var="creditCardInstr">
+					<div class="hide">
+						<a href="${URLUtils.https('COBilling-UpdateCreditCardSelection', 'creditCardUUID', creditCardInstr.UUID)}" class="saved_card">
+							(<isprint value="${creditCardInstr.creditCardType}"/>) 
+							<isprint value="${creditCardInstr.maskedCreditCardNumber}"/> 
+							- <isprint value="${Resource.msg('billing.creditcardlistexp','checkout',null)}"/> 
+							<isprint value="${creditCardInstr.creditCardExpirationMonth}" formatter="00" />
+							.<isprint value="${creditCardInstr.creditCardExpirationYear}" formatter="0000" />
+						</a>
+					</div>
+				</isloop>
+			</isif>
+				
+			<isif condition="${!empty(pdict.customerSubscriptionID)}"> 
+				<input type="hidden" name="selectedsubscriptionid" value="${pdict.customerSubscriptionID}" class="subscriptionId">	
+			<iselse/>
+				<input type="hidden" name="selectedsubscriptionid" value="" class="subscriptionId">					
+			</isif>
+						
+	    	<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.owner}" type="input" attribute1="autocomplete" value1="off" requiredtext="${Resource.msg('creditcard.ownermissingerror','forms',null)}" attribute1="tabindex" value1="24"/>
+	    	<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cclastname}" type="input" attribute1="autocomplete" value1="off" requiredtext="${Resource.msg('creditcard.cclastnamemissingerror','forms',null)}" attribute1="tabindex" value1="24"/>
+	    	<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.type}" xhtmlclass="ctype" type="select" rowclass="hide"/>
+			<isif condition="${empty(pdict.responseStatus)}">
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.number}"  type="input" attribute1="autocomplete" value1="off" xhtmlclass="ccnumber" rowclass="ccrow" requiredtext="${Resource.msg('creditcard.numbermissingerror','forms',null)}" attribute1="tabindex" value1="25"/>
+	    	<iselse/>
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.number}"  type="input" attribute1="autocomplete" value1="off" xhtmlclass="ccnumber servererror focused" rowclass="ccrow" requiredtext="${Resource.msg('creditcard.numbermissingerror','forms',null)}" attribute1="tabindex" value1="25"/>
+	    	</isif>
+			<input type="hidden" name="ccnum" class="profile_cc_num" value=""/>
+			
+			<span class="form-label-text">${Resource.msg('billing.creditcardlistexpdate','checkout',null)}<span class="required-indicator">&#42;</span></span>
+			<div class="paymentsection-row">
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.month}" xhtmlclass="cexpmonth" type="select" rowclass="month label-removed" requiredtext="${Resource.msg('creditcard.monthmissingerror','forms',null)}" attribute1="tabindex" value1="26"/>
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.year}" xhtmlclass="cexpyear" type="select"  rowclass="year label-removed" requiredtext="${Resource.msg('creditcard.yearmissingerror','forms',null)}" attribute1="tabindex" value1="27"/>
+			</div>	
+			
+			
+			<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('enableCSIntegration') }">
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.isSubscription}" type="hidden" />
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.maskedFourDigit}" type="hidden"/>
+			</isif>
+			
+			<iscomment>Start JIRA PREV-70 : payment section: Validation issue in Secuirty Code field. Added positivenumber to xhtmlclass attribute for validation </iscomment>
+			<iscomment>Start JIRA PREV-76 : In payment section CVV field does not accept more than 4 digits and Alphanumeric values. Added positivenumber to a xhtmlclass attribute for validation </iscomment>
+			<iscomment>Start JIRA PREV-28 : Billing page: CVV number accepting invalid character and able to place a order. Added positivenumber to a xhtmlclass attribute for validation</iscomment>
+				
+			<div class="paymentsection-row">
+			
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cvn}" type="input" rowclass="cvn" attribute1="autocomplete" value1="off" requiredtext="${Resource.msg('creditcard.cvnmissingerror','forms',null)}" xhtmlclass="ccvn" attribute1="tabindex" value1="28"/>
+				
+				 <isif condition="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cvn.error == null}">
+			   		 <div class="form-field-tooltip cvn-tip">
+			   	 <iselse/>
+			    	<div class="form-field-tooltip cvn-tip-error">
+			    </isif>
+			    	<a href="${URLUtils.url('Page-Show', 'cid', 'checkout-security-code')}" class="tooltip">
+			    		${Resource.msg('billing.linkcvn','checkout',null)}
+			    		<div class="tooltip-content" data-layout="small tooltip-cvn">
+			    			<iscontentasset aid="checkout-security-code">
+			    		</div>
+			    	</a>
+		    		</div>	
+		    </div>
+		   
+			</div>
+						
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.cardnumber.value)}"> 
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cardnumber}"  type="input" xhtmlclass="hide actualcardnumber" />
+			<iselse/>
+				<isinputfield formfield="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cardnumber}"  value="${pdict.actualcreditcardnumber}" type="input" xhtmlclass="hide actualcardnumber" />
+			</isif>
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.number.value)}"> 
+				<input type="hidden" id="ccnumber" value="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.number.value}">
+			<iselse/>
+				<input type="hidden" id="ccnumber" value="">
+			</isif>
+			
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.owner.value)}"> 
+				<input type="hidden" id="ccowner" value="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.owner.value}">
+			<iselse/>
+				<input type="hidden" id="ccowner" value="">
+			</isif>
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.cclastname.value)}"> 
+				<input type="hidden" id="cclastname" value="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.cclastname.value}">
+			<iselse/>
+				<input type="hidden" id="cclastname" value="">
+			</isif>
+			
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.year.value)}"> 
+				<input type="hidden" id="ccyear" value="${new Number(pdict.CurrentForms.billingsb.paymentMethods.creditCard.year.value).toFixed()}">	
+			<iselse/>
+				<input type="hidden" id="ccyear" value="">
+			</isif>
+			<isif condition="${!empty(pdict.CurrentForms.billingsb.paymentMethods.creditCard.month.value)}"> 
+				<input type="hidden" id="ccmonth" value="${new Number(pdict.CurrentForms.billingsb.paymentMethods.creditCard.month.value).toFixed()}">	
+			<iselse/>
+				<input type="hidden" id="ccmonth" value="">
+			</isif>
+			<input type="hidden" id="ccname" name="ccname" value="">
+			<input type="hidden" id="cctype" value="${pdict.CurrentForms.billingsb.paymentMethods.creditCard.type.value}">
+						
+		</div>
+		
+</div>
+	</fieldset>
+<iselse/>
+	<div class="gift-cert-used form-indent">
+		<isif condition="${pdict.gcPITotal>0}">${Resource.msg('billing.giftcertnomethod','checkout',null)}<iselse/>${Resource.msg('billing.zerobalance','checkout',null)}</isif>
+		<input type="hidden" name="${pdict.CurrentForms.billingsb.paymentMethods.selectedPaymentMethodID.htmlName}" value="${dw.order.PaymentInstrument.METHOD_GIFT_CERTIFICATE}" />
+		<input type="hidden" id="noPaymentNeeded" name="noPaymentNeeded" value="true" />
+	</div>	
+</isif>	

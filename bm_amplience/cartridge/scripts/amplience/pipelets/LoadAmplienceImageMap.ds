@@ -1,0 +1,48 @@
+/**
+* 
+* Params:
+*
+* @input ManifestURL : String
+* @input Separator : String
+* @input Attributes : String
+* @output ProductImages : Object
+* @output ProductGlobalSwatchImages : Object
+* @output ErrorMsg : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.catalog );
+
+importScript( "amplience/AmplienceImportHelper.ds" );
+
+/**
+ * Load Amplience Image Map
+ *
+ * @param {PipelineDictionary} args - input arguments array
+ *
+ * @return {Number} PIPELET_NEXT for success or PIPELET_ERROR for error
+ */
+function execute( args : PipelineDictionary ) : Number {
+	try {
+		var manifestURL : String = args.ManifestURL;
+		var separator : String = args.Separator;
+		var attrs : String = args.Attributes;
+		
+		var amplienceImportHelper = new AmplienceImportHelper();		
+		var result : Object = amplienceImportHelper.loadAndParseImages(manifestURL, separator, attrs);
+		
+		args.ProductImages = result.productImages;
+		args.ProductGlobalSwatchImages = result.productGlobalSwatchImages;
+	}
+	catch(e) {
+		var errMsg = 'LoadAmplienceImageMap.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

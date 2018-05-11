@@ -1,0 +1,11 @@
+<div class="clear"><!-- FLOAT CLEAR --></div>
+<isif condition="${dw.system.Site.getCurrent().preferences.custom.EnablePayPal}">
+	<form class="paypalcheckout" action="${URLUtils.httpsContinue()}" method="post" id="${pdict.CurrentForms.cart.dynamicHtmlName}">
+		<fieldset>
+			<iscomment>PayPal Button</iscomment>
+			<div class="cart-action-options">or</div>
+			<button class="textbutton paypalbutton" type="submit" name="${pdict.CurrentForms.cart.expressCheckout.htmlName}">
+			</button>
+		</fieldset>
+	</form>
+</isif>

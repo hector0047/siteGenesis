@@ -1,0 +1,24 @@
+<div class="product-faq-holder-support">
+	<span class="block-content-head"><isprint value="${Resource.msg('product.faqupport','product',null)}"/></span>
+	<ul class="block-content-ul">
+		<isloop items="${pdict.Faqs}" var="url" status="loopstate">
+			<li class="block-content-li <isif condition="${loopstate.index > 4}">hide</isif> <isif condition="${loopstate.last}">last</isif>">
+				<div class="headblock">	
+					<div class="block-info-holder">
+						<isprint value="${url.toString().split('$')[0].trim()}" encoding="off"/><i></i>
+					</div>	
+				
+				 	<div class="block-content faq-answers">
+						 <isprint value="${url.toString().split('$')[1].trim()}" encoding="off"/>
+					</div>					
+				</div>
+			</li>
+		</isloop>
+	</ul>
+	
+	<isif condition="${(!empty(pdict.Faqs) && pdict.Faqs != 'null') && pdict.Faqs.size() > 3}">
+		<span class="more-faq-link-holder see-all-link">
+			<a href="javascript:void(0)" class="more-faq-link toggle new-lead-more-button">${Resource.msg('product.loadmorefaqs','product',null)}</a>
+		</span>
+	</isif>
+</div>	

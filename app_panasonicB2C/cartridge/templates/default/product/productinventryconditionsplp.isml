@@ -1,0 +1,22 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isif condition="${pdict.Product != null && !empty(pdict.Product)}">
+	<isset name="disabledAttrRemote" value="${((('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly)) || !(pdict.Product.availabilityModel.availability>0 &&!pdict.Product.master)) ? true : false }" scope="page"/>	
+	 <isset name="hideAddToCart" value="${pdict.Product.custom.hideAddtoCart == true ? true : false}" scope="page"/>
+	<isset name="priceCheckRemote" value="${pdict.Product.getPriceModel().getPrice().value > 0}" scope="page"/>
+		<isif condition="${pdict.Product.custom.soldOnEncompass==true}"> 
+			<isset name="VisitDelearURL" value="${('https://panasonic.encompass.com/search/?part.search.term=').concat(pdict.Product.ID)}" scope="page" />
+			<a href="${VisitDelearURL}" class="button-blue visit-dealer" target="_blank" title="Visit Dealer" value="Visit Dealer">VISIT DEALER <span class="visit-icon">&nbsp;</span></a>
+		<iselse/>
+			<isif condition="${!disabledAttrRemote && priceCheckRemote}">
+				<isif condition="${!hideAddToCart}">
+					<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+				<iselse/>
+					<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart hide <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+				</isif>
+			<iselse/>
+				<button id="add-to-cart" data-isQuickView="${pdict.CurrentHttpParameterMap.isQuickView.booleanValue}" type="submit" title="${pdict.CurrentHttpParameterMap.buttonTitle.value}" value="${pdict.CurrentHttpParameterMap.buttonTitle.value}" class="add-to-cart hide <isif condition="${'className' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.className.value)}"><isprint value="${pdict.CurrentHttpParameterMap.className.value}" encoding="off"/></isif> <isif condition="${!pdict.CurrentHttpParameterMap.isQuickView.booleanValue}">pdp-addtocart</isif>">${pdict.CurrentHttpParameterMap.buttonTitle.value}</button>
+			</isif>
+			
+		</isif>
+</isif>
+

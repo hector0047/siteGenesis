@@ -1,0 +1,41 @@
+/**
+ * Generates update content asset xml file for UGC
+ * 
+ * Params:
+ *
+ * @input SetAssetToOnline : Boolean
+ * @input GoOnlineStreamsList : Array
+ * @input GoOfflineStreamsList : Array
+ *
+ * @output GeneratedContentAssetPath : String
+ * @output ErrorMsg : String
+ *
+ */
+importPackage( dw.system );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var goOnlineStreamsList : Array = args.GoOnlineStreamsList,
+			goOfflineStreamsList : Array = args.GoOfflineStreamsList,
+			setAssetToOnline : Boolean = args.SetAssetToOnline;
+		
+		var ampContentAssetsHelper = new AmplienceContentAssetsHelper();
+		
+		var contentAssetPath = ampContentAssetsHelper.generateUGCStreamUpdateXML(goOnlineStreamsList, goOfflineStreamsList, setAssetToOnline);
+
+		args.GeneratedContentAssetPath = contentAssetPath;
+		
+	} catch(e) {
+
+		var errMsg = 'GenerateUGCStreamUpdateXML.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

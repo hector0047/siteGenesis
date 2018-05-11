@@ -1,0 +1,125 @@
+/**
+ * Base class of all FTP services.
+ * @class
+ * @example
+ * var myFtp = new BaseFTPService('MyFtpService',true);
+ * myFtp.call('list', ['/']);
+ * var returnedList = myFtp.response;
+ *
+ */
+var BaseFTPService = require('./AbstractBaseService').extend(
+/** @lends BaseFTPService.prototype */
+{
+
+    /**
+     * Create a new ftp service.
+     * @constructs
+     * @param {String} serviceName The name of the service
+     * @param {String} secure true indicates an SFTP connection
+     */
+	init : function(serviceName : String, secure : Boolean){
+		this._super(serviceName, new ServiceBase());
+		/** false (default) means FTP, true means SFTP is to be used */
+		this.secure = secure?true:false;
+		/** Disconnet from FTP after the command, defaults to true. Set to false if you 
+		  * want to keep the connection open for a sequence of commands. */
+		this.autoDisconnect = true;
+		this.initServiceClient();
+	},
+	
+	
+	/**
+	*	Creates the DW (S)FTPClient object
+	*/
+	initServiceClient : function () {
+		if(this.secure){
+			this.serviceClient = new dw.net.SFTPClient();
+		}else{
+			this.serviceClient = new dw.net.FTPClient();
+		}
+		this.serviceClient.setTimeout(this.configuration.getTimeout());
+	},
+	
+	
+	/**
+	*	Performs the FTP connect
+	*/
+	connect : function () {
+		var params = [this.credentials.getUrl()];
+		if(this.credentials.getUser() != null){
+			params.push(this.credentials.getUser());
+			params.push(this.credentials.getPassword());
+		}
+		if (!this.serviceClient.connect.apply(this.serviceClient, params)) {
+			throw new Error('AbstractFTPService: Failed to establish connection to '+(this.secure?'SFTP':'FTP'));
+			return false;
+		}
+		return true;
+	},
+	
+	/**
+	*	Performs the FTP disconnect, this is only needed if autoDisconnect is turned off
+	*/
+	disconnect : function () {
+		this.serviceClient.disconnect();
+	},
+
+	/** 
+	 *  Wraps FTP Functions into service framework 
+	 *	there is no actual request, it collects the parameters that need to be filled on FTP call
+	 */ 
+	createRequest : function(ftpFunction, args){
+		var newRequest = new Object();
+		newRequest.ftpFunction = ftpFunction;
+		newRequest.ftpArguments = args; 
+		
+		return newRequest;
+	},
+
+	/**
+	*	returns response from FTP Call
+	**/
+	executeServiceCall : function() {
+		// check if we connected before
+		if (!this.serviceClient.getConnected()) {
+			if (!this.connect()){
+				return false;
+			}
+		}
+		var ftpFunction = this.request.ftpFunction;
+		var response = this.serviceClient[ftpFunction].apply(this.serviceClient, this.request.ftpArguments);
+		this.response = response;
+		if (this.autoDisconnect){
+			this.serviceClient.disconnect();
+		}
+		return this.response;
+	},
+
+	/**
+	*	creates a simple status object
+	*/
+	initStatusFromResponse : function(){
+		if(this.response != false){
+			this.status.code = 'OK';
+		}else{
+			this.status.code = 'ERROR';
+			if(this.secure) {
+				this.status.msg = this.serviceClient.getErrorMessage();
+			} else {
+				this.status.error = this.serviceClient.getReplyCode();
+				this.status.msg = this.serviceClient.getReplyMessage();
+			}
+		}
+		
+	},
+	
+	/**
+	*	overrides the log communication method as no XML is given
+	*/
+	logCommunication : function () {
+		// log request and response message if feature is enabled
+		this.serviceClientLogger.logFTPCommunication(this.request, this.response, this.serviceName, this.configuration);
+	},
+});
+
+module.exports = BaseFTPService;

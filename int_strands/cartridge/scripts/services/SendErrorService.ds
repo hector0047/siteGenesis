@@ -1,0 +1,81 @@
+var sf = require("bc_serviceframework");
+var SendError = require("../objects/SendError");
+
+importPackage(dw.system);
+importPackage(dw.net);
+
+function getSendErrorService() {
+	return SendErrorService;
+}
+
+
+var SendErrorService = sf.getService('AbstractHTTPService').extend (
+/** @lends SendErrorService.prototype */ 
+{
+	/**
+	 * @constructs SendErrorService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("SendErrorService", new SendError()); 	
+		
+	},
+	
+	createRequest: function (SendError) {	
+	
+		if ( ('StrandsLogLevel' in Site.current.preferences.custom) && ! empty(Site.current.preferences.custom.StrandsLogLevel)) {
+				
+				var logLevel = Site.current.preferences.custom.StrandsLogLevel;
+				
+				if (Number(errorLevel) < logLevel) {
+					return PIPELET_NEXT;
+				}
+			}
+			
+		if( ! ('StrandsApiID' in Site.current.preferences.custom) || empty(Site.current.preferences.custom.StrandsApiID))
+			apiID = request.httpHost;
+		else
+			apiID = Site.current.preferences.custom.StrandsApiID;
+			
+		
+		var errorLevel : String = SendError.errorLevel;
+		var errorMsg : String = SendError.errorMsg;
+		var errorCode : String = SendError.errorCode;
+		
+		var strandsUrl = 'http://bizsolutions.strands.com/api2/';
+	
+		var setError = strandsUrl + 'alert/message/manage.sbs?'
+							+ 'apid=' + dw.crypto.Encoding.toURI(apiID)
+							+ '&pluginName=' + 'demandware'
+							+ '&level=' + errorLevel
+							+ '&code=' + errorCode
+							+ '&msg=' + dw.crypto.Encoding.toURI(errorMsg);
+		
+		if (("last" in session.clickStream) && !empty(session.clickStream.last.pipelineName))
+			setError += '&pipeline=' + session.clickStream.last.pipelineName;
+		else
+			setError += '&pipeline=' + 'empty';		
+					
+		return setError;					
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+		var setMsgError : HTTPClient = new HTTPClient();
+	   		setMsgError.setTimeout(1000);
+	    	setMsgError.open("GET", this.request);
+	    	setMsgError.send();     		
+	   	return setMsgError;
+	},
+	
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+	
+});
+
+sf.registerService("SendErrorService", SendErrorService);

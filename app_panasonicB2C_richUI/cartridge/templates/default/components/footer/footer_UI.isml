@@ -1,0 +1,41 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>jQuery UI 1.8.15 as minified version</iscomment>
+<iscomment>third-party add-ons</iscomment>
+<script type="text/javascript"><isinclude template="resources/appresources"/></script>
+<!--- BEGIN JS files to merge.(source_path=cartridge/static/default;targetfile=js/panasonic.js) --->
+<script src="${URLUtils.absStatic('/lib/jquery/ui/jquery-ui-1.8.17.min.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/lib/jquery/jcarousel/jquery.jcarousel.min.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/lib/jquery/tooltip/jquery.tooltip.min.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/lib/jquery/hashchange/jquery.ba-hashchange.min.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/lib/jquery/validate/jquery.validate.min-1.9.0.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/lib/jquery/zoom/jquery.jqzoom.dw.js')}" ></script>
+<script src="${URLUtils.absStatic('/lib/jquery/selectbox/jquery.selectbox-0.2.js')}" ></script>
+<script src="${URLUtils.absStatic('/lib/jquery/slimscroll/jquery.slimscroll.min.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/js/app.js')}"></script>
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+<!--- END JS files to merge. --->
+<script src="${URLUtils.absStatic('/js/integration.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/js/resaleWidget.js')}"></script>
+
+<iscomment>PANC-370 My Registry js load page load </iscomment>
+<isif condition="${('enableMyRegistry' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableMyRegistry) && ('javaScriptUrl' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.javaScriptUrl))}">
+	<script  id="MyRegistryWidgetApiScript" src="${dw.system.Site.current.preferences.custom.javaScriptUrl.toString().trim()}" type="text/javascript"></script>
+</isif> 
+<iscomment> PANC-1568 : Removed Comment which was added for (PANC-1273 PANC-1272 PANC-1274) code cleanup Farhan's Dev team 28-OCT-2015 11:50pm IST</iscomment>
+
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('addThisConnectEnabled')}"> 
+	<isset name="addThisPubID" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('addThisPubID')}" scope="page" />
+	<isset name="addThisVersion" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('addThisVersion')}" scope="page" />
+	<isset name="addThisDomready" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('addThisDomready')}" scope="page" />
+	<script src="//s7.addthis.com/js/${addThisVersion}/addthis_widget.js#pubid=${addThisPubID}&domready=${addThisDomready == true ? '1' : '0'}" type="text/javascript"></script>
+</isif>
+<iscomment>PANC-1568 END </iscomment>
+
+<isif condition="${!('pageContext' in this) || empty(pageContext)}">
+<isscript>pageContext = new Object();</isscript>
+</isif>
+<script>app.page.setContext(<isprint value="${JSON.stringify(pageContext)}" encoding="off"/>);</script>
+<script>
+var meta = "${pdict.CurrentPageMetaData.description}";
+var keywords = "${pdict.CurrentPageMetaData.keywords}";
+</script>

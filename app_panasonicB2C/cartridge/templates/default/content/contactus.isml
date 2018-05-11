@@ -1,0 +1,124 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isscript>
+	importScript("product/ProductUtils.ds");
+	importPackage ( dw.web );
+importPackage ( dw.util );
+</isscript>
+<isdecorate template="content/pt_contactus">
+<isinclude template="util/modules"/>
+<iscomment>Checking atleast one product category should configure</iscomment>
+<isscript> 
+	var productDropDownCategories : Boolean = false;
+	for each(var category in dw.catalog.CatalogMgr.getSiteCatalog().getRoot().getOnlineSubCategories()){
+	   if(('showInSalesforceForm' in category.custom && category.custom.showInSalesforceForm) && ProductUtils.checkOnlineSucategoriesOrProducts(category,null)){
+	  	 productDropDownCategories = true;
+	  	 break;
+	   }
+	}
+</isscript>
+
+<div class="pnsb2c-contact-us-page-wrapper">
+<isif condition="${('submitform' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.submitform.booleanValue)}">
+		<div class="confirmation-message">
+			<p>${Resource.msg('forms.contactus.messagesent','forms',null)}</p> 
+			<iscomment><p>${Resource.msg('forms.contactus.messagerequires','forms',null)}</p></iscomment>
+		</div>
+	<iselse/>
+	
+		<div class="contactus-head">
+			<h1>${Resource.msg('global.contactus','locale',null)}</h1>
+		</div>
+		
+	<div class="pnsb2c-contact-us-top-content-holder">	 
+		<div class="contactusprodsupport top-blocks block-1">
+			<iscontentasset aid="contactusproductsupport2" />  
+			<iscomment>
+			<div class="content-asset">
+				<div class="contactus-top-section">
+					<div class="prod-support-block part-1">
+						<h2 class="block-head">Customer Sales</h2>
+						<div class="contactus-para">Need help making your purchase? Our experts are standing by.</div>
+						<p class="sub-head">
+						<a href="javascript:void(0)" class="live-chat-link online-chat pre-chat">Support Live Chat<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a></span>
+						</p>
+						<p>Mon-Fri 9am - 9pm EST</p>
+					</div>
+					
+					<div class="online-ordr-block part-2">
+						<p class="sub-head">Online Order Help</p>
+						
+						<p class="large-fnt">1-800-405-0652</p>
+						<p>Mon-Fri 9am - 8pm EST</p>
+					</div>
+				</div>
+				<div class="contactus-middle-section">
+						<div class="links"><a href="https://shop.panasonic.com/account" class="first-link">Order Status<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a></div>
+						<div class="links"><a href="http://shop.panasonic.com/pna-shipping-faq.html">Shipping FAQs<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a><br></div>
+				</div>
+			</div>
+			</iscomment>
+		</div>
+		
+		<div class="contactusprodsupport top-blocks block-2">
+			<iscontentasset aid="contactusshoppingassistance2" />
+			<iscomment>
+			<div class="content-asset">
+				<div class="contactus-top-section">
+					<div class="shop-assistance-block part-1">
+					<h2 class="block-head">Customer Support</h2>
+					<div class="contactus-para">Have an issue with a product?</div>
+					
+					<p class="sub-head">
+						<a href="http://shop.panasonic.com/support">Visit our Support Page<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a><br><br>
+					</p>
+					
+					
+					<br>
+	
+					<div>
+						<p class="sub-head">
+							<a href="javascript:void(0)" class="live-chat-link post-chat">Support Live Chat<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/> </a> 
+						</p>
+						<p>Mon-Fri 9am - 9pm EST</p>
+						<p>Sat/Sun 10am - 7pm EST</p>
+					</div>
+					
+					</div>
+				</div>
+				<div class="contactus-right-middle">
+					 <div class="intrnational-spprt-holder">	
+						<h2 id="contactus-email">
+							<a target="_top" href="mailto:panasonicwebcasesf@us.panasonic.com" onclick="javascript:void(0);">Email Us<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a>
+						</h2>	
+					</div>
+				
+					<div class="mail-form-wrapper">			
+						<div class="form-block-head mail-head">
+							${Resource.msg('profile.email.contactusmail','forms',null)}
+							<i></i>
+						</div>
+						<div class="content-part form-block-content">
+							<p class="head-line">You may write us at the address listed below. We generally respond to all written inquiries within 48 hours of receipt</p>
+							</br>		
+							<p>Panasonic Corporation of North America<p>
+							<p>Customer Experience Department</p>
+							<p>661 Independence Pkwy</p>
+							<p>Chesapeake,VA 23320</p>
+						</div>
+					</div>
+					<div class="intrnational-spprt-holder">
+						<h2>
+							<a href="${('internationalsupportlink' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.internationalsupportlink))?dw.system.Site.getCurrent().getCustomPreferenceValue('internationalsupportlink'):'javascript:void(0);'}" target="_blank" class="internationalsupport">${Resource.msg('global.contactus.internationalsupport','locale',null)}<img class="right-arrow" src="${URLUtils.staticURL('/images/support/support-icn-right-arrow.png')}"/></a>
+						</h2>
+					</div>
+				</div>
+			</div>
+			</iscomment>
+		</div>
+		
+	</div>	
+
+</isif>
+
+</div>		
+</isdecorate>

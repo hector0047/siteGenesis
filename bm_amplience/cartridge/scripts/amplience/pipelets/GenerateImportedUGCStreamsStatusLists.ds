@@ -1,0 +1,69 @@
+/**
+* Update Imported UGC Streams
+*
+* Params:
+*
+* @input ImportedStreams : dw.util.Collection
+* @input LoadedStreamsMap : dw.util.HashMap
+*
+* @output GoOnlineStreamsList : Array
+* @output GoOfflineStreamsList : Array
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.content );
+importPackage( dw.util );
+
+importScript( 'amplience/AmplienceUGCHelper.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var goOnlineStreamsList : Array = [],
+			goOfflineStreamsList : Array = [];
+			
+		var importedStreams : Collection = args.ImportedStreams;
+		var loadedStreamsMap : HashMap = args.LoadedStreamsMap;
+		
+		var assetsIterator : Iterator = importedStreams.iterator();
+		
+		while ( assetsIterator.hasNext() ) {
+			
+			var asset : Content = assetsIterator.next();
+			
+			if ( 'ampConfig' in asset.custom ) {
+				var ampConfig : Object = JSON.parse(asset.custom.ampConfig);
+				
+				if ( 'stream' in ampConfig && !empty(ampConfig['stream']) ) {
+					var streamId = ampConfig['stream'];
+					
+					if (loadedStreamsMap.containsKey(streamId)) {
+						if (!asset.isOnline()) {
+							goOnlineStreamsList.push(asset.ID);
+						}
+					} else {
+						if (asset.isOnline()) {
+							goOfflineStreamsList.push(asset.ID);
+						}
+					}
+					
+				};
+			};
+		}
+		
+		args.GoOnlineStreamsList = goOnlineStreamsList;
+		args.GoOfflineStreamsList = goOfflineStreamsList;
+		
+	}
+	catch(e) {
+		var errMsg = 'UpdateImportedUGCStreams.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

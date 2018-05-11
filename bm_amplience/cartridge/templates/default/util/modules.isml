@@ -1,0 +1,46 @@
+<!--- TEMPLATENAME: modules.isml --->
+
+<iscomment>
+	Displays items page info.
+	
+	pagingmodel : current paging model
+</iscomment>
+<ismodule template="components/itemsinfo"
+	name="itemsinfo"
+	attribute="pagingmodel"
+/>
+
+<iscomment>
+	Displays items per page options.
+	
+	pagingmodel : current paging model
+	pageurl : URL that you can use to re-execute the exact same query
+</iscomment>
+<ismodule template="components/itemsperpage"
+	name="itemsperpage"
+	attribute="pagingmodel"
+	attribute="pageurl"
+/>
+
+<iscomment>
+	Creates a paging bar on the page.
+	
+	pagingmodel : current paging model
+	pageurl : URL that you can use to re-execute the exact same query
+</iscomment>
+<ismodule template = "components/pagingbar"
+	name="pagingbar"
+	attribute="pagingmodel"
+	attribute="pageurl"
+/>
+
+<iscomment>
+	Displays stream in table row
+	
+	streamobject : stream object
+</iscomment>
+<ismodule template = "components/ugcstream"
+	name="ugcstream"
+	attribute="streamobject"
+	attribute="currentform"
+/>

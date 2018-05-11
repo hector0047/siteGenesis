@@ -1,0 +1,14 @@
+function CreditCardInformation() {}
+
+CreditCardInformation.prototype = {
+	initFromWebservice : function(response) {
+		this.cardType = response.checkCCResult.cardType;
+		this.cardValid = response.checkCCResult.cardValid;
+	},	
+	
+	dummy: function() {
+		this.cardType = "VISA";
+		this.cardValid = true;
+	}
+}
+module.exports = CreditCardInformation;

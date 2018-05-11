@@ -1,0 +1,69 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*  @input customer : dw.customer.Customer
+*  @input order : dw.order.Order
+*  @output customergp : String
+*  fix for : PANC-487
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.customer );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var groups : ArrayList = new ArrayList();
+	if(('excludedCustomerGroups' in dw.system.Site.current.preferences.custom) && !empty(dw.system.Site.current.preferences.custom.excludedCustomerGroups)){
+		var gpList : Array = dw.system.Site.getCurrent().getCustomPreferenceValue("excludedCustomerGroups");
+		for each( var listItem : String in gpList) {
+			groups.add(listItem);
+		}
+	}
+	
+	var customergroups : ArrayList = new ArrayList();
+    var customer : Customer = args.customer;
+    
+    if(!empty(customer.customerGroups)){
+	  	for each (var gp : CustomerGroup in customer.customerGroups){
+	  		if(!(groups.contains(gp.ID))){
+	  			customergroups.add(gp.ID);
+	  		}
+	    }
+    }
+ 	
+ 	if(!empty(customergroups)){
+ 		args.customergp = parseCustomerGroups(customergroups);
+ 	}else{
+ 		args.customergp = '';
+ 	}
+ 	args.order.custom.customerGroup = customergroups;
+   	
+    return PIPELET_NEXT;
+}
+
+/*
+Function for returning customer groups by ',' piped
+*/
+function parseCustomerGroups( customergroups : dw.util.ArrayList ) : String
+{
+	var cgroups : String ='';
+	for each(var groupName : String in customergroups){
+		if(cgroups.length > 0){
+			cgroups = cgroups.concat(',').concat(groupName);
+		}else{
+			cgroups = cgroups.concat(groupName);
+		}
+	}
+	return cgroups;
+}

@@ -1,0 +1,1009 @@
+/*
+ *	data is being encrypted before storing it in the file. In case an error 
+ *	occurs, it will output the corresponding error.
+ * 	@input CatalogID : String
+ *  @output productspec:Boolean
+ *  @output productfeature:Boolean
+ *  @output featureproductIDs:dw.util.ArrayList
+ *  @output specproductIDs:dw.util.ArrayList
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.customer );
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.campaign );
+importPackage( dw.web );
+importPackage( dw.crypto );
+importPackage(dw.value);
+function execute( pdict : PipelineDictionary ) : Number
+{
+   	var catPath : String = '/src/SellPoint/';
+	var catName : String = 'Sellpointdata.xml';
+  
+	(new dw.io.File(dw.io.File.IMPEX + catPath)).mkdirs();
+	var file : File = new dw.io.File(dw.io.File.IMPEX + catPath + catName);
+	if( !file.exists() )
+	{
+	  file.createNewFile();
+	}
+	var exportFileWriter : FileWriter = new FileWriter(file);
+	var xmlwriter : XMLStreamWriter = new XMLStreamWriter(exportFileWriter);
+	var productList : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	var productids:Collection=new ArrayList();
+    var productspec:Boolean=false;
+    var productfeature:Boolean=false;    	
+	xmlwriter.writeRaw('<?xml version="1.0" encoding="UTF-8"?>\n');
+	xmlwriter.writeRaw('<products>\n');
+	while(productList.hasNext()) 
+	{ 
+		var product : Product = productList.next();	
+		var isvariationproduct:Boolean=true;
+        //checking  product is variation master product and it have variations or not  
+        if(product.isMaster()==true)
+        {
+	       for(productlistofvariatins in product.getVariants())
+           {
+              if(productlistofvariatins!=null)
+              {
+                isvariationproduct=false;
+              }
+              else
+              {
+                isvariationproduct=true;
+              }
+           }
+        }
+		if(product.custom.supportOnly==false && product.custom.isAccessory==false && isvariationproduct==true)
+		{
+		   if(product.custom.technicalSpecAttributes==null)
+		    {
+		       productspec=true;
+		    }
+		    if(product.custom.overview==null)
+		    {
+		      productfeature=true; 
+		    }
+		}
+	   	exportProduct(product,xmlwriter);	
+	 }
+	xmlwriter.writeRaw('</products>\n');
+    pdict.productspec=productspec;
+    pdict.productfeature=productfeature;
+	exportFileWriter.flush();	
+	exportFileWriter.close();
+  return PIPELET_NEXT;		
+}
+
+function exportProduct(product : Product, xmlwriter : XMLStreamWriter) 
+{
+   
+   var pricebooks:  Collection =PriceBookMgr.getSitePriceBooks();
+   var isvariationproduct:Boolean=true;
+  //checking  product is variation master product and it have variations or not  
+    if(product.isMaster()==true)
+     {
+	    for(productlistofvariatins in product.getVariants())
+        {
+           if(productlistofvariatins!=null)
+           {
+             isvariationproduct=false;
+           }
+           else
+           {
+             isvariationproduct=true;
+           }
+        }
+     }
+if(product.custom.supportOnly==false && product.custom.isAccessory==false && isvariationproduct==true)
+ {
+   
+    xmlwriter.writeRaw('\t<product>\n');
+	
+	//Product Name
+	if(product.name!= null)
+	 {
+	 	xmlwriter.writeRaw('\t<name>' + product.name +'</name>\n');
+     } 
+     else 
+     {
+       xmlwriter.writeRaw('\t<name>'+ product.ID + '</name>\n');
+   	 } 
+   	 //Product ID 
+   	 if(product.ID!=null)
+   	 {
+   	   xmlwriter.writeRaw('\t<ID>'+ product.ID + '</ID>\n');
+   	 }
+     //Product Creation Date in BM
+     if(product.creationDate!=null)
+     {
+       xmlwriter.writeRaw('\t<creationDate>'+ product.creationDate + '</creationDate>\n');
+     }
+     //Product Assinged Category name 
+     var category: Collection =product.getAllCategories();
+   	 for(categoryes in category)
+   	 {
+   	   var categoryofproduct: String =category[categoryes].displayName;
+   	   xmlwriter.writeRaw('\t<vendor_product_category>'+categoryofproduct+ '</vendor_product_category>\n');
+   	 }	
+   	 //Product Images    	 
+   	if(product.getImage('HeroImage') != null) 
+    {  
+   	   var url: String =product.getImage('HeroImage').getURL().toString();
+   	   var index:Number=0;
+   	   index=url.lastIndexOf("/");
+   	   if(index!=-1)
+   	   {
+   	     xmlwriter.writeRaw('\t<image_file>' + url.substring(index+1)+'</image_file>\n');
+   	   }
+    } 	 
+    
+    //Product Currency
+   	 for(pricebook in pricebooks)
+   	 {    
+   	    var currencyCodeofproduct: String = pricebooks[pricebook].currencyCode;
+   	    var currencyofprodcut:Currency=Currency.getCurrency(currencyCodeofproduct);
+   	    var currencysymbol:String=currencyofprodcut.symbol;
+   	    var currenydisplayname:String=currencyCodeofproduct.concat(currencysymbol);
+        xmlwriter.writeRaw('\t<currency>'+currenydisplayname+ '</currency>\n');
+        break;
+     }
+   	 //Product Color 
+   	 if(product.custom.color != null)
+     {
+   	   xmlwriter.writeRaw('<color>' +product.custom.color +'</color>\n');
+     }
+   	  
+   	 //product Shortdiscription 	 
+   	 if(product.shortDescription!= null)
+ 	 {
+ 	 	 var index11:Number=0;
+ 	 	 var index22:Number=0;
+ 	 	 var shortdescription:String=product.shortDescription.toString();
+ 	 	 if(shortdescription.indexOf("<p>")!=-1 && shortdescription.lastIndexOf("</p>")!=-1)
+   	 	  {
+   	 	    index11=shortdescription.indexOf("<p>");
+   	 	    index22=shortdescription.lastIndexOf("</p>");
+   	 	    xmlwriter.writeRaw('\t<product_descr>'+shortdescription.substring(index11+3,index22)+'</product_descr>\n');
+   	 	  }
+   	 	  else
+   	 	  {
+            xmlwriter.writeRaw('\t<product_descr>'+product.shortDescription+'</product_descr>\n');
+   	 	  }
+     }
+   	  
+   //Product Specification 	  
+    var GroupNotPresent:Boolean=true;
+    var GroupHeadingFlag:Boolean=false;
+    var sectionid:Number=1;
+    var GroupHeading:String;
+   
+   	if(product.custom.technicalSpecAttributes!=null)
+   	 {   
+   	 	 xmlwriter.writeRaw('\t<product_spec>\n'); 
+   	 	 var itemid:Number=1;
+   	 	 var itemidsubgroup:Number=1;
+   	 	 var sectioncount:Number=0;
+   	 	 for(speci in product.custom.technicalSpecAttributes.split('\n'))
+   	     {  
+   	     	var specification:String=product.custom.technicalSpecAttributes.split('\n')[speci];
+   	  	    var Group:Boolean=specification.toString().trim().split('||').indexOf('group') < 0 ? false : true;
+   	        var Subgroup:Boolean=specification.toString().trim().split('||').indexOf('subgroup') < 0 ? false : true ;
+   	        var SubgroupSinglePiped:Boolean=specification.toString().trim().split('|').indexOf('subgroup') < 0 ? false : true;
+   	        var Sub:Boolean=specification.toString().trim().split('|').indexOf('sub') < 0 ? false : true ;
+   	          	        
+   	        if(Group)
+   	        {  
+   	           if(sectionid>1)
+   	           {
+   	              xmlwriter.writeRaw('\t\t</section>\n');
+   	              itemidsubgroup=1;
+   	           }
+   	           GroupNotPresent=false;
+   	           xmlwriter.writeRaw('\t\t<section id="'+sectionid+'" name="'+specification.toString().trim().split('||')[0]+'">\n');   
+   	           sectionid++;
+   	        }
+   	       
+   	        else if(Sub)
+   	        {
+   	           GroupNotPresent=false;
+   	           xmlwriter.writeRaw('\t\t<item id="'+itemidsubgroup+'">\n');
+   	           xmlwriter.writeRaw('\t\t<label>'+specification.toString().trim().split('sub')[0].toString().trim().split('|')[0]+'</label>\n');
+   	           xmlwriter.writeRaw('\t\t<value>'+specification.toString().trim().split('sub')[0].toString().trim().split('|')[1]+'</value>\n');
+   	           xmlwriter.writeRaw('\t\t</item>\n');
+   	           itemidsubgroup++;
+   	        }
+   	        else
+   	        {
+   	          if(!GroupNotPresent)
+   	          {
+   	          	 xmlwriter.writeRaw('\t\t<item id="'+itemidsubgroup+'">\n');
+   	          	 xmlwriter.writeRaw('\t\t\t<label>'+specification.toString().trim().split('|')[0]+'</label>\n');
+   	             xmlwriter.writeRaw('\t\t\t<value>'+specification.toString().trim().split('|')[1]+'</value>\n');
+   	             xmlwriter.writeRaw('\t\t</item>\n');
+   	             itemidsubgroup++;
+   	          }
+   	          else
+   	          {
+   	          	if(!GroupHeadingFlag)
+   	          	{
+   	              GroupHeading="More Details";
+   	          	  xmlwriter.writeRaw('\t\t<section id="'+sectionid+'" name="'+GroupHeading+'">\n');  
+   	          	}
+   	          	GroupHeadingFlag=true;
+   	          	xmlwriter.writeRaw('\t\t<item id="'+itemid+'">\n');
+   	            xmlwriter.writeRaw('\t\t\t<label>'+specification.toString().trim().split('|')[0]+'</label>\n');
+   	            xmlwriter.writeRaw('\t\t\t<value>'+specification.toString().trim().split('|')[1]+'</value>\n');
+   	            xmlwriter.writeRaw('\t\t</item>\n');
+   	            itemid++;
+   	          }
+   	        }
+   	      }
+   	        xmlwriter.writeRaw('\t\t</section>');
+   	       xmlwriter.writeRaw('\n');
+   	     xmlwriter.writeRaw('\t</product_spec>\n');   
+   	  }
+   	     	
+   	//Features of the Product 
+   	 if(product.longDescription!=null)	
+   	 { 
+   	 	xmlwriter.writeRaw('\t\t<features>\n');
+   	 	for(featuresd in product.longDescription.toString().split('\n'))
+   	 	{
+   	 	  var index1:Number;
+   	 	  var index2:Number;	
+   	 	  var feature:String=product.longDescription.toString().split('\n')[featuresd];
+   	 	  if(feature.indexOf("<ul>")!=-1)
+   	 	  {
+   	 	     index1=feature.indexOf("<ul>");
+   	 	  }  
+   	 	  if(feature.indexOf("<p>")!=-1 && feature.lastIndexOf("</p>")!=-1)
+   	 	  {
+   	 	    index1=feature.indexOf("<p>");
+   	 	    index2=feature.lastIndexOf("</p>");
+   	 	    xmlwriter.writeRaw('\t\t\t<feature>'+feature.substring(index1+3,index2)+'</feature>\n');
+   	 	  }
+   	 	  if(feature.indexOf("<li>")!=-1 && feature.indexOf("</li>")!=-1)
+           {
+              index1=feature.indexOf("<li>");
+   	 	      index2=feature.indexOf("</li>");
+   	 	      xmlwriter.writeRaw('\t\t\t<feature>'+feature.substring(index1+4,index2)+'</feature>\n');
+           }   	 	  
+   	 	  
+   	 	}
+   	 	xmlwriter.writeRaw('\t\t</features>\n');
+   	  }
+   	  
+   	  
+   //Product Images 	  
+  if(product.getImage('HeroImage') != null || product.getImage('carouselImage')!= null || product.getImage('categoryImage2')!= null)
+  {
+  	 var id:Number=1;
+   	 xmlwriter.writeRaw('\t<images>\n');
+   	 if(product.getImage('HeroImage') != null) 
+   	  {
+   	  	 var url: String =product.getImage('HeroImage').getUrl();
+   	  	 xmlwriter.writeRaw('\t\t<image id="'+id+'">\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-display-name>'+product.getImage('HeroImage').title+'</image-display-name>\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-location>'+product.getImage('HeroImage').getURL() +'</image-location>\n');
+   	 	 xmlwriter.writeRaw('\t\t</image>\n');
+   	 	 id++;
+   	   }
+   	 if(product.getImage('carouselImage')!= null) {
+   	 	 xmlwriter.writeRaw('\t\t<image id="'+id+'">\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-display-name>'+product.getImage('carouselImage').title+'</image-display-name>\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-location>'+product.getImage('carouselImage').getURL() +'</image-location>\n');
+   	 	 xmlwriter.writeRaw('\t\t</image>\n');
+   	 	 id++;
+   	 }
+   	 if(product.getImage('categoryImage2')!= null) {
+   	 	 xmlwriter.writeRaw('\t\t<image "'+id+'">\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-display-name>'+product.getImage('categoryImage2').title+'</image-display-name>\n');
+   	 	 xmlwriter.writeRaw('\t\t<image-location>'+product.getImage('categoryImage2').getURL() +'</image-location>\n');
+   	     xmlwriter.writeRaw('\t\t</image>\n');
+   	   }           
+   	 xmlwriter.writeRaw('\t</images>\n');
+  }
+    
+    //Product Documents
+    if(product.custom.howToGuide!=null || product.custom.operatingInstructions!=null || product.custom.warranty!=null || product.custom.wifiConnectionGuides!=null || product.custom.ownersManual!=null || product.custom.dimensionSheet!=null || product.custom.firmware!=null || product.custom.driver!=null || product.custom.quickSetupGuide!=null || product.custom.additionalDocuments!=null || product.custom.software!=null || product.custom.advancedFeaturesManuals!=null || product.custom.eHelpManuals!=null || product.custom.eHelpManuals!=null || product.custom.reviewsAndAwardsImageURL!=null)
+    {
+     var documentid:Number=0;
+     xmlwriter.writeRaw('\t<documents>\n');
+     if(product.custom.howToGuide!=null)
+     {
+     	 for(Documents in product.custom.howToGuide.split('\n'))
+   	     {  
+   	     	var document:String=product.custom.howToGuide.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  	++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+   	     
+      }
+      if(product.custom.operatingInstructions!=null)
+      {
+          for(Documents in product.custom.operatingInstructions.split('\n'))
+   	      { 
+   	        var document:String=product.custom.operatingInstructions.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	      }
+       }
+      
+      if(product.custom.warranty!=null)
+      {
+         for(Documents in product.custom.warranty.split('\n'))
+   	     { 
+   	        var document:String=product.custom.warranty.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+      if(product.custom.wifiConnectionGuides!=null)
+      {
+         for(Documents in product.custom.wifiConnectionGuides.split('\n'))
+   	     { 
+   	        var document:String=product.custom.wifiConnectionGuides.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+      if(product.custom.ownersManual!=null)
+      {
+         for(Documents in product.custom.ownersManual.split('\n'))
+   	     { 
+   	        var document:String=product.custom.ownersManual.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+       if(product.custom.dimensionSheet!=null)
+       {
+         for(Documents in product.custom.dimensionSheet.split('\n'))
+   	     { 
+   	        var document:String=product.custom.dimensionSheet.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+       if(product.custom.firmware!=null)
+       {
+         for(Documents in product.custom.firmware.split('\n'))
+   	     { 
+   	        var document:String=product.custom.firmware.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+       if(product.custom.driver!=null)
+       {
+         for(Documents in product.custom.driver.split('\n'))
+   	     { 
+   	        var document:String=product.custom.driver.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+      if(product.custom.quickSetupGuide!=null)
+       {
+         for(Documents in product.custom.quickSetupGuide.split('\n'))
+   	     { 
+   	        var document:String=product.custom.quickSetupGuide.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+       if(product.custom.additionalDocuments!=null)
+       {
+         for(Documents in product.custom.additionalDocuments.split('\n'))
+   	     { 
+   	        var document:String=product.custom.additionalDocuments.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+       if(product.custom.software!=null)
+       {
+         for(Documents in product.custom.software.split('\n'))
+   	     { 
+   	        var document:String=product.custom.software.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+      if(product.custom.advancedFeaturesManuals!=null)
+       {
+         for(Documents in product.custom.advancedFeaturesManuals.split('\n'))
+   	     { 
+   	        var document:String=product.custom.advancedFeaturesManuals.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+      if(product.custom.eHelpManuals!=null)
+       {
+         for(Documents in product.custom.eHelpManuals.split('\n'))
+   	     { 
+   	        var document:String=product.custom.eHelpManuals.split('\n')[Documents];
+   	     	var productdisplaynameindex1:Number=0;
+   	     	var productdisplaynameindex2:Number=0;
+   	     	var producturlindex1:Number=0;
+   	     	var producturlindex2:Number=0;
+   	     	var index1:Number=0;
+   	     	var index2:Number=0;
+   	     	var index3:Number=0;
+   	        var index4:Number=0;
+   	     	var str1:String="<resourceList>";
+   	     	var str2:String="</resourceList>";
+   	     	if(document.equals(str1) || document.equals(str2))
+   	     	{
+   	     	  continue;
+   	     	}
+   	     	productdisplaynameindex1=document.indexOf("description=");
+   	     	productdisplaynameindex2=document.indexOf("url");
+   	     	producturlindex1=document.indexOf("url=");
+   	     	index1=document.indexOf(".pdf");
+   	     	if(index1!=-1)
+   	     	{
+   	     	  producturlindex2=index1+4;
+   	     	}
+   	     	index2=document.indexOf(".jpg");
+   	        if(index2!=-1)
+   	     	{
+   	     	  producturlindex2=index2+4;
+   	     	}
+   	     	index3=document.indexOf(".html");
+   	     	if(index3!=-1)
+   	     	{
+   	     	  producturlindex2=index3+5;
+   	     	}
+   	     	index4=document.indexOf(".zip");
+   	     	if(index4!=-1)
+   	     	{
+   	     	  producturlindex2=index4+4;
+   	     	}
+   	     	
+   	     	if(productdisplaynameindex1!=-1 && 	productdisplaynameindex2!=-1 && producturlindex1!=-1 && producturlindex2!=-1)
+   	     	{  ++documentid;
+   	     	   xmlwriter.writeRaw('\t\t<document id="'+documentid+'">\n');
+   	     	   xmlwriter.writeRaw('\t\t<document-display-name>'+document.substring(productdisplaynameindex1+13, productdisplaynameindex2-2)+'</document-display-name>\n');
+   	           xmlwriter.writeRaw('\t\t<document-location>'+document.substring(producturlindex1+5, producturlindex2)+'</document-location>\n');
+   	           xmlwriter.writeRaw('\t\t</document>\n');
+   	     	}
+   	     }
+      }
+     xmlwriter.writeRaw('\t</documents>\n');   
+    }
+     
+    //product Overview according to T1,T2,T3 and T4
+     if(product.custom.Featurecontentvariationtype=="T1" || product.custom.Featurecontentvariationtype=="T2" || product.custom.Featurecontentvariationtype=="T3")
+     {
+       xmlwriter.writeRaw('\t\t\<Overview>\n');
+       xmlwriter.writeRaw('\t\t\<Templatetype>'+product.custom.Featurecontentvariationtype+'</Templatetype>\n');
+       xmlwriter.writeRaw('\t\t<productOverview>\t\t'+product.custom.overview+'\n\t\t</productOverview>\n');
+       xmlwriter.writeRaw('\t\t</Overview>\n');
+     }
+     xmlwriter.writeRaw('\t</product> \n');
+   
+ }
+  return PIPELET_NEXT;			
+}
+

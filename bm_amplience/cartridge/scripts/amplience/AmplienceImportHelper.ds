@@ -1,0 +1,162 @@
+/**
+* Class which helps working with amplience images import, i.e. works directly with library for xml parser from bc_amplience
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.catalog );
+
+importScript( "bc_amplience:import/libAmplienceParser.ds" );
+
+function AmplienceImportHelper() {
+	
+	/**
+	 * Default Amplience manifest xml file used for import of images
+	 */
+	var MANIFEST_FILE_NAME : String = "IMPEX/src/temp/amplience_manifest.xml";
+	
+	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+		ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+
+	/**
+	 * Gets the manifest node as an XML object
+	 * Note: if no manifest node is found returns null
+	 *
+	 * @return {XML} manifestXmlObj - XML object for manifest node
+	 */
+	var loadManifestXmlObject = function() : XML {
+		
+		var manifestFile : File = new File(MANIFEST_FILE_NAME);
+	    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(manifestFile));
+		
+		var manifestXmlObj : XML = null;
+		
+		while (xmlReader.hasNext()) {
+	        if(xmlReader.next() == XMLStreamConstants.START_ELEMENT) {
+	        	
+	        	var localElementName : String = xmlReader.getLocalName();
+	            
+	            if ( 'manifest'.equals(localElementName) ) {
+	            	manifestXmlObj = xmlReader.getXMLObject();
+	            }
+	            
+	        	break;
+	        }
+	    }
+	    
+	    xmlReader.close();
+	    
+	    return manifestXmlObj;
+	}
+	
+	/**
+	 * Load Amplience Manifest file
+	 *
+	 * @param {String} manifestURL - URL address of the manifest file 
+	 *
+	 */
+	var loadAmplienceManifest = function(manifestURL : String) {
+		var httpClient : HTTPClient = new HTTPClient();
+		httpClient.setTimeout(ampTimeout);
+		httpClient.enableCaching(0);
+		
+		httpClient.open('GET', manifestURL);
+	
+		var manifestFile : File = new File(MANIFEST_FILE_NAME);
+		if(manifestFile.exists()) manifestFile.remove();
+	
+		httpClient.sendAndReceiveToFile(null, "UTF-8", manifestFile);
+		
+		if (httpClient.statusCode != 200) {
+			
+			throw new Error("HTTP Communication error : Status code " + httpClient.statusCode);
+		}
+	}
+	
+	/**
+	 * Loads content of xml file and imports the Amplience images using the Amplience parser
+	 *
+	 * @param {String} manifestURL - URL address of the manifest file
+	 * @param {String} separator - used for splitting of values in xml
+	 * @param {String} imagePattern - image pattern, i.e. 'prefix_sku_color_suffix'
+	 *
+	 * @return {Object} result - an object with swatch and product images
+	 *
+	 */
+	this.loadAndParseImages = function(manifestURL : String, separator : String, imagePattern : String) : Object {
+		
+		if ( empty(manifestURL) ) {
+			
+			throw new Error('ManifestURL cannot be empty.');
+		}
+		
+		var parserSettings = buildParserSettings(separator, imagePattern);
+		
+		loadAmplienceManifest(manifestURL);
+		
+		var manifestXmlObj : XML = loadManifestXmlObject();
+		
+		var amplienceParser = new AmplienceParser();
+		
+		amplienceParser.init(manifestXmlObj, parserSettings);
+		
+		var productImages : Object = amplienceParser.getProductImages();
+		var productGlobalSwatchImages : Object = amplienceParser.getProductGlobalSwatchImages();
+		
+		return {
+	        productImages : productImages,
+	        productGlobalSwatchImages : productGlobalSwatchImages
+	    };
+	}
+
+	/**
+	 * Build an object with all of the necessary settings for the parser, i.e. separator, preffix, suffix, etc.
+	 *
+	 * @param {String} separator - used for splitting of values in xml
+	 * @param {String} imagePattern - image pattern, i.e. 'prefix_sku_color_suffix'
+	 *
+	 * @return {Object} result - Object with properties for preffix, suffix, and attrs
+	 */
+	var buildParserSettings = function(separator : String, imagePattern : String) {
+	
+		var arrTmp : Array = imagePattern.split(separator);
+		var firstEl : String = arrTmp[0];
+		var lastEl : String = arrTmp[arrTmp.length - 1];
+
+		/**
+		 * Get the preffix value (if it's set), i.e. '{preffix_val}' -> 'preffix_val'
+		 */
+		var keyPreffix : String = (firstEl.indexOf('{') == 0 && firstEl.indexOf('}') == firstEl.length - 1)
+										? firstEl.substring(1, firstEl.length - 1) : '';
+		
+		/**
+		 * Get the suffix value (if it's set), i.e. '{suffix_val}' -> 'suffix_val'
+		 */
+		var keySuffix : String = (lastEl.indexOf('{') == 0 && lastEl.indexOf('}') == lastEl.length - 1)
+										? lastEl.substring(1, lastEl.length - 1) : '';
+		
+		var keyAttrs : Array = new Array();
+		
+		// read the other attributes
+		for (var i = 0; i < arrTmp.length; i++) {
+			
+			// skip 'sku', '{preffix}', and '{suffix}'
+			if ( arrTmp[i] != 'sku' && arrTmp[i].indexOf('{') != 0 && arrTmp[i].indexOf('}') != arrTmp[i].length ) {
+				
+				keyAttrs.push( arrTmp[i] );
+			}
+		}
+		
+		return {
+			separator : separator,
+	        keyPreffix : keyPreffix,
+	        keySuffix : keySuffix,
+	        keyAttrs : keyAttrs
+	    };
+	}
+}

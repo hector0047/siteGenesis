@@ -1,0 +1,269 @@
+importPackage(dw.rpc);
+importPackage(dw.order);
+importPackage(dw.util);
+importPackage(dw.system);
+importPackage(dw.ws);
+importPackage(dw.object);
+
+importScript("int_servicebench:sb/Credentials.ds");
+
+
+var sf = require("bc_serviceframework");
+var SubmitScheduleRequestServiceObj = require("../objects/SubmitScheduleRequest");
+var HashMap = require("dw/util/HashMap");
+var WSUtil = require("dw/ws/WSUtil");
+ 
+function getSubmitScheduleRequestService() {
+	return SubmitScheduleRequestService;
+}
+
+
+var SubmitScheduleRequestService = sf.getService('AbstractSoapService').extend(
+
+{
+	
+	init: function() {
+		this._super("SubmitScheduleRequestService" , new SubmitScheduleRequestServiceObj());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		
+		this.webReference = webreferences2.CRMServiceOrderServiceProduction;
+		
+		if ( dw.system.System.getInstanceType() != dw.system.System.PRODUCTION_SYSTEM && !Site.current.preferences.custom.EnableServiceBenchProductionInstance) {
+			this.webReference = webreferences2.CRMServiceOrderServiceTest;
+		}
+		
+		this.serviceClient = this.webReference.getService("CRMServiceOrderService", "CRMServiceOrderPort");
+		
+	},
+
+	createRequest: function (sbObject) {
+		
+		var secretsMap = new HashMap();
+		secretsMap.put(dw.system.Site.getCurrent().getCustomPreferenceValue("SB_userName"), dw.system.Site.getCurrent().getCustomPreferenceValue("SB_password"));
+		
+		var requestCfg = new HashMap();
+		
+		// define the ws actions to be performed - in this case add a username token
+		requestCfg.put(WSUtil.WS_ACTION, WSUtil.WS_USERNAME_TOKEN);
+		requestCfg.put(WSUtil.WS_USER, dw.system.Site.getCurrent().getCustomPreferenceValue("SB_userName"));
+		requestCfg.put(WSUtil.WS_PASSWORD_TYPE, WSUtil.WS_PW_TEXT );
+		
+		// set the secrets for the request
+		requestCfg.put(WSUtil.WS_SECRETS_MAP, secretsMap);
+		
+		// set the response actions - note: you must explicitly state there is no security action 
+		//   on the response if there is a security action on the request!
+		var responseCfg = new HashMap();
+		responseCfg.put(WSUtil.WS_ACTION, WSUtil.WS_NO_SECURITY);
+		
+		// set the security configurations on the port
+		WSUtil.setWSSecurityConfig(this.serviceClient, requestCfg, responseCfg);
+			
+		var ssName				: String		= sbObject.sourceSystemName;
+		var ssVersion			: String	 	= sbObject.sourceSystemVersion;
+		//var requestControlID	: String	 	= sbObject.requestControlID;
+		var serviceOrderType	: String	 	= sbObject.serviceOrderType;
+		var customerNumber		: String		= sbObject.customerNumber;
+		//var customerBillingAcct	: String		= sbObject.customerBillingAcct;
+		//var companyName			: String		= sbObject.companyName;
+		var lastName			: String		= sbObject.lastName;
+		var firstName			: String		= sbObject.firstName;
+		var address1			: String		= sbObject.address1;
+		var city				: String		= sbObject.city;
+		var stateProvince		: String		= sbObject.stateProvince;
+		var postalCode			: String		= sbObject.postalCode;
+		var country				: String		= sbObject.country;
+		var homePhone			: String		= sbObject.homePhone;
+		var workPhone			: String		= sbObject.workPhone;
+		var accountAddress1		: String		= sbObject.accountAddress1;
+		var accountCity			: String		= sbObject.accountCity;
+		var accountStateProvince: String		= sbObject.accountStateProvince;
+		var accountPostalCode	: String		= sbObject.accountPostalCode;
+		var accountPhone		: String		= sbObject.accountPhone;
+		var accountWorkPhone	: String		= sbObject.accountWorkPhone;
+		var serviceDescription	: String		= sbObject.serviceDescription;
+		var emailAddress		: String 		= sbObject.emailAddress;
+		var serviceProviderAccount	: String	= sbObject.serviceProviderAccount;
+		var crmNumber			: String		= sbObject.crmNumber;
+		var serviceJobType		: String		= sbObject.serviceJobType;
+		var forceBooked			: String		= sbObject.forceBooked;
+		var contractPurchaseDate: String		= sbObject.contractPurchaseDate;
+		var mailingLabelMethod	: String		= sbObject.mailingLabelMethod;
+		var preferredContactMethod	: String	= sbObject.preferredContactMethod;
+		var primaryPhoneNumber	: String		= sbObject.primaryPhoneNumber;
+		var skippedAvailability	: String		= sbObject.skippedAvailability;
+		var servicePurchaseDate	: String		= sbObject.servicePurchaseDate;
+		var modelID 			: String 		= sbObject.modelID;
+		var serialNumb			: String 		= sbObject.serialNumb;
+		var modelPurchaseDate	: String 		= sbObject.modelPurchaseDate;
+		/*
+		var warehouseServicesType	: String	= sbObject.warehouseServicesType;
+		var clientAccountNumber	: String		= sbObject.clientAccountNumber;
+		var plantCode			: String		= sbObject.plantCode;
+		var itemNumber			: String		= sbObject.itemNumber;
+		var modelNumber			: String		= sbObject.modelNumber;
+		var serialNumber		: String		= sbObject.serialNumber;
+		var quantity			: String		= sbObject.quantity;
+		var depotLocationCode	: String		= sbObject.depotLocationCode;
+		var rmaNumber			: String		= sbObject.rmaNumber;
+		var rmaType				: String		= sbObject.rmaType;
+		var rmaPostedDate		: String		= sbObject.rmaPostedDate;*/
+					    
+		var submitADObject : WebReference2 = this.webReference;
+		//var sbService : Stub =  this.serviceClient;
+	
+		// security header
+		//SetCredentials( sbService );
+
+		//creating the request obj for complex type scheduleRequest
+		var scheduleRequestDetails = new submitADObject.ScheduleRequest();
+		scheduleRequestDetails.setServiceOrderType(serviceOrderType);
+		//scheduleRequestDetails.setRequestControlID(requestControlID);
+		scheduleRequestDetails.setCustomerNumber(customerNumber);
+		//scheduleRequestDetails.setCustomerBillingAcct(customerBillingAcct);
+		//scheduleRequestDetails.setCompanyName(companyName);
+		scheduleRequestDetails.setLastName(lastName);
+		scheduleRequestDetails.setFirstName(firstName);
+		scheduleRequestDetails.setAddress1(address1);
+		scheduleRequestDetails.setCity(city);
+		scheduleRequestDetails.setStateProvince(stateProvince);
+		scheduleRequestDetails.setPostalCode(postalCode);
+		scheduleRequestDetails.setCountry(country);
+		scheduleRequestDetails.setHomePhone(homePhone);
+		scheduleRequestDetails.setWorkPhone(workPhone);
+		scheduleRequestDetails.setAccountAddress1(accountAddress1);
+		scheduleRequestDetails.setAccountCity(accountCity);
+		scheduleRequestDetails.setAccountStateProvince(accountStateProvince);
+		scheduleRequestDetails.setAccountPostalCode(accountPostalCode);
+		scheduleRequestDetails.setAccountPhone(accountPhone);
+		scheduleRequestDetails.setAccountWorkPhone(accountWorkPhone);
+		scheduleRequestDetails.setServiceDescription(serviceDescription);
+		scheduleRequestDetails.setEmailAddress(emailAddress);
+		scheduleRequestDetails.setServiceProviderAccount(serviceProviderAccount);
+		scheduleRequestDetails.setCrmNumber(crmNumber);
+		scheduleRequestDetails.setServiceJobType(serviceJobType);
+		scheduleRequestDetails.setForceBooked(forceBooked);
+		scheduleRequestDetails.setContractPurchaseDate(contractPurchaseDate);
+		scheduleRequestDetails.setMailingLabelMethod(mailingLabelMethod);
+		scheduleRequestDetails.setPreferredContactMethod(preferredContactMethod);
+		scheduleRequestDetails.setPrimaryPhoneNumber(primaryPhoneNumber);
+		scheduleRequestDetails.setSkippedAvailability(skippedAvailability);
+		
+		//creating model details for the request.
+		var modelsRequestDetails = new submitADObject.Models();
+		scheduleRequestDetails.setModels(modelsRequestDetails);
+		
+		//creating model details for the request.
+		var modelRequestDetails = new submitADObject.Model();
+		modelRequestDetails.setProductStatus(0);
+		modelRequestDetails.setModelID(modelID);
+		modelRequestDetails.setSerialNumber(serialNumb);
+		modelRequestDetails.setPurchaseDate(modelPurchaseDate);
+		
+		
+		if(sbObject.warrantyStatusLabor != 'InWarranty' || sbObject.warrantyStatusPart != 'InWarranty'){
+			var serviceJobPayment = new submitADObject.ServiceJobPayment();
+				serviceJobPayment.setPaymentType('001');
+			
+			scheduleRequestDetails.setServiceJobPayment(serviceJobPayment);
+			var billingAddress = new submitADObject.BillingAddress();
+			billingAddress.setAddressLine1(sbObject.accountAddress1);
+			billingAddress.setAddressLine2('');
+			billingAddress.setCity(sbObject.accountCity);
+			billingAddress.setState(sbObject.accountStateProvince);
+			billingAddress.setPostalCode(sbObject.accountPostalCode);
+			billingAddress.setCountry('US');
+			
+			//creating card details for the request.
+			var cardDetails = new submitADObject.CardInfo();
+			/* changing VISA "001" to 002 since VISA card type value is 002 in SB and master card value is 001 in SB*/ 
+			cardDetails.setCardType(returnCardType (sbObject.cardName));
+			cardDetails.setCardHolderFirstName(sbObject.cardHolderFirstName);
+			cardDetails.setCardHolderLastName(sbObject.cardHolderLastName);
+			if(!empty(sbObject.unmaskedcardnumber)){
+				cardDetails.setCardNumber(sbObject.unmaskedcardnumber);
+			}else{
+				cardDetails.setCardNumber(sbObject.cardNumber);
+			}
+			cardDetails.setExpirationDate(sbObject.expirationDate);
+			cardDetails.setSecurityCode(sbObject.cvn);
+			cardDetails.setAuthorizedAmount(sbObject.authorizedAmount);
+		
+		/*var modelsRequestDetails = new submitADObject.Models();
+		
+		scheduleRequestDetails.setModels(modelsRequestDetails);
+		scheduleRequestDetails.models.add(modelRequestDetails);
+		
+		
+		
+		creating the request obj for complex type service
+		var serviceRequestDetails = new submitADObject.service();
+		serviceRequestDetails.setServicePurchaseDate(servicePurchaseDate);*/
+		
+		/*creating the request obj for complex type warehouseServiceType
+		var warehouseServiceRequestDetails = new submitADObject.WarehouseService();
+		warehouseServiceRequestDetails.setWarehouseServicesType(warehouseServicesType);
+		warehouseServiceRequestDetails.setClientAccountNumber(clientAccountNumber);
+		warehouseServiceRequestDetails.setPlantCode(plantCode);
+		warehouseServiceRequestDetails.setItemNumber(itemNumber);
+		warehouseServiceRequestDetails.setModelNumber(modelNumber);
+		warehouseServiceRequestDetails.setSerialNumber(serialNumber);
+		warehouseServiceRequestDetails.setQuantity(quantity);
+		warehouseServiceRequestDetails.setDepotLocationCode(depotLocationCode);*/
+		
+		/*creating the request obj for complex type productReturnAuthorization
+		var productReturnAuthorizationRequestDetails = new submitADObject.ProductReturnAuthorization();
+		productReturnAuthorizationRequestDetails.setRmaNumber(rmaNumber);
+		productReturnAuthorizationRequestDetails.setRmaType(rmaType);
+		productReturnAuthorizationRequestDetails.setRmaPostedDate(rmaPostedDate);*/
+		
+		//Creating schedule service request
+		}
+		var scheduleRequest = new submitADObject.ServiceJobScheduleRequest();
+		scheduleRequest.setSourceSystemName(ssName);
+		scheduleRequest.setSourceSystemVersion(ssVersion);
+		scheduleRequest.setScheduleRequest(scheduleRequestDetails);
+		scheduleRequest.scheduleRequest.models.model.add(modelRequestDetails);
+		if(sbObject.warrantyStatusLabor != 'InWarranty' || sbObject.warrantyStatusPart != 'InWarranty'){
+			scheduleRequest.scheduleRequest.serviceJobPayment.setBillingAddress(billingAddress);
+			scheduleRequest.scheduleRequest.serviceJobPayment.setCardInfo(cardDetails);
+		}
+		//scheduleRequest.scheduleRequest.models.setModel(modelRequestDetails);
+		//scheduleRequest.setService(serviceRequestDetails);
+		//scheduleRequest.scheduleRequest.setWarehouseService(warehouseServiceRequestDetails);
+		//scheduleRequest.scheduleRequest.warehouseService.setProductReturnAuthorization(productReturnAuthorizationRequestDetails);
+	
+		Logger.debug("service bench schedule request : " + scheduleRequest);
+		return scheduleRequest;
+	
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		var response = this.serviceClient.serviceJobSchedule( this.request );
+		return response;
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+function returnCardType (cardName : String) : String {
+	 var cardname : String = cardName; 
+	 var creditcardObject : String = CustomObjectMgr.getCustomObject('ServiceBenchCreditCardType',cardname);	
+	 return creditcardObject.custom.creditcardtype;
+}
+sf.registerService('SubmitScheduleRequestService',SubmitScheduleRequestService);

@@ -1,0 +1,47 @@
+<!--- TEMPLATENAME: newssearchresults.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+	<isinclude template="util/modules"/>
+	
+	<iscomment>create reporting event</iscomment>
+	<isinclude template="util/reporting/ReportSearch.isml"/>
+	
+	<isif condition="${!pdict.ContentPagingModel.empty}">
+		<iscomment>calculated correct index position to separate the result columns</iscomment>
+		<isscript>
+			var count = pdict.ContentPagingModel.end + 1;
+			var cutIndex = Math.ceil( count / 2 ) - 1;
+			var endIndex = cutIndex + (cutIndex + 1);
+		</isscript>
+		
+		<table class="news-searchresults-list">
+		<tbody>
+		<isloop items="${pdict.ContentPagingModel.pageElements}" var="asset" status="loopstate" end="${endIndex}">
+
+			<tr class="news-searchresults-list__row">
+				<iscomment>append the search parameters to the article URL</iscomment>
+				<!-- isset name="articleURL" value="${pdict.ContentSearchResult.url( URLUtils.url('Page-Show','cid', asset.ID) )}" scope="page"/ -->
+				<isset name="articleURL" value="${URLUtils.url('Page-Show','cid', asset.ID)}" scope="page"/>
+				<td class="news-searchresults-list__pubdate"><span class="article-pubDate"><isprint value="${asset.custom.displayDate}" formatter="MM/dd/yyyy" timezone="SITE" /></span></td>
+				<td class="news-searchresults-list__headline"><span class="article-title"><a href="${articleURL}">
+					<isprint value="${asset.name}"/>
+				</a></span></td>
+				<td class="news-searchresults-list__type"><span class="article-type article-type-${asset.classificationFolder.ID}"><isprint value="${asset.classificationFolder.displayName}"/></span></td>
+			</tr>
+			
+		</isloop>
+		</tbody>
+		</table>
+		
+		<iscomment>sorting and hits info</iscomment>
+		<ispaginginformation pagingmodel="${pdict.ContentPagingModel}"/>
+		
+		<iscomment>pagination</iscomment>
+		<div id="about-us-pagination" class="news-searchresults-pager">
+			<isnewslistpagingbar pageurl="${URLUtils.url('AboutUs-FilterContent','q',pdict.CurrentHttpParameterMap.q,'fdid',pdict.CurrentHttpParameterMap.fdid.value,'psortb1', pdict.CurrentHttpParameterMap.psortb1.value, 'psortd1', pdict.CurrentHttpParameterMap.psortd1.intValue)}"  pagingmodel="${pdict.ContentPagingModel}" pagingstartvar="prstart" />
+		</div>
+
+    <iselse>
+      <div id="empty-search" class="primary-content" style="float: none;"><div class="content-asset"><p>Sorry, no results were found for <i>"${pdict.ContentSearchResult.searchPhrase}"</i>. Please try again with some different keywords.</p></div></div>
+    </iselse>
+	</isif>

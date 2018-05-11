@@ -1,0 +1,26 @@
+<div class="product-video-holder-support">
+	<span class="block-content-head"><isprint value="${Resource.msg('product.videosupport','product',null)}"/></span>
+	<isset name="carousel" value="${pdict.supportVideoUrls.length>3?'horizontal-carousel':''}" scope="page">
+	<ul class="block-content-ul ${carousel}">
+		<isloop items="${pdict.supportVideoUrls}" var="videoItemPath" status="loopstate">
+		    <isscript>
+				var videoItem = videoItemPath.trim().split('$');
+			</isscript>
+			<isif condition="${!empty(videoItem[0]) && !empty(videoItem[1]) && !empty(videoItem[2])}"> 
+			 	<li class="thumb">
+			  		<a href="javascript:void(0)" class="thumbnail-link video-link">
+			   			<isset name="tpath" value="${'http://img.youtube.com/vi/'+videoItem[2].trim().split('/')[videoItem[2].trim().split('/').length-1]+'/default.jpg'}" scope="page"/>
+			   			<isset name="imgPath" value="${'http://img.youtube.com/vi/'+videoItem[2].trim().split('/')[videoItem[2].trim().split('/').length-1]+'/0.jpg'}" scope="page"/>
+			   			<div class="video-img">
+			    			<img src="${tpath}" class="supportvideo" data-lgimg='{"url":"${imgPath}", "title":"<isprint value="${videoItem[0].trim()}" encoding="on"/>", "alt":"<isprint value="${lgImage.alt}" encoding="on"/>", "hires":"${hi_res}", "videopath":"${videoItem[2].trim()}", "thumbpath":"${tpath}"}'></img>
+			    			<span class="video-gallery-play-icon"><img src="${URLUtils.absStatic('images/video-play-icon.png')}"></span>
+			   			</div>
+			   			<div class="video-description">
+			    			<isprint value="${videoItem[0].trim()}" encoding="on"/>
+			   			</div>
+			  		</a>
+			 	</li>
+		 	</isif>
+		</isloop>
+	</ul>
+</div>

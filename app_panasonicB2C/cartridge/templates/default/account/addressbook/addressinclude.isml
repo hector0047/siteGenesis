@@ -1,0 +1,92 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules.isml"/>
+<isif condition="${!empty(pdict.CurrentCustomer.profile.addressBook.addresses)}">
+	
+	<iscomment>addresses are sorted, preferred first, than alphabetic </iscomment>
+	
+	<isif condition="${pdict.Status != null && pdict.Status.isError()}">				 
+	 	<!--- Use the error code value to build an appropriate error message --->
+		<span class="form-error">
+			<isprint value="${Resource.msg('addressdetails.' + pdict.Status.code, 'account',null)}"/>
+		</span>
+	</isif>
+	<div class="default-address">
+		<isloop items="${pdict.CurrentCustomer.profile.addressBook.addresses}" var="address" status="loopstate">
+		<isscript>
+			var isDefault = !empty(pdict.CurrentCustomer.profile.addressBook.preferredAddress) && (pdict.CurrentCustomer.profile.addressBook.preferredAddress.ID == address.ID);
+			var cssClass = "";
+			if (loopstate.first) { cssClass = "first"; } 
+			else if (loopstate.last) { cssClass = "last"; }
+			
+			if (isDefault) { cssClass+=" default"; }
+		</isscript>
+		<isif condition="${isDefault}">
+			<div class="${cssClass}">
+				<isif condition="${isDefault}">
+				<h3>${Resource.msg('editaddress.defaultaddress','account',null)} </h3>
+			</isif>
+				<isminiaddress p_address="${address}"/>
+				
+				<a href="${URLUtils.url('Address-Edit','AddressID', encodeURIComponent(address.ID))}" class="address-edit">
+					${Resource.msg('global.editincaps','locale',null)}
+				</a>
+				
+				<a href="${URLUtils.url('Address-RemoveDefault','AddressID', encodeURIComponent(address.ID))}" title="${Resource.msg('addressinclude.remove','account',null)}" class="address-delete delete">
+					${Resource.msg('addressinclude.remove','account',null)}
+				</a>
+				
+			</div>
+		</isif>
+		</isloop>
+	
+	</div>
+	<div class="address-list pnsb2c-additional-address">
+		<h3>${Resource.msg('paymentinstrumentlist.additionaladdresses','account',null)}</h3> 	
+	<isif condition="${'successmsg' in pdict && pdict.successmsg != '' && pdict.successmsg != 'null'}">
+		<div class="success-fail-msg">
+				<span class="spriteico"></span>
+				<span><isprint value="${pdict.successmsg}"/></span>
+		</div>
+	</isif>
+	
+	<isloop items="${pdict.CurrentCustomer.profile.addressBook.addresses}" var="address" status="loopstate">
+		<iscomment>
+			<isscript>
+				var isDefault = !empty(pdict.CurrentCustomer.profile.addressBook.preferredAddress) && (pdict.CurrentCustomer.profile.addressBook.preferredAddress.ID == address.ID);
+				var cssClass = "";
+				if (loopstate.first) { cssClass = "first"; } 
+				else if (loopstate.last) { cssClass = "last"; }
+				
+				if (isDefault) { cssClass+=" default"; }
+			</isscript>
+			
+			<isif condition="${!isDefault}">
+		</iscomment>
+			<div class="${cssClass} additional-address">
+			  <iscomment>
+				<isif condition="${isDefault}">
+					<h3>${Resource.msg('editaddress.defaultaddress','account',null)} </h3>
+				</isif>
+			 </iscomment>	
+				<isminiaddress p_address="${address}"/>
+				
+				<iscomment><isif condition="${!isDefault}"></iscomment>
+					<a href="${URLUtils.url('Address-SetDefault','AddressID', encodeURIComponent(address.ID))}" class="address-make-default"> 
+						${Resource.msg('editaddress.makedefaultaddress','account',null)} 
+					</a>
+				<iscomment></isif></iscomment>
+				
+				<a href="${URLUtils.url('Address-Edit','AddressID', encodeURIComponent(address.ID))}" class="address-edit">
+					${Resource.msg('global.editincaps','locale',null)}
+				</a>
+				
+				<a href="${URLUtils.url('Address-Delete','AddressID', encodeURIComponent(address.ID))}" title="${Resource.msg('addressinclude.remove','account',null)}" class="address-delete delete">
+					${Resource.msg('addressinclude.remove','account',null)}
+				</a>
+				
+			</div>
+		<iscomment></isif></iscomment>
+	</isloop>
+	</div>
+	
+</isif>

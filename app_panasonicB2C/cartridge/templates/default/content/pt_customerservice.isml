@@ -1,0 +1,55 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isscript>var pageContext={title:'Customer Service', type:'customerservice',ns:'account'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<iscomment>This page must be cachable. It inherits the caching attributes by the decorated template.</iscomment>
+
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="content/pt_customerservice_UI"/>
+	
+	<iscomment>Add template-specific header information here.</iscomment>	
+	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_customer-service">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader')}"/>
+	
+		<div id="main" role="main" class="page-content clearfix full-width">
+			
+			<isbreadcrumbs  bctext1="${Resource.msg('global.contactus','locale',null)}" />
+
+			<div id="primary" class="primary-content">
+				<section>
+					<isinclude template="components/browsertoolscheck"/>
+					<isreplace/>
+				</section>
+			</div>
+			<iscomment>
+				<div class="need-help-asset">
+						<h2>Online Order Help</h2>
+						<div class="contact-num">1- 800-405-0652</div>
+						<h3>Operating Hours:</h3>
+						<div class="contact-time">Mon-Fri 9am-6pm EST</div>
+						
+				</div>
+			</iscomment>
+		</div><!-- /main -->
+		
+		<isinclude template="components/footer/footer"/>
+		<isinclude template="content/pt_customerservice_VARS"/>
+		
+	</div><!--  /wrapper -->
+	
+</body>
+</html>

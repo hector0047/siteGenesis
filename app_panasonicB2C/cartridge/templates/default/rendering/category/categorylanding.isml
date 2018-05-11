@@ -1,0 +1,55 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<isdecorate template="search/pt_categorysearchresult_content">
+	<iscache type="relative" minute="30" varyby="price_promotion"/>
+	<isinclude template="util/modules"/>
+	<iscomment>
+		Configured as rendering template for the general category landing page.
+		Displays two category specific slots containing static html with promotional
+		banner in the first slot and either up to four featured products or promotional
+		content in the second slot.
+	<isslot id="cat-landing-slotbottom" context="category" description="Category Landing Featured Products or Promotional Content" context-object="${pdict.ProductSearchResult.category}"/>
+	</iscomment>
+	<div <isif condition="${pdict.ProductSearchResult.category.ID!="bulk-orders"}">class="desktopBlock" </isif>>
+	<isslot id="cat-landing-slotbanner" context="category" description="Large Category Landing Banner" context-object="${pdict.ProductSearchResult.category}"/>
+ 	</div>
+<h3 class="panb2c-callout-msg">
+	<isif condition="${pdict.ProductSearchResult.category.description != null}"> 
+		<isprint value="${pdict.ProductSearchResult.category.description}"/> 
+	</isif>
+</h3>
+<isloop items="${pdict.ProductSearchResult.category.onlineSubCategories}" var="cat" status="statuscount" > 
+	<iscomment> Farhans Dev team : 08-12-2015 03:46PM PANC-1475</iscomment>
+
+	<isif condition="${!('supportOnly' in cat.custom && cat.custom.supportOnly)}">
+	
+		<div class="cat-land-shopall">
+			<h1 class="cat-name"><a href="${URLUtils.url('Search-Show', 'cgid', cat.ID)}"><isprint value="${cat.displayName}"/></a></h1>
+			<a href="${URLUtils.url('Search-Show', 'cgid', cat.ID)}" class="button-blue desktopBlock">${Resource.msg("categorylanding.shopall","search","null")}</a><br>
+		</div>
+		<div class="product-listing mob-home-newproducts home-newproductsSlider <isif condition="${statuscount.last}">last</isif>">
+			<ul id="search-result-items" class="home-newproducts search-result-items tiles-container clearfix hide-compare tiles-container ">
+				<isloop items="${cat.custom.categoryLandingProducts}" var="listpord" status="stcount"> 
+			 	 	<isset name="product" value="${dw.catalog.ProductMgr. getProduct(listpord)}" scope="page" />
+			 	 	<isset name="showPricing" value="${!('supportOnly' in product.custom && product.custom.supportOnly)}" scope="page" />
+					<li class="grid-tile category-grid-tile ${(stcount.index == 3) ? 'last-prouct' : ''}  "><isproducttile product="${product}" showswatches="${true}" showpricing="${showPricing}" showrating="${true}"  /></li>
+				</isloop>
+			</ul>
+		</div>
+		<div class="cat-land-shopall mobileBlock">
+			<a href="${URLUtils.url('Search-Show', 'cgid', cat.ID)}" class="button-blue">${Resource.msg("categorylanding.shopall","search","null")}</a><br>
+		</div>
+	</isif>
+	<iscomment> PANC-1475 END</iscomment>
+</isloop>
+<script>
+     $(document).on('ready', function() {
+	     if($(window).width() < 1025)
+			{
+		       $(".home-newproducts").slick({ dots: false, infinite: true, slidesToShow: 1, arrows: true, slidesToScroll: 1 });
+			} else {
+			}
+    });
+</script>
+</isdecorate>
+

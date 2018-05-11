@@ -1,0 +1,238 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*-   @input ExampleIn : String This is a sample comment.
+*-   @output ExampleOut : Number
+*
+*/
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.util );
+
+function ProductSupportUtil(){
+}
+
+ProductSupportUtil.getXmlData = function(item : String) {
+	try{
+		return returnSupportUrls(item.toString());
+	}catch(e){
+		Logger.error("Error while executing the script ProductSupportUtil.ds  Error : "+e.message);
+		return null;	
+	}
+}
+
+ProductSupportUtil.getOtherAttributes = function(item : String,product : dw.catalog.Product) {
+	try{
+		
+		var data : dw.util.LinkedHashSet = ProductSupportUtil.getXmlData(item);	
+		
+		if(('heroCollateralTitle1' in product.custom && !empty(product.custom.heroCollateralTitle1)) && ('heroCollateralLink1' in product.custom && !empty(product.custom.heroCollateralLink1))){
+			data.add(product.custom.heroCollateralTitle1.toString().trim().toString()+'$'+product.custom.heroCollateralLink1.trim().toString());
+		}
+		if(('heroCollateralTitle2' in product.custom && !empty(product.custom.heroCollateralTitle2)) && ('heroCollateralLink2' in product.custom && !empty(product.custom.heroCollateralLink2))){
+			data.add(product.custom.heroCollateralTitle2.toString().trim().toString()+'$'+product.custom.heroCollateralLink2.trim().toString());	
+		}
+		
+		if(('heroCollateralTitle3' in product.custom && !empty(product.custom.heroCollateralTitle3)) && ('heroCollateralLink13' in product.custom && !empty(product.custom.heroCollateralLink13))){
+			data.add(product.custom.heroCollateralTitle3.toString().trim().toString()+'$'+product.custom.heroCollateralLink13.trim().toString());	
+		}
+			
+		return !empty(data)?data:null;
+		
+	}catch(e){
+		Logger.error("Error while executing the script ProductSupportUtil.ds  Error : "+e.message);
+		return null;	
+	}
+}
+
+ProductSupportUtil.getFaqAttributes = function(fileString : String) {
+	try{
+		var inputXmlFile : String = '<?xml version="1.0" encoding="UTF-8"?>'+fileString.trim().toString(); 
+		var xmlReader : XMLStreamReader = new XMLStreamReader(new Reader(inputXmlFile));
+		var urlList : LinkedHashSet = new LinkedHashSet();
+		var myObject : XML = null;
+			while (xmlReader.hasNext())
+			{
+				
+			  if (xmlReader.next() == XMLStreamConstants.START_ELEMENT)
+			  {
+			     var localName : String = xmlReader.getLocalName();
+			     if (localName == "resourceList")
+			     {			       
+			       myObject = xmlReader.getXMLObject();
+			       					      
+			     }
+			  }
+			}
+		
+		var childElements : XMLList = myObject.children();			
+		var localeName : String = myObject.localName();
+		xmlReader.close();				
+		return iterateSupportFaqXml(childElements, localeName);
+	}catch(e){
+		Logger.error("Error while executing the script ProductSupportUtil.ds  Error : "+e.message);
+		return null;	
+	}
+}
+
+ProductSupportUtil.getFirmwareSupportAttributes = function(fileString : String) { 
+	try{
+		var inputXmlFile : String = '<?xml version="1.0" encoding="UTF-8"?>'+fileString.trim().toString(); 
+		var xmlReader : XMLStreamReader = new XMLStreamReader(new Reader(inputXmlFile));
+		var urlList : LinkedHashSet = new LinkedHashSet();
+		var myObject : XML = null;
+			while (xmlReader.hasNext())
+			{
+				
+			  if (xmlReader.next() == XMLStreamConstants.START_ELEMENT)
+			  {
+			     var localName : String = xmlReader.getLocalName();
+			     if (localName == "resourceList")
+			     {			       
+			       myObject = xmlReader.getXMLObject();
+			       					      
+			     }
+			  }
+			}
+		
+		var childElements : XMLList = myObject.children();			
+		var localeName : String = myObject.localName();
+		xmlReader.close();				
+		return iterateFirmwareSupportXml(childElements, localeName);
+	}catch(e){
+		Logger.error("Error while executing the script ProductSupportUtil.ds  Error : "+e.message);
+		return null;	
+	}
+}
+
+function returnSupportUrls(fileString : String) {
+		
+		var inputXmlFile : String = '<?xml version="1.0" encoding="UTF-8"?>'+fileString.trim().toString(); 
+		var xmlReader : XMLStreamReader = new XMLStreamReader(new Reader(inputXmlFile));
+		var urlList : LinkedHashSet = new LinkedHashSet();
+		var myObject : XML = null;
+			while (xmlReader.hasNext())
+			{
+				
+			  if (xmlReader.next() == XMLStreamConstants.START_ELEMENT)
+			  {
+			     var localName : String = xmlReader.getLocalName();
+			     if (localName == "resourceList")
+			     {			       
+			       myObject = xmlReader.getXMLObject();
+			       					      
+			     }
+			  }
+			}
+		
+		var childElements : XMLList = myObject.children();			
+		var localeName : String = myObject.localName();
+		xmlReader.close();				
+		return iterateSupportXml(childElements, localeName);
+	
+}
+function iterateSupportXml(myObjects : XMLList , localeName : String) {
+	
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	    for each ( var xmlObject : XML in myObjects) {
+	    	var currentTitle = xmlObject.@["description"].toString().trim();
+			var currentUrl = xmlObject.@["url"].toString().trim();
+			var thumString : String = currentTitle+"$"+currentUrl;
+				if(!empty(thumString) && thumString != 'null' && thumString.trim()!='$')
+				{
+				 	urlList.add(thumString);
+				}
+		    }
+	 return urlList;
+}
+
+function iterateFirmwareSupportXml(myObjects : XMLList , localeName : String) {
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	for each ( var xmlObject : XML in myObjects) {
+	    var currentDescription : String = xmlObject.description.toString().trim();
+	    var currentURL : String = xmlObject.url.toString().trim();
+	    var currentVersion : String = xmlObject.version.toString().trim();
+	    var currentIssueaddressed : String = xmlObject.issuesAddressed.toString().trim();
+	    var currentReleaseDate : String = xmlObject.releaseDate.toString().trim();
+	    var currentOperatingSystem : String = xmlObject.operatingSystem.toString().trim();
+	    var currentInstructionSheet : String = xmlObject.instructionSheet.toString().trim();
+	    var thumString : String = currentDescription+"$"+currentURL +"$"+currentVersion+"$"+currentIssueaddressed+"$"+currentReleaseDate+"$"+currentOperatingSystem+"$"+currentInstructionSheet;
+		if(!empty(thumString.trim()) && (thumString.trim() !="$$$$$$")) {
+			urlList.add(thumString);
+		}
+	}
+	return urlList;
+}
+
+/*function iterateFirmwareSupportXml(myObjects : XMLList , localeName : String) {
+	
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	    for each ( var xmlObject : XML in myObjects) {
+	    	var currentTitle: String  = xmlObject.@["description"].toString().trim();
+			var currentUrl : String = xmlObject.@["url"].toString().trim();
+			var currentVersion : String = xmlObject.@["version"].toString().trim();
+			var currentIssue: String  = xmlObject.@["issueaddressed"].toString().trim();
+			var rDate: String  = xmlObject.@["releaseDate"].toString().trim();
+			var os: String  = xmlObject.@["operatingSystem"].toString().trim();
+			var currentInstructionSheet : String = xmlObject.@["instructionSheet"].toString().trim();
+			var thumString : String = currentTitle+"$"+currentUrl +"$"+currentVersion+"$"+currentIssue+"$"+rDate+"$"+os+"$"+currentInstructionSheet;
+				if(!empty(thumString) && thumString != 'null' && thumString.trim()!='$$$$$$')
+				{
+				 	urlList.add(thumString);
+				}
+		    }
+	 return urlList;
+}*/
+
+
+function iterateSupportFaqXml(myObjects : XMLList , localeName : String) {
+	
+	var urlList : LinkedHashSet = new LinkedHashSet();
+	    for each ( var xmlObject : XML in myObjects) {
+	    	var currentQuestion : String = xmlObject.question.toString().trim();
+	    	var currentAnswer : String = xmlObject.answer.toString().trim();
+		    var thumString : String = currentQuestion+"$"+currentAnswer;
+				if(!empty(thumString.trim()) && (thumString.trim() !="$"))
+				{
+				 	urlList.add(thumString);
+				}
+		    }
+	 return urlList;
+}
+ProductSupportUtil.filterUrl = function(url : String) {
+		var str  : String = "";
+		var flag : Boolean = false;
+		var num : Number = 0;
+		var l = url.trim().split('&').length;
+		if(l > 1){
+			for each(var s : String in url.trim().split('&')){
+				flag = true;
+				num = num+1;
+				if(num != l){
+					if(!empty(s)){
+					 str = str+(s+"&amp;");
+					}
+				}else if(num == l){
+					if(!empty(s)){
+					 str = str+(s);
+					}
+				}else{
+				//Don't do anything
+				}
+			}
+		}
+		
+	 return flag?str:url;
+}

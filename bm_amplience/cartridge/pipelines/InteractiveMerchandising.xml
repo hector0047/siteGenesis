@@ -1,0 +1,1373 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <description>Amplience Interactive Merchandising</description>
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Default IM Pipeline</description>
+        </text-node>
+        <node-display x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Start">
+    <segment>
+      <node>
+        <start-node call-mode="public" name="Start" secure="false"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SetActiveTabsIM.ds"/>
+          <key-binding alias="CurrentHttpParameterMap" key="CurrentHttpParameterMap"/>
+          <key-binding alias="ActiveTabs" key="ActiveTabs"/>
+          <key-binding alias="PageTabs" key="PageTabs"/>
+          <key-binding alias="ActiveTab" key="ActiveTab"/>
+          <key-binding alias="PageContext" key="PageContext"/>
+          <key-binding alias="PageDecorator" key="PageDecorator"/>
+          <key-binding alias="AbsPageURL" key="AbsPageURL"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in2" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="ActiveTab == &quot;imported_streams&quot;" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <jump-node start-name-ref="InteractiveMerchandising-GetImportedAreas"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="1" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="ActiveTab == &quot;grouped_streams&quot;" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <jump-node start-name-ref="InteractiveMerchandising-GetGroupedAreas"/>
+              <node-display x="-1" y="2"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <jump-node start-name-ref="InteractiveMerchandising-GetAvailableAreas"/>
+        <node-display x="0" y="2"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display Available IM Areas.</description>
+        </text-node>
+        <node-display x="4" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_4">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display Imported IM Areas.</description>
+        </text-node>
+        <node-display x="6" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetAvailableAreas">
+    <segment>
+      <node>
+        <start-node name="GetAvailableAreas" secure="false"/>
+        <node-display x="4" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SetActiveTabsIM.ds"/>
+          <key-binding alias="CurrentHttpParameterMap" key="CurrentHttpParameterMap"/>
+          <key-binding alias="ActiveTabs" key="ActiveTabs"/>
+          <key-binding alias="PageTabs" key="PageTabs"/>
+          <key-binding alias="ActiveTab" key="ActiveTab"/>
+          <key-binding alias="PageContext" key="PageContext"/>
+          <key-binding alias="PageDecorator" key="PageDecorator"/>
+          <key-binding alias="AbsPageURL" key="AbsPageURL"/>
+          <key-binding alias="'available_streams'" key="activeTab"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadAmplienceIMAreas.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="IMPagingResult" key="UgcPagingModel"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 100 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="UgcClient" key="UgcClient"/>
+          <key-binding alias="AbsPageURL" key="TestURL"/>
+          <key-binding alias="ImportedIMAreas" key="ImportedIMAreas"/>
+          <key-binding alias="AvailableIMAreas" key="AvailableIMAreas"/>
+          <key-binding alias="CurrentHttpParameterMap.q.stringValue" key="SearchPhrase"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="2"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+          <config-property key="DefaultPageSize" value="10"/>
+          <key-binding alias="AvailableIMAreas" key="Objects"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 100 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+          <key-binding alias="PagingResult" key="PagingModel"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/available_areas"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetImportedAreas">
+    <segment>
+      <node>
+        <start-node name="GetImportedAreas" secure="false"/>
+        <node-display x="6" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.selectedAreaIDs.stringValue" key="From_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="SelectedAreaIDs" key="To_0"/>
+          <key-binding alias="CurrentHttpParameterMap.q.stringValue" key="From_1"/>
+          <key-binding alias="SearchPhrase" key="To_1"/>
+          <key-binding alias="CurrentHttpParameterMap.selectedAreaID.stringValue" key="From_2"/>
+          <key-binding alias="SelectedAreaID" key="To_2"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="From_3"/>
+          <key-binding alias="CurrentPageFromHttpParams" key="To_3"/>
+          <key-binding alias="CurrentHttpParameterMap.orderby.stringValue" key="From_4"/>
+          <key-binding alias="OrderBy" key="To_4"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SetActiveTabsIM.ds"/>
+          <key-binding alias="CurrentHttpParameterMap" key="CurrentHttpParameterMap"/>
+          <key-binding alias="ActiveTabs" key="ActiveTabs"/>
+          <key-binding alias="PageTabs" key="PageTabs"/>
+          <key-binding alias="ActiveTab" key="ActiveTab"/>
+          <key-binding alias="PageContext" key="PageContext"/>
+          <key-binding alias="PageDecorator" key="PageDecorator"/>
+          <key-binding alias="AbsPageURL" key="AbsPageURL"/>
+          <key-binding alias="'imported_streams'" key="activeTab"/>
+          <key-binding alias="SelectedAreaIDs" key="SelectedAreaIDs"/>
+          <key-binding alias="OrderBy" key="OrderBy"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadImportedIMAreas.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedIMAreas" key="importedIMAreas"/>
+          <key-binding alias="ImportedIMAreas" key="ImportedIMAreas"/>
+          <key-binding alias="SearchPhrase" key="SearchPhrase"/>
+          <key-binding alias="SelectedAreaIDs" key="SelectedAreaIDs"/>
+          <key-binding alias="ImportedSelectedIMAreas" key="ImportedSelectedIMAreas"/>
+          <key-binding alias="OfflineIMAreas" key="OfflineIMAreas"/>
+          <key-binding alias="NeedUpdatesIMAreas" key="NeedUpdatesIMAreas"/>
+          <key-binding alias="AssociatedGroups" key="AssociatedGroups"/>
+          <key-binding alias="SelectedAreaID" key="SelectedAreaID"/>
+          <key-binding alias="CurrentPage" key="CurrentPage"/>
+          <key-binding alias="CurrentPageFromHttpParams" key="CurrentPageFromHttpParams"/>
+          <key-binding alias="CurrentIdex" key="CurrentIdex"/>
+          <key-binding alias="OrderBy" key="OrderBy"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in2" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="target" x="2" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+          <config-property key="DefaultPageSize" value="10"/>
+          <key-binding alias="ImportedIMAreas" key="Objects"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 100 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="CurrentIdex" key="Start"/>
+          <key-binding alias="PagingResult" key="PagingModel"/>
+          <key-binding alias="ImportedIMAreas.length" key="ObjectsCount"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/imported_areas"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_7">
+    <segment>
+      <node>
+        <text-node>
+          <description>Imports an IM Area to DW as a Content Asset.</description>
+        </text-node>
+        <node-display x="8" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_8">
+    <segment>
+      <node>
+        <text-node>
+          <description>Delete Already Imported IM Areas.</description>
+        </text-node>
+        <node-display x="10" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ImportAreas">
+    <segment>
+      <node>
+        <start-node name="ImportAreas" secure="false"/>
+        <node-display x="8" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.selectedAreas.stringValue" key="From_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="SelectedAreas" key="To_0"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateIMAreaImportXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="HttpParameterMap" key="HttpParameterMap"/>
+          <key-binding alias="SelectedAreas" key="selectedAreas"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'MERGE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="AreasImported" key="To_0"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="AreasImported" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/import_area_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="DeleteImportedIMAreas">
+    <segment>
+      <node>
+        <start-node name="DeleteImportedIMAreas" secure="false"/>
+        <node-display x="10" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.assetids.stringValue" key="From_0"/>
+          <key-binding alias="assetids" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="'amp_modules_im'" key="From_1"/>
+          <key-binding alias="ParentFolderId" key="To_1"/>
+          <key-binding alias="CurrentHttpParameterMap.associatedgroupids.stringValue" key="From_2"/>
+          <key-binding alias="associatedgroupids" key="To_2"/>
+          <key-binding alias="'amp_modules_imgroup'" key="From_3"/>
+          <key-binding alias="IMGroupFolderId" key="To_3"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateContentAssetsDeteleXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="assetids" key="assetids"/>
+          <key-binding alias="ParentFolderId" key="parentFolderId"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'DELETE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b6.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="associatedgroupids.length == 0" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b5" source-connector="yes">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="-1" y="1"/>
+              <bend-point relative-to="target" x="-1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateContentAssetsDeteleXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedGroupsContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="associatedgroupids" key="assetids"/>
+          <key-binding alias="IMGroupFolderId" key="parentFolderId"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b6" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b7.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedGroupsContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b7" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b8.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedGroupsContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'DELETE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b8" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="AssetsDelete" key="To_0"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="2"/>
+            </node>
+            <transition target-connector="in3" target-path="../+2">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="AssetsDelete" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/delete_assets_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_11">
+    <segment>
+      <node>
+        <text-node>
+          <description>Imports an IM Areas Group to DW as a Content Asset.</description>
+        </text-node>
+        <node-display x="12" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_12">
+    <segment>
+      <node>
+        <text-node>
+          <description>Display Grouped IM Areas.</description>
+        </text-node>
+        <node-display x="14" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GroupImportedAreas">
+    <segment>
+      <node>
+        <start-node name="GroupImportedAreas" secure="false"/>
+        <node-display x="12" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.assetids.stringValue" key="From_0"/>
+          <key-binding alias="assetids" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="CurrentHttpParameterMap.groupName.stringValue" key="From_1"/>
+          <key-binding alias="groupName" key="To_1"/>
+          <key-binding alias="CurrentHttpParameterMap.groupDescription.stringValue" key="From_2"/>
+          <key-binding alias="groupDescription" key="To_2"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateIMAreasGroupImportXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="areaids" key="areaids"/>
+          <key-binding alias="assetids" key="assetids"/>
+          <key-binding alias="groupName" key="groupName"/>
+          <key-binding alias="groupDescription" key="groupDescription"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'MERGE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="AreasGroupImported" key="To_0"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="AreasGroupImported" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/import_areas_group_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="GetGroupedAreas">
+    <segment>
+      <node>
+        <start-node name="GetGroupedAreas" secure="false"/>
+        <node-display x="14" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.orderby.stringValue" key="From_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="OrderBy" key="To_0"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SetActiveTabsIM.ds"/>
+          <key-binding alias="CurrentHttpParameterMap" key="CurrentHttpParameterMap"/>
+          <key-binding alias="ActiveTabs" key="ActiveTabs"/>
+          <key-binding alias="PageTabs" key="PageTabs"/>
+          <key-binding alias="ActiveTab" key="ActiveTab"/>
+          <key-binding alias="PageContext" key="PageContext"/>
+          <key-binding alias="PageDecorator" key="PageDecorator"/>
+          <key-binding alias="AbsPageURL" key="AbsPageURL"/>
+          <key-binding alias="'grouped_streams'" key="activeTab"/>
+          <key-binding alias="SelectedAreaIDs" key="SelectedAreaIDs"/>
+          <key-binding alias="OrderBy" key="OrderBy"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadGroupedIMAreas.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ImportedIMAreas" key="importedIMAreas"/>
+          <key-binding alias="ImportedIMAreas" key="ImportedIMAreas"/>
+          <key-binding alias="CurrentHttpParameterMap.q.stringValue" key="SearchPhrase"/>
+          <key-binding alias="SelectedAreaIDs" key="SelectedAreaIDs"/>
+          <key-binding alias="ImportedSelectedIMAreas" key="ImportedSelectedIMAreas"/>
+          <key-binding alias="GroupedIMAreas" key="GroupedIMAreas"/>
+          <key-binding alias="OrderBy" key="OrderBy"/>
+          <key-binding alias="ErrorMsg" key="ErrorMsg"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in2" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="target" x="2" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Paging" pipelet-set-identifier="bc_api">
+          <config-property key="DefaultPageSize" value="10"/>
+          <key-binding alias="GroupedIMAreas" key="Objects"/>
+          <key-binding alias="CurrentHttpParameterMap.sz.getIntValue(10) &lt;= 100 ? CurrentHttpParameterMap.sz.intValue : null" key="PageSize"/>
+          <key-binding alias="CurrentHttpParameterMap.start.intValue" key="Start"/>
+          <key-binding alias="PagingResult" key="PagingModel"/>
+          <key-binding alias="GroupedIMAreas.length" key="ObjectsCount"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/grouped_areas"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_15">
+    <segment>
+      <node>
+        <text-node>
+          <description>Delete Grouped IM Areas.</description>
+        </text-node>
+        <node-display x="16" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="DeleteGroupedIMAreas">
+    <segment>
+      <node>
+        <start-node name="DeleteGroupedIMAreas" secure="false"/>
+        <node-display x="16" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentHttpParameterMap.assetids.stringValue" key="From_0"/>
+          <key-binding alias="assetids" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+          <key-binding alias="'amp_modules_imgroup'" key="From_1"/>
+          <key-binding alias="ParentFolderId" key="To_1"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateContentAssetsDeteleXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="assetids" key="assetids"/>
+          <key-binding alias="ParentFolderId" key="parentFolderId"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'DELETE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="false" key="From_0"/>
+                <key-binding alias="AssetsDelete" key="To_0"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="true" key="From_0"/>
+          <key-binding alias="AssetsDelete" key="To_0"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="bm/im/delete_assets_json"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

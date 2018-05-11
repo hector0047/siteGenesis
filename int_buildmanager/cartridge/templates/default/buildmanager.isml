@@ -1,0 +1,165 @@
+<!--- TEMPLATENAME: buildmanager.isml --->
+<iscontent type="text/html" charset="UTF-8"/>
+<isinclude template="util/modules"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Prevail Build Manager</title>
+  <link href="${URLUtils.staticURL('/css/default.css')}" type="text/css" rel="stylesheet" />
+  <link href="${URLUtils.staticURL('/themes/demandwarestore/css/demandwarestore.css')}" type="text/css" rel="stylesheet" title="Demandware Store" />
+  
+  <style type="text/css">
+    body {
+      font-size:12px;
+      padding:5px;
+    }
+    
+    h1 {
+      font-size:15px;
+    }
+    
+    a {
+      font-size:12px;
+     }
+  </style>
+  <script type="text/javascript">
+
+    function validate()
+    {
+		var f = document.forms['buildmanager'];
+		
+		if (f.buildreason.value.length < 20)
+		{
+           alert("Sorry, a build without a reason won't be accepted.\n\n Please enter a reason for this new build.");
+           return false;
+		}
+		if (f.email.selectedIndex == 0)
+		{
+			alert("Please identify youself (Select your address from dropdown list).");
+			return false;
+		}
+		
+		else {
+			
+          return true;
+		}
+    }
+    var inBuild = false;
+	var build= false;
+	var count = 0;
+
+
+	function check()
+	{
+		inBuild = true;
+  		count++
+
+  		//document.getElementById('loadcheck').src = "${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'requestbuild.js')}?" + count;
+       var head= document.getElementsByTagName('head')[0];
+      var script= document.createElement('script');
+      script.type= 'text/javascript';
+      script.src= "${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'requestbuild.js')}?" + count;
+      head.appendChild(script);
+
+		/*
+      var script= document.createElement('script');
+      script.type= 'text/javascript';
+      script.src= "${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'update.js')}?" + count;
+      head.appendChild(script);
+       */
+  		
+  		//document.getElementById('monitor').src = "${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'requestbuild.txt')}";
+  		if (build == true)
+  		{
+  			window.setTimeout("check()",4000);
+  			document.getElementById("status").innerHTML = "<span style=\"color:red\">Build running....please wait.</span>";
+  	  	}
+  		else {
+           //alert("Your build request have been finished");
+           document.getElementById("status").innerHTML = "<span style=\"color:green\">Build complete.</span>";
+           document.getElementById('monitor').src = "${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'update.js')}";
+  	  	}
+	}	
+
+	function cancelBuild()
+	{
+			document.getElementById('loadcheck').src = "${URLUtils.url('Buildmanager-DeleteRequest')}" + count;
+		
+	}
+    
+  </script>
+  
+  </head>
+<body>
+ <h1><a href="${URLUtils.url('Buildmanager-Start')}">Build Manager ('SaaS' version, BETA)</a></h1>
+ 
+ Andreas Avenwedde &lt;a.avenwedde@mobizcorp.de&gt;
+ <br />
+ <br />
+ <script id="loadcheck" src="${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'requestbuild.js')}" type="text/javascript"></script>
+ You can trigger an extraordinary build bypassing the regular schedule.<br />
+ Caution: A new build would be deployed to the 'staging' instance, activated automatically.<br />
+ This may have several impacts to the Production system (depending on current project or project status).
+ <br />
+ <br />
+ 
+ 
+ 
+ 
+ <form name="buildmanager" method="post" action="${URLUtils.url('Buildmanager-Submit')}" onsubmit="return validate();">
+   Request for a new build on staging <span style="color:red">(performed immediately without check)</span><br />
+   <br />
+   <br />
+   
+   Please identify yourself:
+   <br />
+   <select name="email">
+      <option value="x">- Select -</option>
+      <option value="lgelberg@demandware.com">lgelberg@demandware.com</option>
+      <option value="gmakhija@demandware.com">gmakhija@demandware.com</option>
+   </select>
+   <br />
+   <br />
+   Please provide a reason for this build:<br />
+   <textarea name="buildreason" style="width:400px;height:200px;">
+   <isprint value="${pdict.CurrentHttpParameterMap.buildreason}">
+   </textarea>
+   <br />
+   <br />
+   <input type="submit" name="submit" value="submit">
+   <br />
+   <br />
+   <div>Status: <span id="status">- waiting -</span></div>
+   <br />
+   <br />
+   Debug Monitor:<br>
+ <iframe id="monitor" name="monitor" src="${URLUtils.staticURL(URLUtils.CONTEXT_CATALOG, null, 'requestbuild.txt')}" height="80" width="400" style="display:none"></iframe>
+ <isif condition="${pdict.CurrentHttpParameterMap.submit.value=="submit"}">
+ <div>
+   (BETA) Debug Info:
+   <br />
+   <br />
+   Log: ${pdict.ScriptLog}<br />
+   Result:<br />
+   ${pdict.Result}
+  </div>
+   <script type="text/javascript">
+   
+   document.getElementById("monitor").style.display="inline";
+   check();
+     
+   </script>
+   <a href="${URLUtils.url('Buildmanager-DeleteRequest')}" target="monitor">Delete Queue</a>
+ </isif>
+ <isif condition="${pdict.Mode.value=="deleteRequest"}">
+   ${pdict.Result}
+ </isif>
+ <isif condition="${pdict.Mode.value=="saveUpdate"}">
+   Save update:
+   ${pdict.Result}
+ </isif>
+
+ </form>
+</body>
+</head>
+</html>

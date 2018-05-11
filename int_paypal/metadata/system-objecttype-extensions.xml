@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+
+    <type-extension type-id="OrderAddress">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="paypalAddressStatus">
+                <display-name xml:lang="x-default">PayPal Address Status</display-name>
+                <description xml:lang="x-default">valid values are none, confirmed, unconfirmed</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Standard">
+                <display-name xml:lang="x-default">Standard Address</display-name>
+                <attribute system="true" attribute-id="title"/>
+                <attribute system="true" attribute-id="companyName"/>
+                <attribute system="true" attribute-id="salutation"/>
+                <attribute system="true" attribute-id="firstName"/>
+                <attribute system="true" attribute-id="secondName"/>
+                <attribute system="true" attribute-id="lastName"/>
+                <attribute system="true" attribute-id="suffix"/>
+                <attribute system="true" attribute-id="address1"/>
+                <attribute system="true" attribute-id="address2"/>
+                <attribute system="true" attribute-id="suite"/>
+                <attribute system="true" attribute-id="postBox"/>
+                <attribute system="true" attribute-id="city"/>
+                <attribute system="true" attribute-id="postalCode"/>
+                <attribute system="true" attribute-id="countryCode"/>
+                <attribute system="true" attribute-id="stateCode"/>
+                <attribute system="true" attribute-id="phone"/>
+                <attribute attribute-id="paypalAddressStatus"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="OrderPaymentInstrument">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="paypalOrigination">
+                <display-name xml:lang="x-default">PayPal Origination</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalPayerID">
+                <display-name xml:lang="x-default">PayPal Payer ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalPayerStatus">
+                <display-name xml:lang="x-default">PayPal Payer Status</display-name>
+                <description xml:lang="x-default">valid values are verified or unverified</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalPaymentAction">
+                <display-name xml:lang="x-default">PayPal Payment Action</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalToken">
+                <display-name xml:lang="x-default">PayPal Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalToken">
+                <display-name xml:lang="x-default">PayPal Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="paypalTransactionID">
+                <display-name xml:lang="x-default">PayPal Transaction ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+			 <attribute-definition attribute-id="paypalAuthID">
+                <display-name xml:lang="x-default">PayPal Auth ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="PayPal">
+                <display-name xml:lang="x-default">PayPal</display-name>
+                <attribute attribute-id="paypalTransactionID"/>
+				<attribute attribute-id="paypalAuthID"/>
+                <attribute attribute-id="paypalPayerID"/>
+                <attribute attribute-id="paypalPayerStatus"/>
+                <attribute attribute-id="paypalPaymentAction"/>
+                <attribute attribute-id="paypalToken"/>
+                <attribute attribute-id="paypalOrigination"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+		
+<type-extension type-id="Profile">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="PayPalBAID">
+                <display-name xml:lang="x-default">PayPal BAID assigned after Reference Transaction</display-name>
+                <description xml:lang="x-default">Using this ID simplifies the checkout process using reference transactions</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="PayPal">
+                <display-name xml:lang="x-default">PayPal Attributes</display-name>
+                <attribute attribute-id="PayPalBAID"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="EnableBML">
+                <display-name xml:lang="x-default">Enable BML As Payment</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnablePayPal">
+                <display-name xml:lang="x-default">Enable PayPal As Payment</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalAPIPassword">
+                <display-name xml:lang="x-default">PayPal API Password</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalAPIUsername">
+                <display-name xml:lang="x-default">PayPal API Username</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalButtonSourceBilling">
+                <display-name xml:lang="x-default">PayPal Button Source Billing</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>PrecisionDesign_SP_MO</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalButtonSourceCart">
+                <display-name xml:lang="x-default">PayPal Button Source Cart</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>PrecisionDesign_SP_MO</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalButtonSourceDirectPayment">
+                <display-name xml:lang="x-default">PayPal Button Source Direct Payment</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>PrecisionDesign_SP_MO</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalButtonSourceReview">
+                <display-name xml:lang="x-default">PayPal Button Source Review</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>PrecisionDesign_SP_MO</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalCppHeaderImage">
+                <display-name xml:lang="x-default">PayPal Cpp Header Image</display-name>
+                <description xml:lang="x-default">Set logo image URL in static mappings as **/logo.jpg s,,,,,/ images/logo.jpg , PayPal limits the logo URL to 127 characters.&#13;
+Final URL should look like - http://&lt;env&gt;.web.&lt;client&gt;.demandware.net/&lt;logo&gt;.gif</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalCppHeaderbackColor">
+                <display-name xml:lang="x-default">PayPal Cpp Headerback Color</display-name>
+                <description xml:lang="x-default">Hex code for the header back color on PayPal pages</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalCppHeaderborderColor">
+                <display-name xml:lang="x-default">PayPal Cpp Headerborder Color</display-name>
+                <description xml:lang="x-default">Hex code for the header border color on PayPal pages</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalCppPayflowColor">
+                <display-name xml:lang="x-default">PayPal Cpp Payflow Color</display-name>
+                <description xml:lang="x-default">Hex code for the payflow color on PayPal pages</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalGetBillingAddress">
+                <display-name xml:lang="x-default">PayPal Get Billing Address</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalIncludeRefTran">
+                <display-name xml:lang="x-default">Include Reference Transactions</display-name>
+                <description xml:lang="x-default">This flag indicates if Reference Transactions should be included as part of PayPal login and checkout</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalMobilTransactionCommit">
+                <display-name xml:lang="x-default">PayPal Mobile User Action Commit</display-name>
+                <description xml:lang="x-default">Commit Mobile transaction on PayPal Side</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalPaymentAction">
+                <display-name xml:lang="x-default">PayPal Payment Action</display-name>
+                <description xml:lang="x-default">valid values, Authorization, Sale, Order</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>Authorization</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalRedirectURL">
+                <display-name xml:lang="x-default">PayPal Redirect URL</display-name>
+                <description xml:lang="x-default">Redirect URL to Sandbox or Live depends on the environment</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;token=</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalRefTranDescriptionName">
+                <display-name xml:lang="x-default">PayPal Description Name for Reference Transaction</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="PayPalSignature">
+                <display-name xml:lang="x-default">PayPal Signature</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="PriceBook">
+                <display-name xml:lang="x-default">Price Book Settings</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+            </attribute-group>
+            <attribute-group group-id="PayPal">
+                <display-name xml:lang="x-default">PayPal Configs</display-name>
+                <attribute attribute-id="EnablePayPal"/>
+                <attribute attribute-id="EnableBML"/>
+                <attribute attribute-id="PayPalAPIUsername"/>
+                <attribute attribute-id="PayPalAPIPassword"/>
+                <attribute attribute-id="PayPalSignature"/>
+                <attribute attribute-id="PayPalPaymentAction"/>
+                <attribute attribute-id="PayPalRedirectURL"/>
+                <attribute attribute-id="PayPalMobilTransactionCommit"/>
+                <attribute attribute-id="PayPalGetBillingAddress"/>
+                <attribute attribute-id="PayPalCppHeaderbackColor"/>
+                <attribute attribute-id="PayPalCppHeaderborderColor"/>
+                <attribute attribute-id="PayPalCppPayflowColor"/>
+                <attribute attribute-id="PayPalCppHeaderImage"/>
+                <attribute attribute-id="PayPalButtonSourceReview"/>
+                <attribute attribute-id="PayPalButtonSourceBilling"/>
+                <attribute attribute-id="PayPalButtonSourceCart"/>
+                <attribute attribute-id="PayPalButtonSourceDirectPayment"/>
+            </attribute-group>
+            <attribute-group group-id="HDI">
+                <display-name xml:lang="x-default">HDI Configurations</display-name>
+                <attribute attribute-id="buildNotificationEmailList"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+
+
+</metadata>

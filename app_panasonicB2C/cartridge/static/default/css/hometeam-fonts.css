@@ -1,0 +1,10 @@
+@font-face {
+  font-family: 'Arial Rounded MT Bold';
+  src: url('../fonts/ArialRoundedMTBoldRegular.eot'); /* IE9 Compat Modes */
+  src: url('../fonts/ArialRoundedMTBoldRegular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/ArialRoundedMTBoldRegular.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/ArialRoundedMTBoldRegular.ttf')  format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/ArialRoundedMTBoldRegular.svg#21a05f177bbba8e1aa4912b744621a32') format('svg'); /* Legacy iOS */
+  font-style:   normal;
+  font-weight:  400;
+}

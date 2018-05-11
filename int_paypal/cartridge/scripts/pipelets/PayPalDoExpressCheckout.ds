@@ -1,0 +1,204 @@
+/**********************************************************************************************************************************************************************************************
+*
+* TITLE:  
+*
+*	PayPalDoExpressCheckout.ds
+*
+* DESCRIPTION:
+*
+*	Sets up a request object and sends it over to PayPal for verification. A response object is then returned and the code handles the result so the user can be directed to the proper page
+*
+* 	We have set billing and shipping informations and have checked all, so we can submit
+* 	the sale. This script calls Paypal with DoExpressCheckoutRequest to start the payment
+* 	transaction.
+*
+* INPUT PARAMETERS:
+*
+*	@input Order : dw.order.Basket
+* 	@input OrderNo : String The created OrderNo.
+* 	@input PaymentProcessor : dw.order.PaymentProcessor The needed paymentprocessor.
+*	@input ButtonSource : String Flow - PayPal payment source
+* 	@input GiroRedirectURL : String, redirect url to PayPal
+*
+* OUPUT PARAMETERS:
+*
+* 	@output Error : Object The Error object
+* 	@output Location : String The redirect location.
+* 	@output PaypalError : String If a Paypal call fails or doesn't return Success
+* 	@output WSResponse : Object
+* 	@output ReturnCode : Number The returned token from Paypal
+* 	@output GiroRedirect : String Giro redirect from PayPal
+* 	@output GiroLocation : String The redirect location.
+* 	@output BAID : String The returned token from Paypal Billing Agreement
+* 
+**********************************************************************************************************************************************************************************************/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+
+importScript("int_paypal:cart/Credentials.ds");
+
+var sf = require("bc_serviceframework");
+require("../services/PayPalDoExpressCheckoutService");
+
+function execute(pdict : PipelineDictionary) {
+
+	try{
+		
+		if( pdict.Order == null )
+		{
+			Logger.error("order is null : script file DoExpressCheckout.ds");
+			return PIPELET_ERROR;
+		}
+		
+		var PayPalDoExpressCheckoutService = sf.getService('PayPalExpress');
+		var service = new PayPalDoExpressCheckoutService();
+		
+		// Prepare DoExpressCheckoutInfo Object
+		var doExpressCheckoutInfo : Object	=	new Object();
+		
+		doExpressCheckoutInfo.order				=	pdict.Order;
+		doExpressCheckoutInfo.orderNo			=	pdict.OrderNo;
+		doExpressCheckoutInfo.paymentProcessor	=	pdict.PaymentProcessor;
+		doExpressCheckoutInfo.buttonSource		=	pdict.ButtonSource;
+		doExpressCheckoutInfo.giroRedirectURL	=	pdict.GiroRedirectURL;
+		
+		service.call(doExpressCheckoutInfo);
+		
+		var response  : Object = service.object.response.res;
+		var paypalExpress : WebReference = service.webReference;
+			
+		var order : Order = pdict.Order;
+		
+		var paymentProcessor = pdict.PaymentProcessor;
+		var paymentInstruments : Collection = order.paymentInstruments;
+		var paymentInstrument : OrderPaymentInstrument = null;
+		paymentInstrument = paymentInstruments.iterator().next();
+		
+		Logger.debug("after response call");
+ 		pdict.WSResponse = response;
+		Logger.debug('Ack  -- ' + response.getAck().toString() );
+		
+		if( response.getAck() != null && ( response.getAck().equals(paypalExpress.AckCodeType.Success) || response.getAck().equals(paypalExpress.AckCodeType.SuccessWithWarning))) 
+		{
+			var details = response.getDoExpressCheckoutPaymentResponseDetails();
+			var mytoken : String = details.getToken();
+			var paymentInfo = details.getPaymentInfo()[0];
+			var transactionID = paymentInfo.getTransactionID();
+			pdict.ReturnCode = 1; 
+			pdict.GiroRedirect = details.redirectRequired;
+			
+			if (pdict.GiroRedirectURL != null)
+			{
+				pdict.GiroLocation = pdict.GiroRedirectURL.toString() + mytoken;
+			}
+			
+			pdict.BAID = details.billingAgreementID;
+			
+			Logger.debug( 'Writing Transaction ID to DB - ' + transactionID);
+			paymentInstrument.paymentTransaction.transactionID = transactionID;
+			paymentInstrument.paymentTransaction.amount = order.getTotalGrossPrice();
+			paymentInstrument.getPaymentTransaction().setPaymentProcessor( paymentProcessor );
+			paymentInstrument.custom.paypalTransactionID = transactionID;
+				
+			Logger.error('Token: ' + response.doExpressCheckoutPaymentResponseDetails.token );
+			/*
+			//Do Capture Enhancement
+			if (paymentAction != null && paymentAction == "Order") {
+				
+				var request1 = new paypalExpress.DoAuthorizationRequestType();
+		 		// never forget the version
+		 		var amount = new paypalExpress.BasicAmountType( paymentInstrument.paymentTransaction.amount.getValue() ); //order.getTotalGrossPrice().getValue() );
+	        	amount.currencyID = currencyID;
+		 		
+		 		request1.setVersion( "104.0" );
+		 		request1.transactionID = transactionID;
+		 		request1.setAmount( amount );
+		 		
+		 		var req = new paypalExpress.DoAuthorizationReq();
+		 		req.setDoAuthorizationRequest( request1 );
+		 		
+		 		Logger.debug( 'Before Paypal Capture Submit');
+		 		var resp = ppxService.doAuthorization( req );
+		 		Logger.debug( 'After Paypal Capture Submit');
+	 		
+				if( resp.getAck() != null && ( resp.getAck().equals(paypalExpress.AckCodeType.Success) || resp.getAck().equals(paypalExpress.AckCodeType.SuccessWithWarning ))) {
+      	  
+					//If you need to save the authID to the order, use the following and create a custom attribute on the OrderPaymentInstrument
+					//paymentInstrument.custom.paypalTransactionID = transactionID;
+					
+					//may need a flag to autocapture, for now it's commented out
+					/*var request1 = new paypalExpress.DoCaptureRequestType();
+					// never forget the version
+					var amount = new paypalExpress.BasicAmountType( paymentInstrument.paymentTransaction.amount.getValue() ); //order.getTotalGrossPrice().getValue() );
+					amount.currencyID = currencyID;
+					
+					request1.setVersion( "104.0" );
+					request1.authorizationID = transactionID;
+					request1.setAmount( amount );
+					request1.setCompleteType(paypalExpress.CompleteCodeType.Complete);
+					request1.setInvoiceID( orderNo );
+					
+					var req = new paypalExpress.DoCaptureReq();
+					req.setDoCaptureRequest( request1 );
+					
+					Logger.debug( 'Before Paypal Capture Submit');
+					var resp = ppxService.doCapture( req );
+					Logger.debug( 'After Paypal Capture Submit');
+				
+				} else {
+					var requestV = new paypalExpress.DoVoidRequestType();
+					requestV.authorizationID = resp.transactionID;
+					var voidresp = new paypalExpress.DoVoidReq();
+					voidresp.setDoVoidRequest(requestV);
+				}
+	 		
+			}*/
+			
+		} 
+		else 
+		{
+			//Uncomment the following if you need to debug
+			/*
+				Logger.debug('looping thru response object  -- ');
+				for (i in response)
+				{
+	  				Logger.debug("object has property -- " + i);
+				}
+				Logger.debug('looping thru error object in response object  -- ');
+				for (j in response.getErrors() )
+				{
+	  				Logger.debug("object has property ------- " + j);
+				}
+			*/
+			Logger.error('Corelation ID  --' + response.correlationID );
+			Logger.error('Error Message Short Message  -- ' + response.getErrors()[0].getShortMessage() );
+			Logger.error('Error Message Long Message  -- ' + response.getErrors()[0].getLongMessage() );
+			Logger.error('Error Message ErrorCode  -- ' + response.getErrors()[0].getErrorCode() );
+			
+			pdict.ReturnCode = new Number(response.getErrors()[0].getErrorCode().toString());
+			pdict.PaypalError = response.getErrors()[0].getLongMessage() + " (" + response.getErrors()[0].getErrorCode() + ")" + "-(" + response.correlationID + ")";
+			
+			return PIPELET_ERROR;
+		}
+		
+	}catch(e){
+		//uncomment var error for error debugging
+		//var error = e;
+		
+		if(e instanceof Fault)
+		{
+			Logger.error("Actor " + e.faultActor+" caused fault '"+e.faultCode +"' ("+e.faultString+" - "+e.faultDetail+")");
+		}
+		else
+		{
+			Logger.error(e.toString());
+		}
+		pdict.Error = e;
+		pdict.PaypalError = e.toString();
+		return PIPELET_ERROR;
+	}	
+   	return PIPELET_NEXT;
+}

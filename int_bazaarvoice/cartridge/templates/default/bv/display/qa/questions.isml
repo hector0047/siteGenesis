@@ -1,0 +1,40 @@
+<!--- TEMPLATENAME: answers.isml 
+Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
+ ---> 
+<isscript>
+     importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+     
+     var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA_C2013");
+     
+     // Determine if we are rendering on a product or category page.
+     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+     
+    // Obtain SmartSEO content      
+    importScript("int_bazaarvoice:lib/libCloudSEO.ds");
+    var CSEO = null;
+    if(!empty(pdict.CSEO_QA_PID)) {
+    	CSEO = getBVSEO({"product_id" : pdict.CSEO_QA_PID});
+    }
+</isscript>
+
+<isif condition="${qaEnabled}">
+    <!-- Questions -->
+    <div id="BVQAContainer">
+    	<isif condition="${CSEO != null}">
+	    	<isprint value="${CSEO.renderQuestionContent()}" encoding="off" />
+	    </isif>
+    </div>
+    
+    <isif condition="${bvSubject.bvSubjectType == 'category'}">
+	    <script type="text/javascript" language="javascript">
+	    	var qaConfigData = {};
+	    	qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+		    qaConfigData.categoryId = "${bvSubject.bvExternalSubjectID}";
+	        
+	        jQuery(document).ready(function(){
+		    	$BV.ui("qa", "show_questions", qaConfigData);
+		    });
+	    </script>
+    </isif>       
+    <!-- End Questions -->
+</isif>

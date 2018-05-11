@@ -1,0 +1,80 @@
+importPackage(dw.rpc);
+importPackage(dw.order);
+importPackage(dw.util);
+
+importScript("int_paypal:cart/Credentials.ds");
+
+var sf = require("bc_serviceframework");
+var PayPalGetExpressCheckout = require("../objects/PayPalGetExpressCheckout");
+ 
+function getPayPalGetExpressCheckoutService() {
+	return PayPalGetExpressCheckoutService;
+}
+
+/**
+ * @class
+ */
+var PayPalGetExpressCheckoutService = sf.getService('AbstractSoapService').extend(
+/** @lends PayPalGetExpressCheckoutService.prototype */ 
+{
+	/**
+	 * @constructs PayPalGetExpressCheckoutService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("PayPalExpress" , new PayPalGetExpressCheckout());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.PayPalSvcDev;	
+		if (dw.system.System.getInstanceType() == dw.system.System.PRODUCTION_SYSTEM) {
+			this.webReference = webreferences.PayPalSvc;
+		}
+				
+		this.serviceClient = this.webReference.getService("PayPalAPIInterfaceService", "PayPalAPIAA");
+	},
+
+	createRequest: function (getExpressCheckoutInfo) {
+		 
+		var PAYPAL_PAYMENT : String = 'PayPal';
+		var basket : Basket = getExpressCheckoutInfo.basket;
+		var paypalToken : String = getExpressCheckoutInfo.paypalToken;
+		var paymentProcessor : PaymentProcessor = getExpressCheckoutInfo.paymentProcessor;
+		var paypalExpress : Stub=this.webReference;
+		
+		// security header
+		SetCredentials( paymentProcessor, this.serviceClient );
+
+		var details = new paypalExpress.GetExpressCheckoutDetailsRequestType();
+		details.setVersion( "104.0" );
+		details.setToken( paypalToken );
+
+		var req = new paypalExpress.GetExpressCheckoutDetailsReq();
+		req.setGetExpressCheckoutDetailsRequest( details );
+		
+		return req;
+			
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.getExpressCheckoutDetails( this.request );
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('PayPalExpress',PayPalGetExpressCheckoutService);

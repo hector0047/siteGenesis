@@ -1,0 +1,115 @@
+<isscript>
+		  var firmwareInstructions : dw.util.LinkedHashSet = new dw.util.LinkedHashSet();
+		  for each(var url  in pdict.FirmwareSupport)
+		  {
+		  	if((!empty(url.toString().split('$')[6].trim())))
+		  	{
+		  		firmwareInstructions.add(url.toString().split('$')[6].trim());
+		  	}
+		  }
+		
+</isscript>
+
+<div class="product-firmdriver-holder-support">
+	<isif condition="${!empty(pdict.Firmware) || !empty(pdict.Driver) || !empty(pdict.software)}" >
+		<span class="block-content-head"><isprint value="${Resource.msg('product.firmdriversupport','product',null)}"/></span>
+	</isif>
+	<isif condition="${(!empty(pdict.Firmware) && pdict.Firmware != 'null') && pdict.Firmware.size() > 0}">	
+		<span class="block-content-subhead"><isprint value="${Resource.msg('product.firmware','product',null)}"/></span>
+		<ul class="block-content-ul firmwareproducts">
+			<isloop items="${pdict.FirmwareSupport}" var="url" status="loopstate">
+				<li class="block-content-li">
+					<div class="headblock">	
+						<a href="${url.toString().split('$')[1]}" target="_blank">
+						<isset name="ext" value="${url.toString().split('$')[1].toString().toLowerCase().match('\.[0-9a-zA-Z]+$')[0].split('.')[1]}" scope="page"/>
+							<div class="headicon ${ext+'-icon'}">
+								<isprint value="${ext.toUpperCase()}" />
+							</div>
+							<div class="block-info-holder"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></div>	
+						</a>
+					</div>
+					<div class="actionicon"><a href="${url.toString().split('$')[1]}" target="_blank"><img src="${URLUtils.absStatic('images/downloadButton.png')}"></a></div>
+				</li>
+				<li class="block-content-li">
+					<isif condition="${(typeof firmwareInstructions !== 'undefined') && (firmwareInstructions.size() > 0)}">
+						<div class="headblock">	
+							<a href="${url.toString().split('$')[6]}" target="_blank">
+							<isset name="ext" value="${url.toString().split('$')[6].toString().toLowerCase().match('\.[0-9a-zA-Z]+$')[0].split('.')[1]}" scope="page"/>
+								<div class="headicon ${ext+'-icon'}">
+									<isprint value="${ext.toUpperCase()}" />
+								</div>
+								<div class="block-info-holder"><isprint value="${Resource.msg('product.firmware.installinstructions','product',null)}" encoding="off"/></div>	
+							</a>
+						</div>
+						<div class="actionicon"><a href="${url.toString().split('$')[6]}" target="_blank"><img src="${URLUtils.absStatic('images/downloadButton.png')}"></a></div>
+					</isif>
+				</li>
+				<isif condition="${(!empty(url.toString().split('$')[2].trim())) || (!empty(url.toString().split('$')[3].trim())) || (!empty(url.toString().split('$')[4].trim())) || (!empty(url.toString().split('$')[5]).trim())}">
+					<li class="block-content-li">
+						<div class="headblock">	
+							<div class="description">
+								<!-- Code for firmware description -->
+								<ul>
+									<li>
+										<span class="content-head">${Resource.msg('product.version','product',null)}<i>:</i></span>
+										<span class="content-information"><isprint value="${url.toString().split('$')[2].trim()}" encoding="off"/></span>
+									</li>
+									<li>
+										<span class="content-head">${Resource.msg('product.isssue','product',null)}<i>:</i></span>
+										<span class="content-information"><isprint value="${url.toString().split('$')[3].trim()}" encoding="off"/></span>
+									</li>
+									<li>
+										<span class="content-head">${Resource.msg('product.release','product',null)}<i>:</i></span>
+										<span class="content-information"><isprint value="${url.toString().split('$')[4].trim()}" encoding="off"/></span>
+									</li>
+									<li>
+										<span class="content-head">${Resource.msg('product.os','product',null)}<i>:</i></span>
+										<span class="content-information"><isprint value="${url.toString().split('$')[5].trim()}" encoding="off"/></span>
+									</li>
+									
+								</ul>
+							</div>
+						</div>
+					</li>
+				</isif>
+			</isloop>
+		</ul>
+	</isif>
+	<isif condition="${(!empty(pdict.Driver) && pdict.Driver != 'null') && pdict.Driver.size() > 0}">
+		<span class="block-content-subhead"><isprint value="${Resource.msg('product.drivers','product',null)}"/></span>
+		<ul class="block-content-ul driverproducts">
+			<isloop items="${pdict.Driver}" var="url" status="loopstate">
+				<li class="block-content-li">
+					<div class="headblock">	
+						<a href="${url.toString().split('$')[1]}" target="_blank">
+						<isset name="ext" value="${url.toString().split('$')[1].toString().toLowerCase().match('\.[0-9a-zA-Z]+$')[0].split('.')[1]}" scope="page"/>
+							<div class="headicon ${ext+'-icon'}">
+								<isprint value="${ext.toUpperCase()}" />
+							</div>
+							<div class="block-info-holder"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></div>	
+						</a>
+					</div>
+				</li>
+			</isloop>
+		</ul>
+	</isif>
+	
+	<isif condition="${(!empty(pdict.software) && pdict.software != 'null') && pdict.software.size() > 0}">
+		<span class="block-content-subhead"><isprint value="${Resource.msg('product.othersoftware','product',null)}"/></span>
+		<ul class="block-content-ul softwareproducts">
+			<isloop items="${pdict.software}" var="url" status="loopstate">
+				<li class="block-content-li">
+					<div class="headblock">	
+						<a href="${url.toString().split('$')[1]}" target="_blank">
+						<isset name="ext" value="${url.toString().split('$')[1].toString().toLowerCase().match('\.[0-9a-zA-Z]+$')[0].split('.')[1]}" scope="page"/>
+							<div class="headicon ${ext+'-icon'}">
+								<isprint value="${ext.toUpperCase()}" />
+							</div>
+							<div class="block-info-holder"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></div>	
+						</a>
+					</div>
+				</li>
+			</isloop>
+		</ul>
+	</isif>
+</div>	

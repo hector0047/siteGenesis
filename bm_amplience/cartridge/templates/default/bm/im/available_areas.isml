@@ -1,0 +1,121 @@
+<!--- TEMPLATENAME: available_areas.isml --->
+
+<isinclude template="util/modules"/>
+
+<isdecorate template="bm/table_decorator">
+<isif condition="${empty(pdict.ErrorMsg)}">
+	<div id="main-container" data-page-context="im">
+
+		<table class="available-streams-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0">
+			<thead>
+				<tr>
+					<th class="table_header area-select center w e s n"><a href="#" class="select-all-available-areas"><isprint value="${Resource.msg('ugc.viewerstable.selectall', 'locale', null)}" /></a></th>
+					<th class="table_header stream-preview e s n"><isprint value="${Resource.msg('ugc.itemstable.preview', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.publishingarea', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('ugc.itemstable.publisheddate', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.associatedmodule', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.width', 'locale', null)}" /></th>
+					<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.height', 'locale', null)}" /></th>
+				</tr>
+			</thead>	
+			<tbody>
+				<isloop items="${pdict.PagingResult.pageElements}" var="item" status="loopstate">		
+					<isscript>
+						var id = item.id;
+						
+						var name = item.name;
+						
+						var lastPublished = new Date(item.lastPublished).toUTCString();	
+									
+						var associatedModule = !empty(item.lastPublishedModule) ? item.lastPublishedModule.name : '';
+						
+						var width = (!empty(item.lastPublishedModule) && !empty(item.lastPublishedModule.width))
+											?  item.lastPublishedModule.width : '';
+						
+						var height = (!empty(item.lastPublishedModule) && !empty(item.lastPublishedModule.height))
+											?  item.lastPublishedModule.height : '';
+						
+						var backgroundColor = (!empty(item.lastPublishedModule) && !empty(item.lastPublishedModule.backgroundColor))
+											?  item.lastPublishedModule.backgroundColor : '';
+						
+						var thumbURL = !empty(item.thumbnail) ? decodeURI(item.thumbnail) + '?w=220' : '';
+					</isscript>
+					<tr>
+						<td class="table_detail w e s middle center">
+							<input type="checkbox" value="${id}" name="area-id"
+								data-name="${name}"
+								data-width="${width}"
+								data-height="${height}"
+								data-associatedmodule="${associatedModule}"
+								data-backgroundcolor="${backgroundColor}" />
+						</td>
+						<td class="table_detail e s middle thumb-container">
+							<isif condition="${!empty(thumbURL)}">
+								<img src="${thumbURL}" width="58" height="58" class="thumb-img" />
+							</isif>
+						</td>
+						<td class="table_detail e s middle">
+							<p>${name}</p>
+							<p>${Resource.msg('im.itemstable.guid', 'locale', null)}: ${id}</p>
+						</td>
+						<td class="table_detail e s middle">
+							${lastPublished}
+						</td>
+						<td class="table_detail e s middle">
+							${associatedModule}
+						</td>
+						<td class="table_detail e s middle">
+							${width}
+						</td>
+						<td class="table_detail e s middle">
+							${height}
+						</td>
+					</tr>
+				</isloop>
+				
+				<isif condition="${empty(pdict.PagingResult.pageElements)}">
+					<tr>
+						<td colspan="7" class="empty-table-td">
+							${Resource.msg('im.notareaitems', 'locale', null)}
+						</td>
+					</tr>
+				</isif>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="7" align="left" class="w e s">
+						<button class="button import-area" disabled>${Resource.msg('ugc.itemstable.import', 'locale', null)}</button>		
+						<button class="button edit-area" disabled>${Resource.msg('ugc.itemstable.edit', 'locale', null)}</button>
+						<isscript>
+							var start = !empty(pdict.CurrentHttpParameterMap.start.stringValue) ? pdict.CurrentHttpParameterMap.start.stringValue : '';
+							var sz = !empty(pdict.CurrentHttpParameterMap.sz.stringValue) ? pdict.CurrentHttpParameterMap.sz.stringValue : '';
+						</isscript>
+						<a href="${URLUtils.url('InteractiveMerchandising-GetAvailableAreas', 'start', start, 'sz', sz)}" class="button"> 
+							${Resource.msg('ugc.itemstable.refresh', 'locale', null)}
+						</a>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+		
+		<iscomment> URL to re-execute the exact same query. </iscomment>
+		<isset name="PageSearchURL" value="${URLUtils.url('InteractiveMerchandising-GetAvailableAreas', 'q', pdict.CurrentHttpParameterMap.q.stringValue)}" scope="page" />
+
+		<div class="amp-module-pagination clearfix">
+			
+			<isitemsinfo pagingmodel="${pdict.PagingResult}"/>
+			
+			<ispagingbar pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+			
+			<isitemsperpage pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+			
+		</div>
+	</div>
+<iselse>
+
+	<div class="page-error-container">
+		<isprint value="${Resource.msg('ugc.pageerror', 'locale', null)}" />
+	</div>
+	
+</isif>
+</isdecorate>

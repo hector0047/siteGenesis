@@ -1,0 +1,459 @@
+/**
+ * Parser for amplience swatch and product images from manifest xml object
+ */
+
+importPackage( dw.system );
+
+function AmplienceParser() {
+
+	/**
+	 * Swatch images parsed data object
+	 */
+	var _swatchObject : Object = new Object();
+	
+	/**
+	 * Product images parsed data object
+	 */
+	var _images : Object = new Object();
+
+	/**
+	 * Gets already parsed product images
+	 *
+	 * @return {Object} product images
+	 */
+	this.getProductImages = function() : Object {
+
+		return _images;
+	};
+	
+	/**
+	 * Gets already parsed swatch images
+	 *
+	 * @return {Object} swatch images
+	 */
+	this.getProductGlobalSwatchImages = function() : Object {
+	
+		return _swatchObject;
+	};
+	
+	/**
+	 * Initialize swatch and product images objects
+	 *
+	 * @param {XML} manifestXmlObj - manifest XML object containing all info for swatch and product images
+	 * @param {Object} parserSettings - separator, values from image pattern (keyPreffix, keySuffix, and keyAttrs), etc.
+	 */
+	this.init = function(manifestXmlObj : XML, parserSettings : Object) {
+		
+		/**
+	     * Iterate through manifest direct child elements
+	     * and parse them depending of the type (Set, Image, etc.)
+	     */
+	    var manifestChildren : XMLList = manifestXmlObj.children();
+	    for each (var manifestChild : XML in manifestChildren) {
+	    
+	    	var localElementName = manifestChild.localName();
+	    	if ('asset'.equals(localElementName)) {
+	    		
+	    		var typeAttributeValue : String = getAttributeStringValue(manifestChild, 'type', null);
+	    		switch (typeAttributeValue) {
+	    			
+	    			case 'Set':
+	    				parseAmplienceSet(manifestChild, parserSettings);
+	    				break;
+	    			
+	    			case 'Image':
+	    				parseAmplienceImage(manifestChild, parserSettings);	    				
+	    				break;
+	    			
+	    			default:
+	    				break;
+	    		}
+	    	}	
+	    }
+	};
+	
+	/**
+	 * Parses child assets of a Set asset: Image, Video, Spin
+	 *
+	 * @param {XML} setXmlObj - xml object of an asset with type set
+	 * @param {Object} parserSettings - separator, values from image pattern (keyPreffix, keySuffix, and keyAttrs), etc.
+	 */
+	var parseAmplienceSet = function(setXmlObj : XML, parserSettings : Object) {
+		
+		var keyAttributeValue : String = getAttributeStringValue(setXmlObj, 'key', null);
+		if (keyAttributeValue == null) { 
+			return;
+		}
+	    		
+	    // get productId from key attribute
+		var productId : String = getProductID(keyAttributeValue, parserSettings);
+	    	
+		// get variation combination from key attribute
+		var variationCombination : String = getVariationCombination(keyAttributeValue, parserSettings, productId);
+
+		/**
+		 * Export Product Set
+		 */
+		var format : String = getAttributeStringValue(setXmlObj, 'format', null);
+		addProductToProductImages(parserSettings, false, productId, variationCombination, format, 'sets', keyAttributeValue);
+
+		/**
+	     * Iterate through Set's direct child elements
+	     * and parse them depending of the type (Spin, Image, or Video)
+	     */
+		var setXmlChildren : XMLList = setXmlObj.children();
+	    for each (var setXmlChild : XML in setXmlChildren) {
+	    
+	    	var localElementName = setXmlChild.localName();
+	    	if ('asset'.equals(localElementName)) {
+	    		
+	    		var typeAttributeValue : String = getAttributeStringValue(setXmlChild, 'type', null);
+	    		switch (typeAttributeValue) {
+	    			
+	    			case 'Image':
+	    				parseAmplienceImage(setXmlChild, parserSettings, productId, variationCombination);
+	    				break;
+	    				
+	    			case 'Video':
+	    				parseAmplienceVideo(setXmlChild, parserSettings, productId, variationCombination);
+	    				break;
+	    			
+	    			case 'Spin':
+	    				parseAmplienceSpin(setXmlChild, parserSettings, productId, variationCombination);
+	    				break;
+	    			
+	    			default:
+	    				break;
+	    		}
+	    	}	
+	    }
+	};
+
+	/**
+	 * Parses an Assets with type Image (including swatch images)
+	 *
+	 * @param {XML} imgXmlObj - xml object of an asset with type image
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 * @param {String} productId - the ProductID (sku) parsed from the parent Set. If it's not set, it's parsed from the key
+	 * @param {String} variationCombination - the variation combination parsed from the parent Set,. If it's not set, it's parsed from the key
+	 */
+	var parseAmplienceImage = function(imgXmlObj : XML, parserSettings : Object, productId : String, variationCombination : String) {
+	
+		var keyAttributeValue : String = getAttributeStringValue(imgXmlObj, 'key', null);
+		if (keyAttributeValue == null) { 
+			return;
+		}
+		
+	    var format : String = getAttributeStringValue(imgXmlObj, 'format', null);
+	
+	    var regEx360 : RegExp = /_360_\d{2}$/;
+	    var globalSwatchRegEx : RegExp = /_SWATCH$/;
+	    var swatchRegEx : RegExp = /_PSWATCH$/;
+	     
+	    if (regEx360.test(keyAttributeValue) || keyAttributeValue.indexOf('banner') >= 0) {
+	        return;
+	    }
+	        
+	    if ( globalSwatchRegEx.test(keyAttributeValue) ) {
+	    	
+	        var swatchKey = keyAttributeValue.replace(globalSwatchRegEx, '');
+
+	        _swatchObject[swatchKey] = {_images:{"path": keyAttributeValue,"type":format}};
+	        
+	    } else { // '_SWATCH' is NOT in key attribute
+	    	
+	    	// If productId is NOT set, the it's parsed from the key attribute
+	    	if ( empty(productId) ) {
+	    		
+	    		productId = getProductID(keyAttributeValue, parserSettings);
+	    	}
+	    	
+	    	// if Cariation Combination is NOT set, the it's parsed from the key attribute
+	    	if ( empty(variationCombination) ) {
+	    		
+	    		variationCombination = getVariationCombination(keyAttributeValue, parserSettings, productId);
+	    	}
+			
+			// check for swatch image if '_PSWATCH' is included in the key attribute
+			var hasSwatch : Boolean = swatchRegEx.test(keyAttributeValue);
+			
+			addProductToProductImages(parserSettings, hasSwatch, productId, variationCombination, format, 'images', keyAttributeValue);
+	    }
+	};
+
+	/**
+	 * Parses an Assets with type Video
+	 *
+	 * @param {XML} videoXmlObj - xml object of an asset with type video
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 * @param {String} productId - the ProductID (sku) parsed from the parent Set
+	 * @param {String} variationCombination - the variation combination parsed from the parent Set
+	 */
+	var parseAmplienceVideo = function(videoXmlObj : XML, parserSettings : Object, productId : String, variationCombination : String) {
+		
+		var keyAttributeValue : String = getAttributeStringValue(videoXmlObj, 'key', null);
+		if (keyAttributeValue == null) { 
+			return;
+		}
+	
+		var format : String = getAttributeStringValue(videoXmlObj, 'format', null);
+		
+		addProductToProductImages(parserSettings, false, productId, variationCombination, format, 'videos', keyAttributeValue);
+	};
+
+	/**
+	 * Parses an Assets with type Spin
+	 *
+	 * @param {XML} spinXmlObj - xml object of an asset with type spin
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 * @param {String} productId - the ProductID (sku) parsed from the parent Set. If it's NOT set, the productId is parsed from the key
+	 * @param {String} variationCombination - the variation combination parsed from the parent Set,. If it's NOT set, the variation combination is parsed from the key
+	 */
+	var parseAmplienceSpin = function(spinXmlObj : XML, parserSettings : Object, productId : String, variationCombination : String) {
+		
+		/**
+	     * iterate through Image child elements
+	     */
+		var spinXmlChildren : XMLList = spinXmlObj.children();
+	    for each (var spinXmlChild : XML in spinXmlChildren) {
+	    
+	    	var localElementName = spinXmlChild.localName();
+	    	if ('asset'.equals(localElementName)) {
+	    		
+	    		var typeAttributeValue : String = getAttributeStringValue(spinXmlChild, 'type', null);
+	    		if ('Image'.equals(typeAttributeValue)) {
+	    			
+	    			parseAmplienceSpinImage(spinXmlChild, parserSettings, productId, variationCombination);
+	    		}
+	    	}
+	    }
+	};
+	
+	/**
+	 * Parses an Assets with type Image (inside Spin Asset)
+	 *
+	 * @param {XML} imgXmlObj - xml object of an asset with type image
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 */
+	var parseAmplienceSpinImage = function(imgXmlObj : XML, parserSettings : Object, productId : String, variationCombination : String) {
+	
+		var keyAttributeValue : String = getAttributeStringValue(imgXmlObj, 'key', null);
+		if (keyAttributeValue == null) { 
+			return;
+		}
+		
+	    var format : String = getAttributeStringValue(imgXmlObj, 'format', null);
+	    
+	    addProductToProductImages(parserSettings, false, productId, variationCombination, format, 'spin_images', keyAttributeValue);
+	};
+
+	/**
+	 * Returns the attribute value of an XML object
+	 *
+	 * @param {XML} xmlObj - xml object
+	 * @param {String} attributeName - name of xml attribute
+	 * @param {String} defaultVal - default value to be returned if no value is get
+	 *
+	 * @return {String} attribute value (if it's set) or the default value
+	 */
+	var getAttributeStringValue = function(xmlObj : XML, attributeName : String, defaultVal : String) : String {
+		var val : XMLList = xmlObj.attribute(attributeName);
+		
+		return !empty(val) ? val.toString() : defaultVal;
+	};
+
+	/**
+	 * Get productID (for master product or simple product) from ket attribute
+	 * Note: The product ID is always set first in the key attribute (i.e. '22416787_ALT01' -> '22416787')
+	 *
+	 * @param {String} keyAttributeValue - the value of a xml key attribute
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 *
+	 * @return {String} productId - the parsed productID from key attribute
+	 */
+	var getProductID = function(keyAttributeValue : String, parserSettings : Object) : String {
+		
+		var arrTmp : Array = keyAttributeValue.split(parserSettings.separator);
+	    
+	    /* 
+	     * if prefix is included in key, then the productID is the secondary element 
+	     * i.e. 'prefix_ProductID_color_keySuffix_set' -> 'prefix', 'ProductID', 'color', 'keySuffix', 'set'
+	     *
+	     * else the productID is first element
+	     * i.e. 'ProductID_color_set' -> 'ProductID', 'color', 'set'
+	     */
+	    var productId : String = (arrTmp[0] == parserSettings.keyPreffix) ? arrTmp[1] : arrTmp[0];
+	    
+	    return productId;
+	};
+
+	/**
+	 * Get Variation Combination (i.e. colorValue) from key attribute
+	 *
+	 * @param {String} keyAttributeValue - the value of a xml key attribute
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 * @param {String} productId - Product Identifier
+	 *
+	 * @return {String} variationCombination - value of the parsed variation combination
+	 */
+	var getVariationCombination = function(keyAttributeValue : String, parserSettings : Object, productId : String) : String {
+		
+		var altImageRegEx : RegExp = new RegExp(parserSettings.separator + "ALT\\d{1,2}", "gi");
+		var setRegEx : RegExp = new RegExp(parserSettings.separator + "SET", "gi");
+		var swatchRegEx : RegExp = new RegExp(parserSettings.separator + "PSWATCH", "gi");
+		var mainRegEx : RegExp = new RegExp(parserSettings.separator + "MAIN", "gi");
+		var videoRegEx : RegExp = new RegExp(parserSettings.separator + "VIDEO", "gi");
+		var spinRegEx : RegExp = new RegExp(parserSettings.separator + "SPIN", "gi");
+	    
+	    var variationCombination : String = '';
+	    
+	    // remove alt regex from variation combination, if it's included in key attribute
+	    variationCombination = altImageRegEx.test(keyAttributeValue) ? 
+	    							keyAttributeValue.replace(altImageRegEx, '') : keyAttributeValue;
+	    
+	    // remove prefix
+	    variationCombination = variationCombination.replace(parserSettings.keyPreffix + parserSettings.separator, '');
+	    
+	    // remove keySuffix
+	    variationCombination = variationCombination.replace(parserSettings.separator + parserSettings.keySuffix, '');
+
+ 		if ( setRegEx.test(keyAttributeValue) ) { // remove SET regex
+		
+			variationCombination = variationCombination.replace(setRegEx, '');
+			
+		} else if ( swatchRegEx.test(keyAttributeValue) ) { // remove SWATCH regex
+		
+			variationCombination = variationCombination.replace(swatchRegEx, '');
+			
+		} else if (mainRegEx.test(keyAttributeValue)) { // remove MAIN regex (i.e. 'sku_main' -> 'sku')
+			
+			variationCombination = variationCombination.replace(mainRegEx, '');
+			
+		} else if (videoRegEx.test(keyAttributeValue)) { // remove VIDEO regex (i.e. 'sku_video' -> 'sku')
+			
+			variationCombination = variationCombination.replace(videoRegEx, '');
+			
+		} if (spinRegEx.test(keyAttributeValue)) { // remove SPIN regex (i.e. 'sku_color_spin' -> 'sku_color')
+			
+			variationCombination = variationCombination.replace(spinRegEx, '');
+		}
+
+		/*
+		 * Remove productId and separator
+		 *
+		 * Note: we'll remove productID ONLY for variations, i.e.
+		 * 'sku_color' -> 'color' (variation product)
+		 * 'sku' -> 'sku' (master product)
+		 */
+	    variationCombination = variationCombination.replace(productId + parserSettings.separator, '');
+	    
+	    return variationCombination;
+	};
+
+	/**
+	 * Initializes vars array in product variation combination object
+	 *
+	 * @param {Object} parserSettings - values from image pattern (keyPreffix, keySuffix, and keyAttrs)
+	 * @param {Object} product - object for a product
+	 * @param {String} variationCombination - value of the parsed variation combination
+	 * @param {String} productId - product identifier
+	 */
+	var initProductVariationVars = function(parserSettings : Object, product : Object, variationCombination : String, productId : String) {
+		
+		var counter = 0;
+		var AttributesArray : Array = parserSettings.keyAttrs;
+
+		/**
+		 *  remove product ID and split by separator
+		 */
+		var arrTmp : Array = variationCombination.replace(productId, '').split(parserSettings.separator);
+		for (var i = 0; i < Math.min(arrTmp.length, AttributesArray.length); i ++) {
+			
+			if (arrTmp[i] != '') {
+				product[variationCombination].vars[ AttributesArray[i] ] = arrTmp[i];
+				counter ++;
+			}
+		}
+		
+		product[variationCombination].params.length = counter;
+	};
+	
+	/**
+	 * Adds product to product images
+	 *
+	 * @param {Object} parserSettings - separator, values from image pattern (keyPreffix, keySuffix, and keyAttrs), etc.
+	 * @param {Boolean} hasSwatch - true if the image should be added to the swatch images
+	 * @param {String} productId - product identifier
+	 * @param {String} variationCombination - variation combination
+	 * @param {String} format
+	 * @param {String} arrayKey - key to add the new images, i.e. 'images', 'videos', or 'spin_images'
+	 * @param {String} keyAttributeValue
+	 */
+	var addProductToProductImages = function(parserSettings : Object, hasSwatch : Boolean, productId : String, variationCombination : String, 
+												format : String, arrayKey : String, keyAttributeValue : String) {
+							
+		var product : Object = empty(_images[productId]) ? {} : _images[productId];						
+													
+		if ( hasSwatch ) {
+
+            if ( variationCombination in product ) {
+            	
+            	_images[productId][variationCombination].params.hasSwatch = true;
+            	
+            } else { // variationCombination is NOT in product
+            	
+            	product[variationCombination] = {'vars'        :  {},
+											     'params'      :  { 'hasSwatch' : true, 'type' : format},
+                                                 'images'      :  new Array(),
+                                                 'videos'      :  new Array(),
+                                                 'spin_images' :  new Array(),
+                                                 'sets'		   :  new Array()
+                                                 };
+            }
+
+        } else { // '_PSWATCH' is NOT in key attribute
+        	
+        	if ( productId in _images ) {
+		        		
+	        	if (variationCombination in product) {
+	        		
+	        		if ( empty(product[variationCombination].vars) ) {
+	        			initProductVariationVars(parserSettings, product, variationCombination, productId);
+	        		}
+	        		
+	        	} else { // variationCombination is NOT in product
+	        		
+	        		product[variationCombination] = {'vars'        :  {},
+	                                                 'params'      :  { 'hasSwatch' : false },
+	                                                 'images'      :  new Array(),
+	                                                 'videos'      :  new Array(),
+	                                                 'spin_images' :  new Array(),
+	                                                 'sets'		   :  new Array()
+	                                                };
+	            	
+	            	initProductVariationVars(parserSettings, product, variationCombination, productId);
+	        	}
+	        	  	
+	        	product[variationCombination][arrayKey].push({"path": keyAttributeValue, "type": format});
+	        	
+	        } else { // productId is NOT in images
+	        	
+	        	_images[productId] = {};
+	        	product = _images[productId];
+	        	product[variationCombination] = {'vars'        :  {},
+	                                             'params'      :  { 'hasSwatch' : false },
+	                                             'images'      :  new Array(),
+	                                             'videos'      :  new Array(),
+	                                             'spin_images' :  new Array(),
+	                                             'sets'		   :  new Array()
+	                                            };
+	        	
+	        	initProductVariationVars(parserSettings, product, variationCombination, productId);
+
+	        	product[variationCombination][arrayKey].push({"path": keyAttributeValue, "type": format});
+	        }
+        }
+        
+        _images[productId] = product;
+	}
+};

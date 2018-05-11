@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="cartridge/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/demandware-build.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/demandware-upload-1.1.0.2.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/jdom-1.0.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/mail.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/ant/ant-contrib-1.0b3.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/ant/ant.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/closure-compiler/compiler.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/fikin/commons-codec-1.3.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/fikin/commons-httpclient-3.0-rc1.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/fikin/fikin-ant-1.7.3.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/lib_cssembed/ant.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/lib_cssembed/datauri-core-0.2.1.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/lib_cssembed/jargs-1.0.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/lib_cssembed/junit-4.1.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/rhino/js.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/webdav/commons-httpclient.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/webdav/commons-logging.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/webdav/jakarta-slide-ant-webdav-2.2pre1.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/webdav/jakarta-slide-webdavlib-2.2pre1.jar"/>
+	<classpathentry kind="lib" path="cartridge/build/lib/yui/yuicompressor-2.4.8.jar"/>
+	<classpathentry kind="output" path="cartridge/build/bin"/>
+</classpath>

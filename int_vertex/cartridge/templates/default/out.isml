@@ -1,0 +1,4 @@
+<!--- TEMPLATENAME: out.isml --->
+
+Here is the log ${pdict.log}
+<p> Test tax calculation </p>

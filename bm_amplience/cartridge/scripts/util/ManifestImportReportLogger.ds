@@ -1,0 +1,62 @@
+/**
+ * Utility class for logging product info while processing Amplience images
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+
+function ManifestImportReportLogger() {
+	
+	/**
+	 * Array with info about products without images assigned
+	 */
+	this.productsWithoutImagesArray = new Array();
+	
+	/**
+	 * Total count of updated products in DW
+	 */
+	this.totalUpdatedProducts = 0;
+	
+	/**
+	 * Array with IDs of not matched product sets
+	 */
+	this.notMacthedSets = new HashSet();
+
+	/**
+	 * Adds an info about a product without images assigned.
+	 *
+	 * @param {String} productId - Product identifier
+	 * @param {String} productName - name of the product
+	 * @param {String} expectedFileName - expected filename for the product
+	 */
+	this.addProductWithoutImage = function(productId : String, productName : String, expectedFileName : String) {
+		
+		var productWithoutImage : Object = {
+		
+				productId        : productId,
+				productName      : productName,
+				expectedFileName : expectedFileName
+		};
+		
+		this.productsWithoutImagesArray.push(productWithoutImage);
+	};
+	
+	/**
+	 * Sets count to the total updated products
+	 *
+	 * @param {Number} totalUpdatedProducts - total updated products count
+	 */
+	this.setTotalUpdatedProducts = function(totalUpdatedProducts : Number) {
+		
+		this.totalUpdatedProducts = totalUpdatedProducts;
+	};
+	
+	/**
+	 * Sets values to the not match sets
+	 *
+	 * @param {HashSet} notMacthedSets - not match sets values
+	 */
+	this.setNotMacthedSets = function(notMacthedSets : HashSet) {
+		
+		this.notMacthedSets = notMacthedSets;
+	};
+}

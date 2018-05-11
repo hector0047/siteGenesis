@@ -1,0 +1,51 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	This is the footer for all pages. Be careful caching it if it contains
+	user dependent information. Cache its elements instead if necessary (do not forget
+	to change the isinclude into a pipeline include for that).
+</iscomment>
+<isinclude template="util/modules"/>
+<div id="footer" role="contentinfo">
+		<div class="footer-container">
+			<div class="home-bottom">
+				<isslot id="home-bottom" description="Bottom content below flash banner " context="global" />
+			</div>
+		
+			<div class="footer-menu-links">
+				<iscontentasset aid="footer-copy-content-v2"/>
+			</div>
+		</div>
+</div><!-- /footer -->
+<iscomment>Strands recommender</iscomment>
+<isif condition="${'StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled}">
+	<isinclude template="strands/library_include"/>
+</isif>
+<iscomment>
+	Customer registration can happen everywhere in the page flow. As special tag in the pdict
+	is indicating it. So we have to check on every page, if we have to report this event for
+	the reporting engine.
+</iscomment>
+<isinclude template="util/reporting/ReportUserRegistration.isml"/>
+
+<isinclude template="components/footer/footer_UI"/>
+<iscomment>
+PANC-1527 Commenting Hometeam Code 
+<isif condition="${!empty(pdict.HomeTeamPage)}">
+	<isif condition="${'ht_EnableEnsighten' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.ht_EnableEnsighten}">
+		<isinclude template="components/includes/ensighten_footer_ht"/>
+	</isif>
+<iselse/></iscomment>
+	<isif condition="${'EnableEnsighten' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.EnableEnsighten}">
+		<isinclude template="components/includes/ensighten_footer"/>
+	</isif>
+<isif condition="${('enableSalesforceChat' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableSalesforceChat) && ('salesforcepageincludecode' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.salesforcepageincludecode))}" >
+	<div class="salesforce hide">
+		<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('salesforcepageincludecode')}" encoding="off" />
+	</div>
+</isif>
+<isif condition="${('enableSalesforceChat' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableSalesforceChat) && ('salesforcePageIncludeCode_PreChat' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.salesforcePageIncludeCode_PreChat))}" >
+	<div class="salesforce hide">
+		<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('salesforcePageIncludeCode_PreChat')}" encoding="off" />
+	</div>
+</isif>
+<div id="debug" style="display: none;"> x-is-remote_addr: ${pdict.CurrentRequest.httpHeaders["x-is-remote_addr"]} -- x-forwarded-for: ${pdict.CurrentRequest.httpHeaders["x-forwarded-for"]} -- Fallback address: ${empty(pdict.CurrentRequest.httpHeaders["x-forwarded-for"])? pdict.CurrentRequest.httpHeaders["x-is-remote_addr"]: pdict.CurrentRequest.httpHeaders["x-forwarded-for"]} -- httpRemoteAddress: ${pdict.CurrentRequest.httpRemoteAddress} -- All Headers: ${pdict.CurrentRequest.httpHeaders}  </div>

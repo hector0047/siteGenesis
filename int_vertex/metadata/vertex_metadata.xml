@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+	
+	<type-extension type-id="SitePreferences">
+		<custom-attribute-definitions>
+			<attribute-definition attribute-id="VertexUsername">
+                <display-name xml:lang="x-default">Vertex User Name</display-name>
+                <description xml:lang="x-default">User id to connect to Vertex web service</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexPassword">
+                <display-name xml:lang="x-default">Vertex Password</display-name>
+                <description xml:lang="x-default">Password to connect to Vertex web service</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexWebUrl">
+                <display-name xml:lang="x-default">Vertex WebUrl</display-name>
+                <description xml:lang="x-default">URL to connect Vertex web service.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexTransactionType">
+                <display-name xml:lang="x-default">Vertex Transaction Type</display-name>
+                <description xml:lang="x-default">Transaction type</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexTimeOut">
+                <display-name xml:lang="x-default">Timeout</display-name>
+                <description xml:lang="x-default">Timeout value for Vertex web service</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+                <min-value>0.0</min-value>
+                <max-value>30000.0</max-value>
+                <default-value>5000</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerCompany">
+                <display-name xml:lang="x-default">Seller Company</display-name>
+                <description xml:lang="x-default">Seller Company</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerDivisionCode">
+                <display-name xml:lang="x-default">Seller Division Code</display-name>
+                <description xml:lang="x-default">Division Code.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerStreetAddr">
+                <display-name xml:lang="x-default">Seller Street Address</display-name>
+                <description xml:lang="x-default">Street Address</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerCity">
+                <display-name xml:lang="x-default">Seller City</display-name>
+                <description xml:lang="x-default">City of the seller address.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerMainDivison">
+                <display-name xml:lang="x-default">Seller Main Division.</display-name>
+                <description xml:lang="x-default">Seller Main Division. ( State of the seller address)</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerPostalCode">
+                <display-name xml:lang="x-default">Seller Postal Code</display-name>
+                <description xml:lang="x-default">Postal code of the seller.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexSellerCountry">
+                <display-name xml:lang="x-default">Seller Country</display-name>
+                <description xml:lang="x-default">Country code of seller.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="VertexProductOptions">
+                <display-name xml:lang="x-default">Vertex Product Options</display-name>
+                <description xml:lang="x-default">Define tax classes for product options. Example&#13;
+&lt;Product Option&gt; | &lt;Tax class&gt;</description>
+                <type>set-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="DisableVertexLog">
+                <display-name xml:lang="x-default">Disable Vertex Log</display-name>
+                <description xml:lang="x-default">Set to true to disable the vertex log. By default false</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableVertex">
+                <display-name xml:lang="x-default">Enable Vertex</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+		</custom-attribute-definitions>
+		<group-definitions>
+			<attribute-group group-id="Vertex">
+				<display-name xml:lang="x-default">Vertex</display-name>
+				<attribute attribute-id="VertexUsername"/>
+				<attribute attribute-id="VertexPassword"/>
+				<attribute attribute-id="VertexWebUrl"/>
+				<attribute attribute-id="VertexTimeOut"/>
+				<attribute attribute-id="VertexTransactionType"/>
+				<attribute attribute-id="VertexSellerCompany"/>
+				<attribute attribute-id="VertexSellerDivisionCode"/>
+				<attribute attribute-id="VertexSellerStreetAddr"/>
+				<attribute attribute-id="VertexSellerCity"/>
+				<attribute attribute-id="VertexSellerMainDivison"/>
+				<attribute attribute-id="VertexSellerPostalCode"/>
+				<attribute attribute-id="VertexSellerCountry"/>
+				<attribute attribute-id="VertexProductOptions"/>
+				<attribute attribute-id="DisableVertexLog"/>
+				<attribute attribute-id="EnableVertex"/>
+			</attribute-group>
+		</group-definitions>
+	</type-extension>
+
+</metadata>

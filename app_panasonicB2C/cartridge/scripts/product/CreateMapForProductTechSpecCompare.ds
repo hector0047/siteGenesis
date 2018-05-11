@@ -1,0 +1,52 @@
+/**
+*   @input ProductId : String
+*   @input productSpecMapList : dw.util.ArrayList
+*   @input productSpecKeySet : dw.util.HashSet
+*
+*/
+
+importPackage( dw.util );
+importPackage( dw.system );
+importPackage( dw.catalog );
+importScript("product/ProductUtils.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{	
+	var productID : String = args.ProductId;
+	var product : Product = ProductMgr.getProduct(productID);		
+	if(product.isMaster()){
+		product = product.getVariationModel().getDefaultVariant();
+	}
+	/* Farhans DEV team PANC-1143 18/12/2015 4:15pm */
+	else{
+		var product = product.getVariationModel().getMaster();
+		product = product.getVariationModel().getDefaultVariant();
+	}
+	/* PANC-1143 END */
+	var techSpecHashMap : HashMap = new HashMap();
+	
+	if('technicalSpecAttributes' in product.custom){
+		var techSpecGroups = product.custom.technicalSpecAttributes.split('\n');	
+		for each(var techSpec : String in techSpecGroups) {
+			if(!empty(techSpec)){
+			var group : boolean = techSpec.toString().trim().split('||').indexOf('group') < 0 ? false : true;
+			var subGroup : boolean = techSpec.toString().trim().split('||').indexOf('subgroup') < 0 ? false : true;
+			var sub : boolean = techSpec.toString().trim().split('||').indexOf('sub') < 0 ? false : true;
+			
+			if(!group && !subGroup && !sub){			
+				args.productSpecKeySet.add(techSpec.toString().trim().split('|')[0].toString());
+				if(techSpec.toString().trim().split('|')[0] != undefined && techSpec.toString().trim().split('|')[1] !=undefined){
+					techSpecHashMap.put(techSpec.toString().trim().split('|')[0].toString(), techSpec.toString().trim().split('|')[1].toString());		
+				}		
+			}			
+			}
+		}			
+		args.productSpecMapList.add(techSpecHashMap);		
+	}else{
+		techSpecHashMap.put("key","-");
+		args.productSpecMapList.add(techSpecHashMap);		
+	}
+			
+	return PIPELET_NEXT;
+}
+

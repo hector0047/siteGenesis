@@ -1,0 +1,4 @@
+<!--- TEMPLATENAME: testout.isml --->
+<!--- TEMPLATENAME: out.isml --->
+
+ ${pdict.log}

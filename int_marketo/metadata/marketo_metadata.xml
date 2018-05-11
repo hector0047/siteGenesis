@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+ 
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>            
+            <attribute-definition attribute-id="marketoAuthToken">
+                <display-name xml:lang="x-default">Marketo Authorization Token</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="marketoEndpointURL">
+                <display-name xml:lang="x-default">Marketo EndpointURL</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>            
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Storefront Configs">
+                <display-name xml:lang="x-default">Storefront Configurations</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+                <attribute attribute-id="disableResponsiveDesign"/>
+                <attribute attribute-id="GoogleVerificationTag"/>
+                <attribute attribute-id="buildNotificationEmailList"/>
+                <attribute attribute-id="slideshoweffect"/>
+                <attribute attribute-id="facebookConnectEnabled"/>
+                <attribute attribute-id="facebookURI"/>
+                <attribute attribute-id="facebookAppID"/>
+                <attribute attribute-id="enableInfiniteScroll"/>
+                <attribute attribute-id="enableMultiShipping"/>
+                <attribute attribute-id="enableStorePickUp"/>
+                <attribute attribute-id="countryCode"/>
+                <attribute attribute-id="storeLookupUnit"/>
+                <attribute attribute-id="storeLookupMaxDistance"/>
+                <attribute attribute-id="addThisConnectEnabled"/>
+                <attribute attribute-id="addThisVersion"/>
+                <attribute attribute-id="addThisPubID"/>
+                <attribute attribute-id="addThisDomready"/>
+                <attribute attribute-id="customerServiceEmail"/>
+                <attribute attribute-id="enhancedSearchSuggestions"/>
+                <attribute attribute-id="enableMultiCurrency"/>
+                <attribute attribute-id="storeFrontBusinessSiteURL"/>
+                <attribute attribute-id="storeFrontIndustrialSiteURL"/>
+                <attribute attribute-id="enableMegaNavImageTemplate"/>
+                <attribute attribute-id="disConfiguration"/>
+                <attribute attribute-id="techSpecString"/>
+            </attribute-group>
+            <attribute-group group-id="Cybersource_SASOP">
+                <display-name xml:lang="x-default">Cybersource_SecureAcceptance</display-name>
+                <attribute attribute-id="SASOPURL"/>
+                <attribute attribute-id="SASOPURL_TEST"/>
+                <attribute attribute-id="SASOPProfileId"/>
+                <attribute attribute-id="SASOPAccessKey"/>
+                <attribute attribute-id="SASOPSecretKey"/>
+                <attribute attribute-id="SASOPReceiptPageURL"/>
+            </attribute-group>
+            <attribute-group group-id="Cybersource">
+                <display-name xml:lang="x-default">Cybersource</display-name>
+                <attribute attribute-id="CsMerchantId"/>
+                <attribute attribute-id="CsSecurityKey"/>
+                <attribute attribute-id="CsEndpoint"/>
+                <attribute attribute-id="CsShipFromCity"/>
+                <attribute attribute-id="CsShipFromStateCode"/>
+                <attribute attribute-id="CsShipFromZipCode"/>
+                <attribute attribute-id="CsShipFromCountryCode"/>
+                <attribute attribute-id="CsBmlMerchantId"/>
+                <attribute attribute-id="CsBmlPassword"/>
+                <attribute attribute-id="CsBmlItemCategory"/>
+                <attribute attribute-id="CsBmlTCVersion"/>
+                <attribute attribute-id="CsBmlNewAcctNo"/>
+                <attribute attribute-id="CsBmlPromoCode"/>
+                <attribute attribute-id="CsBmlPromoMerchantId"/>
+                <attribute attribute-id="CsBmlPromoMerchantPassword"/>
+                <attribute attribute-id="CsBmlPromoPromoCode"/>
+                <attribute attribute-id="CsAvsIgnoreResult"/>
+                <attribute attribute-id="CsAvsDeclineFlags"/>
+                <attribute attribute-id="CsDavOnAddressVerificationFailure"/>
+                <attribute attribute-id="CsDavEnable"/>
+                <attribute attribute-id="CsPaMerchantId"/>
+                <attribute attribute-id="CsPaMerchantPassword"/>
+                <attribute attribute-id="CsPaMerchantName"/>
+                <attribute attribute-id="CsDefaultProductTaxCode"/>
+                <attribute attribute-id="CsPoaCity"/>
+                <attribute attribute-id="CsPoaStateCode"/>
+                <attribute attribute-id="CsPoaZipCode"/>
+                <attribute attribute-id="CsPoaCountryCode"/>
+                <attribute attribute-id="CsPooCity"/>
+                <attribute attribute-id="CsPooStateCode"/>
+                <attribute attribute-id="CsPooZipCode"/>
+                <attribute attribute-id="CsPooCountryCode"/>
+                <attribute attribute-id="CsNexus"/>
+                <attribute attribute-id="CsNoNexus"/>
+                <attribute attribute-id="CsDeviceFingerprintJetmetrixLocation"/>
+                <attribute attribute-id="CsDeviceFingerprintOrgId"/>
+                <attribute attribute-id="CsDeviceFingerprintEnabled"/>
+                <attribute attribute-id="CsDeviceFingerprintRedirectionType"/>
+                <attribute attribute-id="CsUseTokenization"/>
+                <attribute attribute-id="enableCSIntegration"/>
+            </attribute-group>
+            <attribute-group group-id="MainStreet">
+                <display-name xml:lang="x-default">MainStreet</display-name>
+                <attribute attribute-id="MainStreetEndpoint"/>
+                <attribute attribute-id="MainStreetDomain"/>
+                <attribute attribute-id="MainStreetUsername"/>
+                <attribute attribute-id="MainStreetPassword"/>
+                <attribute attribute-id="LIT"/>
+                <attribute attribute-id="MainStreetReturnRMAEndpoint"/>
+                <attribute attribute-id="MainStreetReturnRMAAPIToken"/>
+            </attribute-group>
+            <attribute-group group-id="Vertex">
+                <display-name xml:lang="x-default">Vertex</display-name>
+                <attribute attribute-id="VertexUsername"/>
+                <attribute attribute-id="VertexPassword"/>
+                <attribute attribute-id="VertexWebUrl"/>
+                <attribute attribute-id="VertexTimeOut"/>
+                <attribute attribute-id="VertexTransactionType"/>
+                <attribute attribute-id="VertexSellerCompany"/>
+                <attribute attribute-id="VertexSellerDivisionCode"/>
+                <attribute attribute-id="VertexSellerStreetAddr"/>
+                <attribute attribute-id="VertexSellerCity"/>
+                <attribute attribute-id="VertexSellerMainDivison"/>
+                <attribute attribute-id="VertexSellerPostalCode"/>
+                <attribute attribute-id="VertexSellerCountry"/>
+                <attribute attribute-id="VertexProductOptions"/>
+                <attribute attribute-id="DisableVertexLog"/>
+            </attribute-group>
+            <attribute-group group-id="PriceBook">
+                <display-name xml:lang="x-default">Price Book Settings</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+            </attribute-group>
+            <attribute-group group-id="PayPal">
+                <display-name xml:lang="x-default">PayPal Configs</display-name>
+                <attribute attribute-id="PayPalAPIUsername"/>
+                <attribute attribute-id="PayPalAPIPassword"/>
+                <attribute attribute-id="PayPalSignature"/>
+                <attribute attribute-id="PayPalPaymentAction"/>
+                <attribute attribute-id="PayPalRedirectURL"/>
+                <attribute attribute-id="PayPalMobilTransactionCommit"/>
+                <attribute attribute-id="PayPalGetBillingAddress"/>
+                <attribute attribute-id="PayPalCppHeaderbackColor"/>
+                <attribute attribute-id="PayPalCppHeaderborderColor"/>
+                <attribute attribute-id="PayPalCppPayflowColor"/>
+                <attribute attribute-id="PayPalCppHeaderImage"/>
+                <attribute attribute-id="PayPalButtonSourceReview"/>
+                <attribute attribute-id="PayPalButtonSourceBilling"/>
+                <attribute attribute-id="PayPalButtonSourceCart"/>
+                <attribute attribute-id="PayPalButtonSourceDirectPayment"/>
+                <attribute attribute-id="EnablePayPal"/>
+            </attribute-group>
+            <attribute-group group-id="HDI">
+                <display-name xml:lang="x-default">HDI Configurations</display-name>
+                <attribute attribute-id="buildNotificationEmailList"/>
+            </attribute-group>
+            <attribute-group group-id="StrandsRecommender">
+                <display-name xml:lang="x-default">Strands Recommender Settings</display-name>
+            </attribute-group>
+            <attribute-group group-id="StrandsRecommenderTemplates">
+                <display-name xml:lang="x-default">Strands Recommender Widget's Templates</display-name>
+            </attribute-group>
+            <attribute-group group-id="Ensighten">
+                <display-name xml:lang="x-default">Ensighten TMS Configuration</display-name>
+            </attribute-group>
+            <attribute-group group-id="AmpliencePI">
+                <display-name xml:lang="x-default">Amplience Product Images</display-name>
+            </attribute-group>
+            <attribute-group group-id="AmplienceIM">
+                <display-name xml:lang="x-default">Amplience Interactive Marketing</display-name>
+            </attribute-group>
+            <attribute-group group-id="linkShare">
+                <display-name xml:lang="x-default">Link Share Settings</display-name>
+                <attribute attribute-id="Linkshare_FTP_Hostname"/>
+                <attribute attribute-id="Linkshare_FTP_Username"/>
+                <attribute attribute-id="Linkshare_FTP_Password"/>
+                <attribute attribute-id="LS_ERROR_MAIL_TO"/>
+                <attribute attribute-id="LS_ERROR_MAIL_FROM"/>
+            </attribute-group>
+            <attribute-group group-id="ACCESSORIES">
+                <display-name xml:lang="x-default">ACCESSORIES</display-name>
+                <attribute attribute-id="4"/>
+                <attribute attribute-id="5"/>
+                <attribute attribute-id="6"/>
+            </attribute-group>
+            <attribute-group group-id="Recycle Product">
+                <display-name xml:lang="x-default">Recycle Product</display-name>
+                <attribute attribute-id="recycleProductID"/>
+            </attribute-group>
+            <attribute-group group-id="marketo">
+                <display-name xml:lang="x-default">Marketo</display-name>
+                <attribute attribute-id="marketoEndpointURL"/>
+                <attribute attribute-id="marketoAuthToken"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

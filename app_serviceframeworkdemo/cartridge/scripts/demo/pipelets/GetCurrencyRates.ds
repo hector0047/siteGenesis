@@ -1,0 +1,19 @@
+/**
+*   @output Rates : Object
+*   @output Status : Object
+*/
+var sf = require("bc_serviceframework");
+require("../services/ECBRateService");
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+	
+	var ECBRateService = sf.getService('ECBRateService');
+	var ecbRateService = new ECBRateService();
+
+	ecbRateService.call();
+	
+	pdict.Rates = ecbRateService.object;
+	
+   	return PIPELET_NEXT;
+}

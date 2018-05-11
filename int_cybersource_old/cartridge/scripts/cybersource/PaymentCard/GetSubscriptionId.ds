@@ -1,0 +1,180 @@
+/**
+* Performs the creation of a customer.
+*
+* @input Basket : dw.order.Basket The basket used for Authorization
+* @input Amount : dw.value.Money The amount to authorize
+* @input OrderNo : String The order no
+* @input CreditCardForm : dw.web.FormElement The form containing the credit card data
+* @input CreditCardData : Object
+* @input  billTo : Object 
+* @input  card : Object
+* @input  purchaseTotals : Object 
+*
+* @output MissingFieldsArray : Array Contains any missing (and required) fields to complete DAV processing
+* @output InvalidFieldsArray : Array Contains any invalid (and required) fields to complete DAV processing
+* @output PaySubscriptionID : Object Contains paySubscriptionID
+* @output Temp : Object;
+*
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage (dw.value);
+importScript('cybersource/Cybersource_BillTo_Object.ds');
+importScript('cybersource/Cybersource_ShipTo_Object.ds');
+importScript('cybersource/Cybersource_Card_Object.ds');
+importScript('cybersource/Cybersource_PurchaseTotals_Object.ds');
+importScript('cybersource/libCybersource.ds');
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	//**************************************************************************//
+	// read pipeline dictionary input parameter	
+	//**************************************************************************//    
+	var ccdata : CreditCardInfoHelper = pdict.CreditCardData;
+    var basket : Basket = pdict.Basket;
+    var orderNo : String = pdict.OrderNo;
+   	var billToObject: BillTo_Object = pdict.billTo;
+	var cardObject: Card_Object = pdict.card;
+	var purchaseObject: PurchaseTotals_Object = pdict.purchaseTotals;
+
+	//**************************************************************************//
+	// Check if Basket exists
+	//**************************************************************************//
+	if(basket == null){
+		Logger.error("Please provide a Basket!");
+		return PIPELET_ERROR;
+	}
+
+	//**************************************************************************//
+	// Set WebReference & Stub
+	//**************************************************************************//	
+	var CybersourceHelper = getCybersourceHelper();	
+	var csReference : WebReference = webreferences.CyberSourceTransaction;
+	var service : Stub = csReference.getService("TransactionProcessor", "portXML");
+	CybersourceHelper.setEndpoint(service);
+
+	if(!CybersourceHelper.createHeader(service))
+	{
+		return PIPELET_ERROR;
+	}
+
+
+	var request = new csReference.RequestMessage();
+	CybersourceHelper.addPaySubscriptionCreateService(
+			request,
+			billToObject,
+			purchaseObject,
+			cardObject,
+			basket.customer.ID,
+			'false',
+			null
+	);
+
+
+	//**************************************************************************//
+	// Execute Request
+	//**************************************************************************//	
+	var response = null;
+	try
+	{
+		response = service.runTransaction(request);
+	}
+	catch(e)
+	{
+		Logger.getRootLogger().fatal("[libCybersource.ds] Error in SubscriptionCreateService request ( {0} )",e.message);
+		
+		if(e.message.indexOf("SocketTimeoutException") != -1){
+            pdict.ReasonCode = 0; //set timeout error code 0
+            return PIPELET_NEXT;
+		}       
+		
+		return PIPELET_ERROR;
+	}
+	
+	if(response == null)
+	{
+		Logger.getRootLogger().fatal("[libCybersource.ds] Error in SubscriptionCreateService: null response");
+		return PIPELET_ERROR;
+	}
+		
+	//**************************************************************************//
+	// Process Response
+	//**************************************************************************//		
+	pdict.Temp = protocolResponse( response );
+	
+	if( !empty(response.missingField) ) {
+		pdict.MissingFieldsArray = response.missingField;
+	}
+	if( !empty(response.invalidField) ) {
+		pdict.InvalidFieldsArray = response.invalidField;
+	}	
+	
+	var reply = response.getPaySubscriptionCreateReply();
+
+		if( !empty(reply) ) {
+			basket.getPaymentInstruments()[0].custom.paySubscriptionID = reply.getSubscriptionID();
+			pdict.PaySubscriptionID = reply.getSubscriptionID();
+		}
+
+	//**************************************************************************//
+	//Log response code specific data for further processing
+	//**************************************************************************//
+	var logTransactionData : String = " Order No = " +orderNo;
+	if( !empty(response.paySubscriptionCreateReply) ) {
+		logTransactionData += ", Cybersource PaySubscriptionID = " +response.paySubscriptionCreateReply.subscriptionID;
+	}
+	
+    return PIPELET_NEXT;
+}
+
+function protocolResponse( response ) : HashMap
+{
+	var debug : Boolean = Site.getCurrent().getCustomPreferenceValue("CsDebugCybersource");
+	if( true || debug )
+	{
+		var arr : HashMap = new HashMap();
+		var xx : String;
+		for ( xx in response )
+		{
+			arr.put( xx, response[xx] );
+		}
+		for ( xx in response.payPalPaymentReply )
+		{
+			trace( "checking " + xx );
+			try
+			{
+				arr.put( "PayPalPaymentReply." + xx, response.payPalPaymentReply[xx] );
+			}
+			catch ( exception )
+			{
+				arr.put( "PayPalPaymentReply." + xx, " caused ex " + exception );
+			}
+		}
+		
+		var nullList : Array = new Array();
+		var qq : String;
+		var iter : Iterator;
+		var retMap : HashMap = new HashMap();
+		for ( iter = arr.keySet().iterator(); iter.hasNext(); )
+		{
+			qq = iter.next();
+			if ( arr.get( qq ) == null )
+			{
+				nullList.push( qq );
+				// arr.remove( qq );
+			} 
+			else
+			{
+				retMap.put( qq, arr.get( qq ) );
+			}
+		} 
+		if ( qq.length > 0 )
+		{
+			retMap.put( "<<NullList>>", nullList ); 
+		}
+		return retMap;
+	}
+}

@@ -1,0 +1,80 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isscript>
+	importScript("int_dis:product/ProductImageSO.ds");
+</isscript>
+<isif condition="${Product.master && pdict.CurrentVariationModel && pdict.CurrentVariationModel.variants.size() > 0}">
+	<isset name="imageProduct" value="${pdict.CurrentVariationModel.variants[0]}" scope="page"/>
+<iselse/>
+	<isset name="imageProduct" value="${Product}" scope="page"/>
+</isif>
+<isset name="image" value="${new ProductImage('image150X150',imageProduct,0)}" scope="page"/>
+<isif condition="${!empty(image)}">
+	<isset name="imageUrl" value="${image.getURL()}" scope="page"/>
+	<isset name="imageAlt" value="${image.alt}" scope="page"/>
+	<isset name="imageTitle" value="${Product.name}" scope="page"/>
+<iselse>
+	<isset name="imageUrl" value="${URLUtils.staticURL('/images/noimagemedium.png')}" scope="page"/>
+	<isset name="imageAlt" value="${Product.name}" scope="page"/>
+	<isset name="imageTitle" value="${Product.name}" scope="page"/>
+</isif>
+<div class="bonus-prdct-img">
+	<div class="product-primary-image">
+		<img src="${imageUrl}" alt="${imageAlt}" title="${imageTitle}"/>
+	</div>
+</div>
+
+<div class="product-detail">
+	<div class="product-tittle-detail">
+	<h1 class="product-name" itemprop="name"><isprint value="${Product.shortDescription}" encoding="off"/></h1>
+	<div class="product-number">
+		<span itemprop="productID"><isprint value="${Product.ID}"/></span>
+	</div>
+	<isif condition="${Product.bundle && Product.getBundledProducts().size() > 0}">
+		<iscomment>Display bundle Individual Products</iscomment>
+		<iscomment>Preserve the current product instance</iscomment>
+		<isset name="ProductBundle" value="${Product}" scope="pdict"/>
+		<isloop items="${Product.getBundledProducts()}" var="BundledProduct" status="bundleLoop">
+			<isset name="Product" value="${BundledProduct}" scope="pdict"/>
+			<isset name="ProductCount" value="${bundleLoop.count}" scope="pdict"/>
+			<isobject object="${Product}" view="setproduct">
+				<isinclude template="product/components/subbonusproduct"/>
+			</isobject>
+		</isloop>
+		<iscomment>restore the current product instance</iscomment>
+		<isset name="Product" value="${ProductBundle}" scope="pdict"/>
+	</isif>
+
+	<isset name="pam" value="${Product.getAttributeModel()}" scope="page"/>
+	<isset name="group" value="${pam.getAttributeGroup('mainAttributes')}" scope="page"/>
+	<isinclude template="product/components/group"/>
+	
+	<isinclude template="product/components/variations"/>
+	</div>
+	<div class="bonus-product-add-to-cart">	
+		<form action="${URLUtils.url('Cart-AddProduct')}" method="post" id="${pdict.CurrentForms.product.addtocart.dynamicHtmlName}" name="${pdict.CurrentForms.product.addtocart.htmlName}" class="bonus-product-form">
+			<fieldset>
+				<iscomment><isinclude template="product/components/options"/></iscomment>		
+				<input type="hidden" name="pid" value="${Product.ID}"/>
+				<input type="hidden" name="productUUID" value="${Product.UUID}"/>
+				<input type="hidden" name="bonusDiscountLineItemUUID" value="${pdict.BonusDiscountLineItem.UUID}"/>
+				<input type="hidden" name="Quantity" value="${Number(empty(pdict.CurrentHttpParameterMap.Quantity.stringValue) ? 1 : pdict.CurrentHttpParameterMap.Quantity.stringValue).toFixed()}"/>
+				<iscomment>				
+					<div class="inventory">
+						<div class="quantity">
+							<label for="qty-${Product.UUID}">${Resource.msg('global.qty','locale',null)}:</label>				
+							<input type="text" class="input-text positivenumber" name="Quantity" id="qty-${Product.UUID}" size="2" maxlength="3"  value="${Number(empty(pdict.CurrentHttpParameterMap.Quantity.stringValue) ? 1 : pdict.CurrentHttpParameterMap.Quantity.stringValue).toFixed()}" disabled="disabled"/>
+						</div>
+					</div>
+				</iscomment>
+				<button type="button" value="${Resource.msg('global.select','locale',null)}" class="button-select-bonus hide"><span>${Resource.msg('global.select','locale',null)}</span></button>
+				<button type="submit" class="add-to-cart-bonus button-fancy-medium" value="${Resource.msg('global.addtocart','locale',null)}">
+					${Resource.msg('global.addtocart','locale',null)}
+				</button>
+			</fieldset>
+		</form>		
+	</div>
+
+
+</div>
+
+

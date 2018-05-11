@@ -1,0 +1,82 @@
+/**
+ *
+ * MergeShipments.ds
+ *
+ * merges shipments if shipment has same shipping address and shipping method
+ * 
+ * @input Basket : dw.order.Basket The basket to determine the physical shipments for.
+ * 
+ */
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.util );
+importScript("checkout/Utils.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var basket : Basket = args.Basket;
+	if(empty(basket)){
+		return PIPELET_ERROR;
+	}
+	try{
+		var shipmentsTemp : ArrayList = basket.getShipments();
+		
+		// list of shipments to delete
+		var shipmentsToDelete : Collection = new ArrayList();
+		var flag : Boolean=false;
+		var iter : Iterator = shipmentsTemp.iterator();
+		while( iter != null && iter.hasNext() )
+		{
+			var defaultShipment : Shipment = basket.getDefaultShipment();
+			var shipment : Shipment = iter.next();
+			var plis : Iterator = defaultShipment.getProductLineItems().iterator();
+			var plisOtherShip : Iterator = shipment.getProductLineItems().iterator();
+			if(!shipment.isDefault()){
+				while(plisOtherShip.hasNext()){
+					var defaultShipLICount: Number = defaultShipment.getProductLineItems().size();
+					var tpli : ProductLineItem = plisOtherShip.next();
+					if(defaultShipLICount == 0){
+						var plinew : ProductLineItem = basket.createProductLineItem(tpli.product,(!empty(tpli.optionModel)?tpli.optionModel:null),defaultShipment);
+						plinew.setQuantityValue(tpli.quantityValue);
+						basket.removeProductLineItem(tpli);
+						shipmentsToDelete.add(shipment);
+						continue;
+					}else{
+						var itemFound:Boolean = false;
+						var pli : ProductLineItem = null;
+						while(plis.hasNext()){
+							pli = plis.next();
+							if( pli.productID == tpli.productID){
+								itemFound = true;
+								break;
+							}
+						}	
+						if(itemFound){
+								pli.setQuantityValue(pli.quantityValue + tpli.quantityValue);
+							basket.removeProductLineItem(tpli);
+							}else{
+								var plinew : ProductLineItem = basket.createProductLineItem(tpli.product,(!empty(tpli.optionModel)?tpli.optionModel:null),defaultShipment);
+								plinew.setQuantityValue(tpli.quantityValue);
+								basket.removeProductLineItem(tpli);
+							}
+						
+					}
+				}
+				shipmentsToDelete.add(shipment);
+			}
+			
+		}
+		// remove shipments from basket
+		iter = shipmentsToDelete.iterator();
+		while( iter != null && iter.hasNext() )
+		{
+			var shipment : Shipment = iter.next();
+			basket.removeShipment(shipment);
+		}
+		
+	}catch(e){
+		Logger.error("Error while executing the script MergeShipments.ds ERROR :"+e.message);
+		return PIPELET_ERROR;
+	}
+	return PIPELET_NEXT;
+}

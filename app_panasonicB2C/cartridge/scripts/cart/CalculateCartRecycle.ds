@@ -1,0 +1,226 @@
+/**
+ * CalculateCart.ds
+ *
+ * This script implements a typical shopping cart calculation algorithm.
+ * The script is provided with the Demandware reference application. Some
+ * parts of the calculation script are specific to the reference application
+ * logic and might not be applicable to our customer's storefront applications.
+ * However, the shopping cart calculation script can be customized to meet
+ * specific needs and requirements.
+ *
+ * The script implements a complete recaculation of the shopping cart. This
+ * includes the following steps:
+ * - determine the prices of products contained in the cart
+ * - determine the shipping cost for the shipments of the cart
+ * - determine the tax rates of all line items of the cart
+ * - determine and apply all types of promotions
+ * - calculate the totals of shipments as well as the cart
+ *
+ * The script also handles gift certificate line items. In particular,
+ * gift certificates are:
+ * - not being taxed
+ * - are not count towards order-level promotions
+ * - are not count towards order-level shipping cost
+ *
+ * The script uses the shipping address associated with a shipment to determine 
+ * the tax jurisidiction. If no shipping address is available, the default tax 
+ * jurisdiction is used.
+ *
+ * Shipping cost for a shipment are calculated if a shipping method is assigned
+ * to the shipment. If no shipping method is assigned to a shipment, shipping
+ * is not calculated and set to N/A.
+ *
+ * @input  Basket : dw.order.Basket
+ */
+
+
+ importPackage( dw.system );
+ importPackage( dw.web );
+ importPackage( dw.value );
+ importPackage( dw.util );
+ importPackage( dw.order );
+ importPackage( dw.campaign );
+ importPackage( dw.catalog );
+ importPackage( dw.customer );
+
+
+/**
+ * Function: execute
+ *
+ * Main function of the calculation script.
+ */
+function execute( pdict : PipelineDictionary ) : Number
+{ 
+	
+	// ===================================================
+	// =====     	PROCESS INPUT PARAMETERS 		 =====
+    // ===================================================
+
+	var basket : Basket = pdict.Basket;
+	
+  	// ===================================================
+	// =====         CALCULATE BASKET RECYCLE AMOUNT =====
+    // ===================================================
+	
+	calculateProductRecyclePrices(basket);
+
+    // ===================================================
+	// =====         CALCULATE BASKET TOTALS         =====
+    // ===================================================
+	
+	basket.updateTotals();
+
+    // ===================================================
+	// =====            DONE                         =====
+    // ===================================================
+	
+    return PIPELET_NEXT;
+}
+
+
+
+/**
+ * FUNCTION: calculateProductRecyclePrices
+ *
+ * Calculates product prices based on states and custom attribute value i:e recycle fee
+ * 
+ */
+function calculateProductRecyclePrices(basket : Basket)
+{
+	//Check the dummy product site preference value is remove or basket shippingg address sessionout but basket having dummy product then reset the basket
+	if((!('recycleProductID' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.recycleProductID) || empty(dw.catalog.ProductMgr.getProduct(dw.system.Site.current.preferences.custom.recycleProductID))) || ((empty(basket.defaultShipment)) || (basket.defaultShipment == 'null') || (basket.defaultShipment.shippingAddress == 'null') || (empty(basket.defaultShipment.shippingAddress))) || (!empty(basket.defaultShipment)&&!empty(basket.defaultShipment.shippingAddress)&&(!basket.defaultShipment.shippingAddress.stateCode.toString().equals('CA'))&&(basket.custom.recycleAmount > 0)))
+	{
+		//Delete the dummy product
+			var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+								while(productLineItems.hasNext())
+								{
+									var productLineItem : ProductLineItem = productLineItems.next();
+									
+									if((!empty(productLineItem.custom.recycleLineItem) && (productLineItem.custom.recycleLineItem != 'null') && productLineItem.custom.recycleLineItem) || (productLineItem.productID == dw.system.Site.current.preferences.custom.recycleProductID) )
+									{
+										basket.removeProductLineItem(productLineItem);
+										//basket.custom.recycleAmount = 0;
+										basket.custom.recycleAmount = null;
+										break;
+									
+									}
+							    }
+		
+	}
+	//Moving to Recycle Functionality
+	if(basket.defaultShipment.shippingAddress != 'null' && !empty(basket.defaultShipment.shippingAddress ) && !empty(basket.defaultShipment.shippingAddress.stateCode) && basket.defaultShipment.shippingAddress.stateCode!='null' && ('recycleProductID' in dw.system.Site.current.preferences.custom) && (dw.system.Site.current.preferences.custom.recycleProductID))
+	{
+			
+		if((basket.defaultShipment.shippingAddress.stateCode.toString().equals('CA') || basket.defaultShipment.shippingAddress.stateCode.toString() == 'CA') && (!empty(dw.catalog.ProductMgr.getProduct(dw.system.Site.current.preferences.custom.recycleProductID)) && dw.catalog.ProductMgr.getProduct(dw.system.Site.current.preferences.custom.recycleProductID)!= 'null'))
+		 {
+			
+						// get total quantities for all products contained in the basket
+						var productQuantities : HashMap = basket.getProductQuantities();
+						
+						// get product prices for the accumulated product quantities
+						var products : Iterator = productQuantities.keySet().iterator();
+						var productPrices : HashMap = new HashMap();
+						
+						//Extra Product for recycle fee flag
+						var recycleProductNotExist : Boolean = true;
+						
+						var basketRecycleAmount : dw.value.Money = new dw.value.Money(0,'USD');
+						while(products.hasNext())
+						{
+							var product : Product = products.next();
+							
+							//Checking existance of recycle product
+							if(product.ID == dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim() || product.ID.toString().equals(dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim()))
+							{
+								recycleProductNotExist = false;
+							}
+							
+							var quantity : Quantity = productQuantities.get(product);
+							if(('ARFPrice' in product.custom && product.custom.ARFPrice) && ('ARFState' in product.custom && product.custom.ARFState) && (product.custom.ARFState == 'CA' || product.custom.ARFState.equals('CA')) && (product.ID != dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim()) && ('fromDate' in product.custom && product.custom.fromDate )&& ('toDate' in product.custom && product.custom.toDate) && (product.custom.fromDate < (new Date()) || product.custom.fromDate == (new Date())) && (product.custom.toDate > (new Date()) || product.custom.toDate == (new Date())))
+							{
+								 
+								basketRecycleAmount = basketRecycleAmount.add((new dw.value.Money(product.custom.ARFPrice,'USD')).multiply(quantity));
+								basket.getProductLineItems(product.ID)[0].custom.recycleAmount = (new dw.value.Money(product.custom.ARFPrice,'USD')).multiply(quantity).value;
+							
+							}
+						}
+						
+					
+						//Add the product to the baket
+						if(recycleProductNotExist && basket.getAllProductLineItems().size() > 0){
+							if( basket.shipments.size() >= 1 ){
+						   		var shipments : Iterator =  basket.shipments.iterator();
+						   		var totalShippingCost = 0;
+							   var maximumShipingCost = 0;
+							   var multipleShipmentPriceAdjustmentValue = 0;
+						   		while(shipments.hasNext()){
+						   			var shipment : Shipment = shipments.next();
+						   			var shippingMethod : ShippingMethod = shipment.shippingMethod;
+						   			// Update Required Here Code Change is Needed for Shipping Cost[Adjusted Shipping Cost we have to take].
+						   			var shippingCost = ShippingMgr.getShipmentShippingModel( shipment ).getShippingCost(shippingMethod).amount;
+						   			totalShippingCost = totalShippingCost + shippingCost.value;
+						   			if( shippingCost > maximumShipingCost ){
+						   				maximumShipingCost = shippingCost ;
+						   			}
+						   		}
+								multipleShipmentPriceAdjustmentValue = totalShippingCost - maximumShipingCost;
+						   		if(basket.getAdjustedShippingTotalPrice >= 0){
+						   			var multipleShipmentPriceAdjustment : PriceAdjustment = shipmentLineItem.createShippingPriceAdjustment('MultipleShipmentPriceAdjustment');
+						   			var priceAdjustment : Money = new Money( -multipleShipmentPriceAdjustmentValue , Site.getCurrent().getDefaultCurrency() );
+						   			multipleShipmentPriceAdjustment.setPriceValue( priceAdjustment.valueOrNull );
+						  		}
+						   		else if( multipleShipmentPriceAdjustmentValue>0 ){
+						   			var multipleShipmentPriceAdjustment : PriceAdjustment = shipmentLineItem.createShippingPriceAdjustment('MultipleShipmentPriceAdjustment');
+						   			var priceAdjustment : Money = new Money( -multipleShipmentPriceAdjustmentValue , Site.getCurrent().getDefaultCurrency() );
+						   			multipleShipmentPriceAdjustment.setPriceValue( priceAdjustment.valueOrNull );
+						   		}
+						   	}
+							var productLineItemRecycle : ProductLineItem = basket.createProductLineItem(dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim(),basket.defaultShipment);
+							productLineItemRecycle.custom.recycleLineItem = true;
+							
+							
+						}
+						
+						// iterate all product line items of the basket and set prices
+						var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+						while(productLineItems.hasNext())
+						{
+							var productLineItem : ProductLineItem = productLineItems.next();
+							
+							if(!empty(productLineItem.product) && (productLineItem.product != 'null') && (productLineItem.product.ID == dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim() || productLineItem.product.ID.toString().equals(dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim())))
+							{
+								productLineItem.setPriceValue(basketRecycleAmount.valueOrNull);
+								productLineItem.updateTax(0);
+							
+							}
+					    }
+		
+					//Setting basket label recycle amount
+					if(basketRecycleAmount.value != 0){
+						basket.custom.recycleAmount = basketRecycleAmount.value;
+					}
+					
+					//Delete the recycle product if recycle price is zero
+					
+						if(basketRecycleAmount.value == 0){
+							
+								var productLineItems : Iterator = basket.getAllProductLineItems().iterator();
+									while(productLineItems.hasNext())
+									{
+										var productLineItem : ProductLineItem = productLineItems.next();
+										
+										if(!empty(productLineItem.product) && (productLineItem.product != 'null') && (productLineItem.product.ID == dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim() || productLineItem.product.ID.toString().equals(dw.system.Site.current.getCustomPreferenceValue('recycleProductID').trim())))
+										{
+											basket.removeProductLineItem(productLineItem);
+											//basket.custom.recycleAmount = 0;
+											basket.custom.recycleAmount = null;
+											break;
+										
+										}
+								    }
+									
+						}
+				}
+	}
+
+}

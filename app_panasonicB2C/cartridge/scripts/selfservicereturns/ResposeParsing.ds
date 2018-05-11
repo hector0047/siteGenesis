@@ -1,0 +1,40 @@
+/**
+*	@input Response : dw.util.ArrayList
+*	@input ServiceOrders : Iterator
+*	@output orderItems : Object
+*	@output omsOrderStatus : String
+*	@output OrderHistoryResponse : dw.util.ArrayList
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try{
+	var omsResponse : ArrayList = args.Response;
+	var ServiceOrders : ArrayList = args.ServiceOrders;
+	var omsOrderStatus : String = '';
+	var ord : Boolean = omsResponse.isEmpty();	
+	var Orders : ArrayList = new ArrayList(ServiceOrders);
+	
+	args.OrderHistoryResponse = Orders;
+	
+	/*if(Orders.OrderDetail != 'undefined' && Orders.OrderDetail != null){
+		
+		var orderDetail : Object = Orders.OrderDetail;
+		
+		//Order status from Oms
+		args.omsOrderStatus = orderDetail.Status;
+		
+		//To get the Order/Product details
+		var shippingGroups = orderDetail.ShipTos.ShipTo.ShippingGroups;
+		var orderItems = shippingGroups.ShippingGroup.OrderItems;
+		
+	} */
+	return PIPELET_NEXT;
+	}catch(e){
+		Logger.error("Error in Order history "+ e.message);
+		return PIPELET_ERROR;
+	}
+}

@@ -1,0 +1,24 @@
+/**
+ * Return data related to the category page
+ * @input cgid : String The category ID
+ * @input pName : String The pipeline name
+ * @output ens_category : Object An object containing current user information
+ *
+ */
+ 
+importPackage( dw.system );
+importPackage(dw.catalog);
+importScript( "default/ensightenDataHelper.ds" );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	
+	var data = new Object();
+	data.type = "Category";
+
+	var cat = dw.catalog.CatalogMgr.getCategory(pdict.cgid);
+	data.category = parseCategory(cat);
+	pdict.ens_category = data;
+	
+    return PIPELET_NEXT;
+}

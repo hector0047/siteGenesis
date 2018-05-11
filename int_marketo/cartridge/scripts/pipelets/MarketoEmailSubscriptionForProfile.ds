@@ -1,0 +1,118 @@
+/**
+*	@input email					:	String
+*	@input marketoEndpointUrl		:	String
+*	@input marketoTokenEndpointUrl	:	String
+*	@input marketoClientId			:	String
+*	@input marketoClientSecretKey	:	String
+*   @input firstname				:	String
+*   @input lastname				    :	String
+*   @input title				    :	String
+*   @input age				        :	String
+*   @input address1                 :   String 
+*   @input address2                 :   String 
+*   @input city                     :   String 
+*   @input state                    :   String 
+*   @input zip                      :   String 
+*   @input phone                    :   String
+*   @input firstnameaddress	        :	String
+*   @input lastnameaddress			:	String
+*   @input optin		            :	Boolean
+*   @input shopPCECmember		    :	String
+*   @input shopPCECmemberajax		:	Boolean
+*/
+
+
+
+importPackage(dw.system);
+var sf = require("bc_serviceframework");
+var MarketoEmailSubscriptionSerive = require("../services/MarketoEmailSubscriptionServiceProfile");
+
+
+function execute( pdict : PipelineDictionary ) : Number {
+	var unsubscribed: Boolean = false;
+	var str: String ="";
+	var address2 : String = pdict.address2?pdict.address2:str;
+	var address : String =pdict.address1+" "+address2;
+	if(pdict.optin==true)
+	{
+	   unsubscribed=false;
+	}
+	else
+	{
+	   unsubscribed=true;
+	}
+	Logger.info("Entering MarketoEmailSubs..ds");
+	
+	//First request we are making to get the tokenId from the marketo
+	var MarketoEmailSubscriptionService = sf.getService('MarketoEmailSubscriptionService');
+	var service = new MarketoEmailSubscriptionService();
+	
+	var marketoTokenRequestObj : Object 			= new Object();
+	marketoTokenRequestObj.marketoTokenEndpointUrl	= pdict.marketoTokenEndpointUrl;
+	marketoTokenRequestObj.marketoClientId			= pdict.marketoClientId;
+	marketoTokenRequestObj.marketoClientSecretKey	= pdict.marketoClientSecretKey;
+	marketoTokenRequestObj.isTokenRequest			= true;
+	
+	service.call(marketoTokenRequestObj);
+	var tokenResponse  : Object = service.response;				
+   	var accessToken = JSON.parse(tokenResponse).access_token;
+	//Logger.debug("Marketo access token :"+ accessToken);
+	
+	if(accessToken ==null){
+		return PIPELET_ERROR;
+	}
+	
+	//Second request we are making to subscribe the email.	
+	  var marketoRequestObj : Object 			= new Object();
+	  // Farhans Dev Team : 30/03/2-16 11:00PM PANC-1797 
+	  marketoRequestObj.email   				= pdict.email.toLowerCase();
+	  marketoRequestObj.firstName   			= pdict.firstname;
+	  marketoRequestObj.lastName   			    = pdict.lastname;
+	  marketoRequestObj.title   			    = pdict.title;
+	  marketoRequestObj.age   			        = pdict.age;
+      marketoRequestObj.addressfirstname   		= pdict.firstnameaddress;
+	  marketoRequestObj.addresslastname   	    = pdict.lastnameaddress;
+	  marketoRequestObj.address   			    = address;
+	  marketoRequestObj.city   			        = pdict.city;
+	  marketoRequestObj.state   			    = pdict.state;
+	  marketoRequestObj.postalCode   			= pdict.zip;
+	  marketoRequestObj.phone  			        = pdict.phone;
+	  marketoRequestObj.emailable   			= pdict.optin;
+	  marketoRequestObj.unsubscribed  			= unsubscribed;
+	  marketoRequestObj.accessToken			    = accessToken;
+	 if(pdict.shopPCECmember){
+	 	 marketoRequestObj.shopPCECmember		= pdict.shopPCECmember;
+	 }else{
+	 	 marketoRequestObj.shopPCECmember		= pdict.shopPCECmemberajax;
+	 }
+	 
+	 
+	  marketoRequestObj.marketoEndpointUrl 	    = pdict.marketoEndpointUrl;
+	  if(pdict.optin == true){
+	  	marketoRequestObj.action   				= "createOrUpdate";
+	  }else{
+	  	marketoRequestObj.action   				= "updateOnly";
+	  }
+	  marketoTokenRequestObj.isTokenRequest	    = false;
+	  
+      service.call(marketoRequestObj);
+   
+    //Logger.debug(" Request:"+marketoRequestObj);
+    
+	var response  : Object = JSON.parse(service.response);
+	
+	Logger.info("Marketo Request Object Profile Level : " + marketoRequestObj.jsonRequestObj);
+	Logger.info("Marketo Email :"+ marketoRequestObj.email+"  : subscription response response"+ service.response);
+	
+   	if(response.success) {
+   		Logger.info("Exiting with Success");
+   		Logger.debug(" Response:"+service.response);
+   		return PIPELET_NEXT;
+   	} 
+   	  else 
+   	  {
+   		      Logger.info("Exiting with Failure");
+              Logger.debug("Not working");
+              return PIPELET_ERROR;
+     }
+}

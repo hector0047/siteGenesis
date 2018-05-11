@@ -1,0 +1,53 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules.isml"/>
+<iscomment>
+Prints a message about the product's availability. The messages to be displayed are defined as resources.
+</iscomment>
+<isif condition="${typeof 	pdict.Product !== 'undefined' && !empty(pdict.Product)}" >
+	<isset name="Product" value="${pdict.Product}" scope="page"/>
+<iselse/>
+	<isset name="Product" value="${!empty(pdict.product)?pdict.product:null}" scope="page"/>
+</isif>
+<isif condition="${!empty(Product) && Product.availabilityModel != null}">	
+	<isset name="availabilityModel" value="${Product.availabilityModel}" scope="PAGE"/>
+	<isset name="availabilityStatus" value="${Product.availabilityModel.availabilityStatus}" scope="PAGE"/>
+	<isset name="inventoryRecord" value="${Product.availabilityModel.inventoryRecord}" scope="PAGE"/>
+	<isset name="showInstockMsg" value="${!pdict.p_hidedates}" scope="PAGE"/>
+	
+	<div class="availability-msg">
+		<isif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_IN_STOCK && inventoryRecord != null && inventoryRecord.stockLevel.available}">
+			<p class="in-stock-msg">${StringUtils.format(Resource.msg('global.instock','locale',null))}</p>			
+		<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_PREORDER}">
+			<isif condition="${Product.availabilityModel.inventoryRecord != null && Product.availabilityModel.inventoryRecord.inStockDate != null && Product.availabilityModel.inventoryRecord.inStockDate>new Date() && (Product.availabilityModel.inventoryRecord.inStockDate.getFullYear().toString() != '9999')}">
+				<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+				<isif condition="${!empty(showInstockMsg) && showInstockMsg}">	
+					<p class="in-stock-date-msg">${StringUtils.format(Resource.msg('global.inStockDate','locale',null), Product.availabilityModel.inventoryRecord.inStockDate.toDateString())}</p>
+		    	</isif> 
+		    <iselse>
+				<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+			</isif>
+		<iselseif condition="${availabilityStatus == dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_BACKORDER}">
+			<isif condition="${Product.availabilityModel.inventoryRecord != null && Product.availabilityModel.inventoryRecord.inStockDate != null && Product.availabilityModel.inventoryRecord.inStockDate>new Date() && (Product.availabilityModel.inventoryRecord.inStockDate.getFullYear().toString() != '9999')}">
+				<isif condition="${('isPreOrderable' in Product.custom) && (Product.custom.isPreOrderable)}">
+					<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+					<isif condition="${!empty(showInstockMsg) && showInstockMsg}">
+						<p class="in-stock-date-msg">${StringUtils.format(Resource.msg('global.inStockDate','locale',null), Product.availabilityModel.inventoryRecord.inStockDate.toDateString())}</p>
+					</isif>
+				<iselse>
+					<p class="backorder-msg">${StringUtils.format(Resource.msg('global.allbackorder','locale',null))}</p>
+					 <isif condition="${!empty(showInstockMsg) && showInstockMsg}">
+					 	<p class="in-stock-date-msg">${StringUtils.format(Resource.msg('global.inStockDate','locale',null), Product.availabilityModel.inventoryRecord.inStockDate.toDateString())}</p>
+					 </isif>
+				</isif>
+			<iselse>
+				<isif condition="${('isPreOrderable' in Product.custom) && (Product.custom.isPreOrderable)}">
+					<p class="preorder-msg">${StringUtils.format(Resource.msg('global.allpreorder','locale',null))}</p>
+				<iselse>
+					<p class="backorder-msg">${StringUtils.format(Resource.msg('global.allbackorder','locale',null))}</p>
+			    </isif>
+			</isif>
+		<iselse/>
+			<p class="not-available-msg">${Resource.msg('global.allnotavailable','locale',null)}</p>				
+		</isif>
+	</div>	
+</isif>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="XMLGeneration">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="XMLGeneration" secure="false"/>
+        <node-display x="1" y="0"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="sellpoint/SellpointsXMLGeneration.ds"/>
+          <key-binding alias="logs" key="ScriptLog"/>
+          <key-binding alias="dw.catalog.CatalogMgr.siteCatalog.ID" key="CatalogID"/>
+          <key-binding alias="ProductID" key="ProductID"/>
+          <key-binding alias="ProductIDs" key="productIDs"/>
+          <key-binding alias="Productfeature" key="productfeature"/>
+          <key-binding alias="Productspec" key="productspec"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-2"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <decision-node condition-key="Productfeature" condition-operator="expr"/>
+              <node-display x="2" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                      <key-binding alias="&quot;noreply@demandware.com&quot;" key="MailFrom"/>
+                      <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('ToEmailID')" key="MailTo"/>
+                      <key-binding alias="&quot;Alert for skiped products&quot;" key="MailSubject"/>
+                      <key-binding alias="null" key="LocaleID"/>
+                      <key-binding alias="null" key="MailCC"/>
+                      <key-binding alias="null" key="MailBCC"/>
+                      <key-binding alias="&quot;skipedproductforfeaturecontent&quot;" key="MailTemplate"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in2" target-path="./+1">
+              <transition-display>
+                <bend-point relative-to="source" x="1" y="0"/>
+                <bend-point relative-to="target" x="1" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="2"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <decision-node condition-key="Productspec" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in">
+                  <transition-display>
+                    <bend-point relative-to="source" x="0" y="1"/>
+                  </transition-display>
+                </transition>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                      <key-binding alias="&quot;noreply@demandware.com&quot;" key="MailFrom"/>
+                      <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('ToEmailID')" key="MailTo"/>
+                      <key-binding alias="&quot;Alert for skiped products&quot;" key="MailSubject"/>
+                      <key-binding alias="null" key="LocaleID"/>
+                      <key-binding alias="null" key="MailCC"/>
+                      <key-binding alias="null" key="MailBCC"/>
+                      <key-binding alias="&quot;skipedproductforproductspec&quot;" key="MailTemplate"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <transition target-connector="in2" target-path="./+1">
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="2" y="0"/>
+              </transition-display>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="2"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <stop-node name="Error"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="Productfeature" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;noreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('ToEmailID')" key="MailTo"/>
+                <key-binding alias="&quot;Alert for skiped products&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('CCEmailID')" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+                <key-binding alias="&quot;skipedproductforfeaturecontent&quot;" key="MailTemplate"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in2" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="1" y="0"/>
+          <bend-point relative-to="target" x="1" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="2"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="Productspec" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;noreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('ToEmailID')" key="MailTo"/>
+                <key-binding alias="&quot;Alert for skiped products&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('CCEmailID')" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+                <key-binding alias="&quot;skipedproductforproductspec&quot;" key="MailTemplate"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in2" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="2" y="0"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="2"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node name="Success"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

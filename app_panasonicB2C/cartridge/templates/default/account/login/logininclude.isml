@@ -1,0 +1,71 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<div class="login-box login-account">
+	
+	<div class="login-box-content returning-customers clearfix">
+				
+		<isif condition="${!pdict.CurrentSession.customer.externallyAuthenticated}">
+		<div class="login-reg-link-holder">
+			<p>${Resource.msg('logininclude.registered','account',null)}</p>
+			<form action="${URLUtils.httpsContinue()}" method="post" id="${pdict.CurrentForms.login.htmlName}_register">
+				<input type="hidden" name="${pdict.CurrentForms.login.secureKeyHtmlName}" value="${pdict.CurrentForms.login.secureKeyValue}"/>	
+			</form>
+		</div>	
+		
+		<form action="${URLUtils.httpsContinue()}" method="post" class="clearfix formsubmit" id="${pdict.CurrentForms.login.htmlName}">
+			<iscomment>Login Unsuccessful Error Message</iscomment>
+			<isif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && pdict.TempCustomer.profile.credentials.locked}">
+				<div class="error-form">${Resource.msg('logininclude.locked','account',null)}</div>
+			<iselseif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && (pdict.TempCustomer.profile.credentials.remainingLoginAttempts == 1)}">
+				<div class="error-form">${Resource.msg('logininclude.willbelocked','account',null)}</div>
+			<iselseif condition="${pdict.RegistrationStatus != null && pdict.RegistrationStatus != false && pdict.RegistrationStatus.code == 'CustomerAlreadyExistError'}">			
+				<div class="error-form">${Resource.msg('logininclude.loginfberror','account',null)}</div>
+			<iselseif condition="${!pdict.CurrentForms.login.loginsucceeded.valid}">
+				<div class="error-form">${Resource.msg('logininclude.loginerror','account',null)}</div>
+			</isif>
+			
+			<fieldset>
+			
+				<isinputfield formfield="${pdict.CurrentForms.login.username}" type="input" xhtmlclass="email-input loginemail" p_dynamic="true" requiredtext="${Resource.msg('login.username.missing-error','forms',null)}" rowclass="loginrow-cont" requiredtextstar="true" attribute1="placeholder" value1="Email*"/>
+				
+				<isinputfield formfield="${pdict.CurrentForms.login.password}" type="password" xhtmlclass="password-input" requiredtext="${Resource.msg('login.password.missing-error','forms',null)}" rowclass="loginrow-cont fieldrighttopmagin loginfieldright" attribute1="placeholder" value1="Password*"/>
+				<div class="form-row-2contents">
+					<isinputfield formfield="${pdict.CurrentForms.login.rememberme}" type="checkbox" rowclass="label-inline remember-me-row-cont tickmark"/>
+					<a id="password-reset" href="${URLUtils.url('Account-PasswordResetDialog')}" title="${Resource.msg('logininclude.forgotpassword','account',null)}">
+							${Resource.msg('logininclude.forgotpassword','account',null)}
+					</a>
+				</div>
+				<div class="form-row form-row-button">					
+					<button class="login" type="submit" value="${Resource.msg('global.continueInCaps','locale',null)}" name="${pdict.CurrentForms.login.login.htmlName}">
+						${Resource.msg('global.continueInCaps','locale',null)}
+					</button>
+					
+					<span class="or-span"> or </span>
+					<!-- a class="createaccount" href="${URLUtils.url('Account-StartRegister')}"-->
+						<button class="createaccount" type="submit" value="${Resource.msg('global.createbutton','locale',null)}" name="${pdict.CurrentForms.login.register.htmlName}" >
+							${Resource.msg('global.createbuttonInCaps','locale',null)}
+						</button>
+					<!--/a-->
+				</div>
+				<input type="hidden" name="${pdict.CurrentForms.login.secureKeyHtmlName}" value="${pdict.CurrentForms.login.secureKeyValue}"/>
+				
+			</fieldset>
+			
+		</form>
+		</isif>
+		<p class="or-divider">Or</p>		
+	<iscomment> <isinclude template="account/login/oauthlogininclude"/>  </iscomment>	
+	
+	</div>
+	
+</div>
+<script type="text/javascript">
+ $(document).ready(function() {       
+	 
+	$('.createaccount').click(function(event) {
+		$('.loginemail').removeClass('required');
+		$('.password-input').removeClass('required');
+		$('.formsubmit').attr('id',$('.formsubmit').attr('id')+'_register'); 
+	});
+ });
+</script>

@@ -1,0 +1,53 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *  CheckBasketChanges.ds
+ *
+ *  
+ * 
+ * @input ShipmentsForm : dw.web.FormGroup The form definition representing the cart shipments.
+ * @input UpdateAlreadySent : Boolean Flag to check if the update shopping cart has already been sent
+ * @output BasketHasChanged : Boolean Flag to show if the cart has changed
+ * @output UpdateAlreadySent : Boolean Flag to check if the update shopping cart has already been sent
+ */
+
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	if ( !('StrandsEnabled' in Site.current.preferences.custom) || !Site.current.preferences.custom.StrandsEnabled) {
+		return PIPELET_ERROR;			
+	}
+
+	pdict.BasketHasChanged = false;
+	
+	if (pdict.ShipmentsForm != null) {
+		var cartShipmentsForm : FormGroup = pdict.ShipmentsForm;
+	
+		for each (var shipmentitem in cartShipmentsForm.shipments) {
+			for each (var item : FormListItem in shipmentitem.items) {			
+				if (item.quantity.value == 0 || item.quantity.value == null) {
+					pdict.BasketHasChanged = true;
+					return PIPELET_NEXT;									
+				}	
+			}			
+		}
+	} else {				
+		if (pdict.UpdateAlreadySent != null && pdict.UpdateAlreadySent) {
+			pdict.UpdateAlreadySent = null;
+			return PIPELET_NEXT;	
+		} else {
+			pdict.UpdateAlreadySent = true;
+			pdict.BasketHasChanged = true;
+			return PIPELET_NEXT;	
+		}
+		
+	}	
+	
+	return PIPELET_NEXT;
+}

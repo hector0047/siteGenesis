@@ -1,0 +1,52 @@
+/**
+* Purpose:	Sends the email address to Listrak to for subscription to newsletter/email list 
+*
+*	@input CurrentHttpParameterMap	:	dw.web.HttpParameterMap
+*	@input MarketoEndpointUrl		:	String
+*	@input AccessToken				:	String
+*	
+*/
+
+importPackage( dw.system );
+importPackage( dw.web );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var hc : HTTPClient = new HTTPClient();
+   	hc.setRequestHeader("Method", "POST");
+   	hc.setRequestHeader("Content-Type", "application/json");   	
+   	
+   	var tokenServiceUrl : String = "https://415-COQ-068.mktorest.com/identity/oauth/token?grant_type=client_credentials&client_id=f0c13ba3-8c09-4bb5-858a-dbd6d2a70f10&client_secret=vsLC5JmOdAUCjuEf58uvbIocTRRDseZB";
+   	hc.open("POST", tokenServiceUrl);    
+   	hc.send();   		
+   	var response = JSON.parse(hc.text);
+   	var access_token = response.access_token;
+   	var token_type = response.token_type;
+   	 
+   	
+   	
+   	var hc1 : HTTPClient = new HTTPClient();
+   	hc1.setRequestHeader("Method", "POST");
+   	hc1.setRequestHeader("Content-Type", "application/json");   	
+   	
+   	var serviceUrl : String = "https://415-COQ-068.mktorest.com/rest/v1/leads.json?access_token="+access_token;
+   	hc1.open("POST", serviceUrl);  
+    var jsonObj = {
+					"input":[
+						{
+					         "email": args.CurrentHttpParameterMap.email.value
+					    }
+					]
+				};
+    
+     
+   hc1.send(JSON.stringify(jsonObj));
+   
+   var responseSUbcribe = hc1.text;
+    
+   return PIPELET_NEXT;
+}
+

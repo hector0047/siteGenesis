@@ -1,0 +1,36 @@
+/**
+* Get Imported UGC Streams
+*
+* Params:
+*
+* @output ImportedStreams : dw.util.Collection
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.content );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		/**
+		 * Get all imported streams from folder
+		 */
+		var importedStreamsFolder : Folder = ContentMgr.getFolder("amp_modules_ugc");
+		var importedStreams : Collection = importedStreamsFolder.getContent();
+		
+		args.ImportedStreams = importedStreams;
+
+	}
+	catch(e) {
+		var errMsg = 'GetImportedUGCStreams.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

@@ -1,0 +1,14 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache status="off" />
+<!-- Inside Remote header -->
+<isif condition="${('referralEmail' in pdict.CurrentSession.custom && (typeof pdict.CurrentSession.custom.referralEmail != 'undefined') && !empty(pdict.CurrentSession.custom.referralEmail))}"> 
+	<iscomment> Start JIRA PANC-499 : Friends Family </iscomment>	
+	<isslot id="ff-empstore-group-content" description="Employee Store Content" context="global"/>
+	<iscomment> End JIRA PANC-499 : Friends Family </iscomment> 
+<iselse>
+	<iscomment> Start JIRA PANC-451 : Vendor Store Experience </iscomment>	
+	<isslot id="customer-group-content" description="Customer Group Content" context="global"/>
+	<iscomment> End JIRA PANC-451 : Vendor Store Experience </iscomment> 
+</isif>
+
+

@@ -1,0 +1,18 @@
+<isinclude template="util/modules" />
+<isset name="responsearray" value="${pdict.Response}" scope="page" />
+<isif condition="${responsearray != null && !empty(responsearray)}">
+	<h2>${Resource.msg('global.youmayalsolike','locale',null)}</h2>
+	<div class="strandsrecproducts strandsproducts">
+		<ul class="pdptiles-carousel">
+			<isloop items="${responsearray}" var="res" status="status">
+				<isset name="product" value="${res.itemId}" scope="page"/>
+				<isset name="recommendedpro" value="${dw.catalog.ProductMgr.getProduct(product)}" scope="page"/>
+				<li>	
+					<iscomment>Farhan's Dev team : 19-11-2015 3:00pm PANC-988</iscomment>
+						<isproducttilepdp product="${recommendedpro}" showswatches="${false}" showpricing="${true}" showrating="${true}" specialoffer="${false}" transformationtemplate="$PDP-Also-Like-Desktop$" />
+					<iscomment>END PANC-988</iscomment>
+				</li>	
+			</isloop>
+		</ul>	
+	</div>
+</isif>

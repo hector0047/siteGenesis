@@ -1,0 +1,86 @@
+/**
+ * Temp file to upload pricebooks feed to ftp access outside of DW realm is restricted 
+ */
+
+importPackage( dw.io );
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.net );
+
+function execute( args : PipelineDictionary ) : Number
+{
+Logger.debug("here");
+	// locate file
+	
+	var sftpClient : FTPClient = new dw.net.FTPClient();
+	
+	try{
+	var file : File = new File( File.IMPEX + File.SEPARATOR + "src" + File.SEPARATOR + "Pricebook_test1.xml" );
+	
+	
+	
+	sftpClient.connect( "74.10.135.37", "dw_user", "Pass1234" );
+	
+	var fileReader = new FileReader(file);
+	
+	var contents = fileReader.getString();
+	
+	Logger.debug("Contents"+contents);
+	
+	//sftpClient.
+	
+	
+	if(sftpClient.putBinary("/dw_user/out/Pricebook_test1.xml", file))
+	{
+	
+	Logger.debug("did put ok");
+	}else{
+	Logger.debug("PUT FALSE");
+	}
+	
+	
+	sftpClient.disconnect();
+	
+
+	//sftpClient.connect( "74.10.135.37", "dw_user", "Pass1234" );
+
+/*
+
+	var files : Array;
+	files = sftpClient.list( "/dw_user/out/" );
+	
+	
+	Logger.getLogger("simplefeeds").debug( "Connected"+sftpClient.connected);
+	//Logger.getLogger("simplefeeds").debug( "Just listed"+files.length);
+	
+	for each ( var file : FTPFileInfo in files )
+	{
+		// filter out directories
+		if ( !file.directory )
+		{
+			Logger.getLogger("simplefeeds").debug( "DownloadFeed: Listing file: " + file.name );
+			
+		}		
+	}
+
+*/
+
+	
+	//var data = sftpClient.get("/dw_user/out/TRB_MasterCatalog_Delta_Spring_2011_03082011042501200.xml");
+	
+	//Logger.debug("get");
+	
+	//Logger.debug("data"+data);
+	
+	sftpClient.disconnect();
+	
+	}catch ( ex )
+	{
+		Logger.debug( "DownloadFeed: Error "+ ex );		
+		
+	}
+	
+	
+	
+	return PIPELET_NEXT;
+}

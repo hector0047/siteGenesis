@@ -1,0 +1,34 @@
+/**
+* This script receives detail information about an order which is part of
+* the main street system.
+*
+* @author Demandware
+* @creationdate 2010-07-22
+*
+* @input OrderNo : String
+* @input InputOrder : Object
+* @output Order : Object
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value );
+
+
+var sf = require("bc_serviceframework");
+require("../services/OrderDetailsSoapService");
+
+function execute( pdict : PipelineDictionary ) : Number
+{	
+	var OrderDetailsSoapService = sf.getService('OrderDetailsSoapService');
+	var service = new OrderDetailsSoapService();			
+	service.call(new Array(pdict.OrderNo));
+	
+	var responseOrders = service.response;
+	pdict.Order = responseOrders.iterator().next();
+	Logger.debug(responseOrders.toString());
+    return PIPELET_NEXT;
+}

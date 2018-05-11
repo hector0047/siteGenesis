@@ -1,0 +1,127 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isset name="pageTitle" value="Panasonic HomeTeam App | Read and Play Games Together" scope="page" />
+<isset name="HomeTeamPage" value="true" scope="page"/>
+<isset name="HomeTeamPageKeywords" value="panasonic app, hometeam, reading app, kids games, play with kids" scope="page" />
+<isset name="HomeTeamPageDescription" value="Download the HomeTeam App and keep loved ones together. Read together, play games via online chat." scope="page" />
+<isdecorate template="content/home/pt_storefront">
+<isinclude template="util/modules"/>
+
+<iscomment>this is the template rendering the homepage</iscomment>
+	<iscomment>
+	<div class="hm-banner">
+		<isslot id="home-carousel" description="Homepage Carousel" context="global" />
+	</div>
+	<div class="body-wrap">
+		<isslot id="home-content" description="Homepage Content" context="global" />
+	</div>
+	</iscomment>
+	<div id="body-wrap" class="landscape-view">
+	<input id="hometeam-page" type="hidden" value="hometeam-page" />
+		<div id="left-nav-wrapper">
+			<div id="left-navigation-container">
+				<div id="left-navigation">
+					<iscontentasset aid="landing-left-nav"/>
+				</div>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div id="content">
+			<div id="video-wrapper">
+				<div id="video-container">
+					<iscontentasset aid="landing-video"/>
+				</div>
+				<div id="video-description">
+					<iscontentasset aid="landing-video-description"/>
+				</div>
+			</div>
+			
+			<div class="clearfix"></div>
+			
+			<div id="family-time">
+				<iscontentasset aid="landing-page-familytime"/>
+			</div>
+			
+			<div class="image-container">
+				<iscontentasset aid="landing-anytime"/>
+			</div>
+			
+			<div id="turn-screen-time">
+				<iscontentasset aid="landing-turn-screen-time"/>
+			</div>
+			
+			<div class="clearfix"></div>
+			
+			<div class="image-container">
+				<iscontentasset aid="landing-thousands-books"/>
+			</div>
+			
+			<div id="build-your-hometeam">
+				<iscontentasset aid="landing-build-your-hometeam"/>
+			</div>
+			
+			<div id="pricing">
+				<iscontentasset aid="landing-pricing"/>
+			</div>
+			
+			<div class="clearfix"></div>
+			
+			<div id="get-started">
+				<iscontentasset aid="landing-get-started"/>
+			</div>
+			
+			<div id="get-application-container">
+				<div id="computer-container">
+					<iscontentasset aid="landing-on-your-computer"/>
+				</div>
+				
+				<div id="tablet-container">
+					<iscontentasset aid="landing-on-your-tablet"/>
+				</div>
+				
+				<div class="clearfix"></div>
+				
+			</div>
+			
+			<div id="our-hometeam">
+				<iscontentasset aid="landing-on-hometeam"/>
+			</div>
+			
+			<div class="clearfix"></div>
+			
+			<div id="faq">
+				<iscontentasset aid="landing-faq"/>
+			</div>
+			
+			<div id=still-have-questions>
+				<iscontentasset aid="landing-still-have-questions"/>
+			</div>
+			
+			<div id="share-container">
+				<div class="tile">
+					<iscontentasset aid="landing-press"/>
+				</div>
+				
+				<div class="tile">
+					<iscontentasset aid="landing-partnerships"/>
+				</div>
+				
+				<div class="tile">
+					<iscontentasset aid="landing-share"/>
+				</div>
+				
+				<div class="clearfix"></div>
+			</div>
+			
+			<div id="hyperlinks">
+				<iscontentasset aid="landing-hyperlinks"/>
+			</div>
+			
+		</div>
+		
+		<div class="clearfix"></div>
+	</div>
+	<div class="clearfix"></div>
+
+</isdecorate>

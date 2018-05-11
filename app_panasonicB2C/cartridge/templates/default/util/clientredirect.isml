@@ -1,0 +1,7 @@
+<iscomment>New utility template for client side redirect.</iscomment>
+<script type="text/javascript">
+	jQuery(document).ready(function(e){
+		  app.dialog.close();
+		  window.location.href = "${pdict.Location}";
+	 });
+</script>

@@ -1,0 +1,198 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/orderhistory/pt_returnconfirm">
+	<isinclude template="util/modules"/>
+	<div class="return-confrmtn-page-wrap">
+	<isif condition="${pdict.Error!=null && pdict.Error=='serviceerror'}">
+		Service is unavailable. Please try later to connect.	
+	<iselse/>
+		<div class="Return-Confirmation" id="pnsb2c-myaccount-orders">Return Confirmation</div>
+			<p>Your refund will be issued back to the original payment method within 2-3 days from the data that we receive your returned product.</p>
+			<isset name="OrderNo" value="${pdict.CurrentHttpParameterMap.orderID}" scope="page"/>
+			<isset name="Order" value="${dw.order.OrderMgr.getOrder(OrderNo)}" scope="page"/>
+			<isscript>
+				var currentDate : Date = dw.system.Site.current.calendar.time;
+				var calender = new dw.util.Calendar(currentDate);
+				var newcurrentDate = dw.util.StringUtils.formatCalendar(calender, "MM/dd/yy");
+			</isscript>
+			<div class="Returning-Item-Details-OMS">
+				<div class="Refunding-Information-OMS">
+					<span class="heading ord-returnpolicy">${Resource.msg('orderdetails.returnconfirm','components',null)}</span><br>
+					Refund Requested:${newcurrentDate}
+					<div class="Original_Order-No_Order_No">Original Order Number: ${OrderNo}</div><br>
+					<br>	
+					<iscomment> For Displaying Payment Method </iscomment>		
+				</div>
+				
+				<iscomment>Display shipping address	</iscomment>	
+				<div class="Ship-Bill-Details-OMS">
+					<div class="Shipping-Address">
+						<span class="heading">${Resource.msg('orderdetails.shippingaddress','components',null)}</span><br>
+						<isif condition="${pdict.CurrentHttpParameterMap.editAddress.value == 'true'}" >	
+							${pdict.CurrentSession.privacy.FirstName}
+							${pdict.CurrentSession.privacy.LastName}</br>
+							${pdict.CurrentSession.privacy.Address1}
+							${pdict.CurrentSession.privacy.Address2}
+							<div class="city-state-zipcode-confirmation-page">
+									${pdict.CurrentSession.privacy.City}
+									${pdict.CurrentSession.privacy.State}
+									${pdict.CurrentSession.privacy.PostalPIN}
+							</div>
+							${pdict.CurrentSession.privacy.PhoneNo}
+						<iselse/>			
+							<isloop items="${Order.shipments}" var="shipment" status="shipmentloopstate" begin="0" end="0">		
+								<isset name="rowSpan" value="${shipment.productLineItems.size()}" scope="page"/>
+							    <div rowspan="${rowSpan.toFixed()}" class="order-shipment-details">
+							    	<div class="order-shipment-address">
+							    		<isminishippingaddress p_shipment="${shipment}" p_editable="${false}" p_showmethod="${false}" p_showpromos="${false}"/>			    		
+							    	</div>			    	
+							    </div>			 
+							</isloop>
+						</isif>
+					</div>
+					<br>
+					<iscomment>display billing address</iscomment>
+					<div class="Billing-Address">
+						<span class="heading">${Resource.msg('orderdetails.billingaddress','components',null)}</span>		
+						<isminiaddress p_address="${Order.billingAddress}"/>
+					</div>
+				</div>
+				
+				<div class="ordr-detls-block">
+					<div class="order-payment-instruments shipnbill-block-Myacc">
+						<isif condition="${Order.paymentInstruments.length == 1}">	
+							<span class="heading">${Resource.msg('orderdetails.paymentmethod','components',null)}</span>
+						<iselse/>
+							<span class="heading">${Resource.msg('orderdetails.paymentmethods','components',null)}</span>
+						</isif><br>
+						<isloop items="${Order.getPaymentInstruments()}" var="paymentInstr" status="piloopstate">				
+							<iscomment><isminicreditcard p_card="${paymentInstr}" p_show_expiration="${false}"/> </iscomment>				
+							<isif condition="${'PayPal'.equals(paymentInstr.paymentMethod)}">
+								<isprint value="${paymentInstr.paymentMethod}"/><br/>
+								<iscomment><isprint value="${paymentInstr.paypalPayerEmail}"/><br/> </iscomment>
+							<iselse/>
+								<isprint value="${paymentInstr.creditCardHolder}"/><br />
+								<isprint value="${paymentInstr.paymentMethod}"/><br />			
+								<isprint value="${paymentInstr.maskedCreditCardNumber.replace(/[-]/g,'')}"/><br />								
+								
+							</isif>								
+						</isloop>	
+						Amount:$<isprint value="${pdict.CurrentSession.privacy.GrossPrice}" /><br>	
+					</div>
+					<br>
+				
+					<div class="order-detail-summary-Estimated-Refund-Summary">
+						<span class="Estimated-heading">${Resource.msg('orderdetails.estimatedrefund','components',null)}</span><br>
+						Subtotal  $<isprint value="${new Number(pdict.CurrentHttpParameterMap.subTotal.value)}" style="DECIMAL"/><br>
+						Shipping  $<isprint value="${pdict.CurrentHttpParameterMap.shippingAmount.value}" /><br>
+						Tax  $<isprint value="${new Number( pdict.CurrentHttpParameterMap.EstimatedTax.value)}"  style="DECIMAL"  /><br>
+						Restocking Fee $<isprint value="${new Number(pdict.CurrentHttpParameterMap.restockAmount.value)}" style="DECIMAL" /><br>
+						Total  $<isprint value="${new Number(pdict.CurrentHttpParameterMap.EstimatedAmount.value)}" style="DECIMAL"/><br>
+						<iscomment>
+						<isif condition="${Order.shipments.length > 1}">
+							<isordertotals p_lineitemctnr="${Order}" p_showshipmentinfo="${true}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.ordertotal','locale',null)}"/>
+						<iselse/>
+							<isordertotals p_lineitemctnr="${Order}" p_showshipmentinfo="${false}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.ordertotal','locale',null)}"/>
+						</isif>
+						</iscomment>
+					</div>
+					
+					<div class="Refunds-Issued-OMS">
+							${Resource.msg('orderdetails.refundtext','components',null)}			
+					</div>	
+				</div>
+	</div>
+				
+	<iscomment>For Displaying about Product Information </iscomment>
+	<isset name="productInfo" value="${JSON.parse(pdict.JsonArray)}" scope="page" />
+	<isscript>
+		importScript("int_dis:product/ProductImageSO.ds");
+		importScript("app_panasonicB2C:util/GetAmplienceImageUrl.ds");
+		var newObj : dw.util.ArrayList = new dw.util.ArrayList(productInfo.OrderItems);
+	</isscript>
+	
+	
+	
+	<isloop items="${pdict.Order.shipments}" var="shipment" status="shipmentloopstate">
+			<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+				<isloop items="${newObj.iterator()}" var="product" status="loopstatus"  >
+					<isset name="pid" value="${product.OrderItemCode}" scope="page" /> 
+					<isif condition="${pid == productLineItem.product.ID && ! productLineItem.bonusProductLineItem}">	
+									
+							<isset name="productObj" value="${dw.catalog.ProductMgr.getProduct(pid)}" scope="page" />
+							<isset name="image" value="${new ProductImage('image360X360',productObj, 0)}" scope="page"/>
+							<isset name="thumbnailUrl" value="${image.getURL()}" scope="page"/>
+							<div class="rtng-pdct-cnfm-page-wrapper">
+								<div class="Returning-Items-Details-Image">
+									<!-- img src="${thumbnailUrl}" /-->
+									<picture>
+										<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+										<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+										<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+										<img src="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}"  />
+									</picture>
+								</div>
+								<div class="pdct-no-and-model-no-OMS">
+									<isprint value="${productObj.shortDescription}" encoding="off" />
+									<isprint value="${product.OrderItemCode}" encoding="off" /><br>
+								</div>
+								<div class="Qty-OMS">
+									QTY: <isprint value="${product.OrderItemQtyReturned}" /><br>
+								</div>	
+								<div class="Price-OMS">
+								<isset name="ordered_quan" value="${productLineItem.quantity}" scope="page" />								
+									Price: $<isprint value="${(productLineItem.getAdjustedPrice().value / ordered_quan) * product.OrderItemQtyReturned}" /><br>
+								</div>
+								<iscomment>Displaying Bonus product</iscomment>
+								<isif condition="${!empty(productLineItem.getRelatedBonusProductLineItems())}"> 
+									<isset name="bonuscount" value="${new Number(0)}" scope="page"/>									 
+									<isloop items="${productLineItem.getRelatedBonusProductLineItems()}" var="bonusProd" status="bonusprodloop" > 
+										<isif condition="${bonuscount == 0 || bonuscount < product.OrderItemQtyReturned}">
+									<isset name="productObj" value="${dw.catalog.ProductMgr.getProduct(bonusProd.product.ID)}" scope="page" />
+									<isset name="image" value="${new ProductImage('image360X360',productObj, 0)}" scope="page"/>
+									<isset name="thumbnailUrl" value="${image.getURL()}" scope="page"/>
+										<div class="Returning-Items-Details-Image">
+											<!-- img src="${thumbnailUrl}" /-->
+											<picture>
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}" media="(min-width: 1024px)">
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','tablet')}" media="((min-width: 768px) and (max-width: 1023px))">
+												<source srcset="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','mobile')}" media="(max-width: 767px)">
+												<img src="${getAmplienceImageUrlViewPortWise(thumbnailUrl,'$Cart-Large-Thumbnail-Desktop$','desktop')}"  />
+											</picture>
+										</div>
+										<div class="pdct-no-and-model-no-OMS">
+											<isprint value="${productObj.shortDescription}" encoding="off" />
+											<isprint value="${bonusProd.product.ID}" encoding="off" /><br>
+										</div>
+										<div class="Qty-OMS">
+											QTY: <isprint value="${bonusProd.quantity}" /><br>
+										</div>	
+										<div class="Price-OMS">								
+												Price: $<isprint value="${(bonusProd.getAdjustedPrice().value / bonusProd.quantity) * bonusProd.quantity}" /><br>
+											</div>
+										</isif>
+										<isset name="bonuscount" value="${bonuscount + 1}" scope="page"/>									
+									</isloop>
+								</isif>
+							</div>									
+					</isif>										
+				</isloop>
+			</isloop>			
+	</isloop>
+
+	<div class="button-OMS">
+		<a href="${URLUtils.https('Home-Show')}">
+			<button type="button" value="${Resource.msg('orderdetails.returnshopping','components',null)}">
+					${Resource.msg('orderdetails.returnshopping','components',null)}									
+			</button>
+		</a>
+	</div>
+</isif>
+</div>	
+	<div class="html-slot-container">
+		<isif condition="${slotcontent != null}">
+			<isloop items="${slotcontent.content}" var="markupText">
+				<isprint value="${markupText.markup}" encoding="off"/>	
+			</isloop>
+		</isif>
+	</div>
+</isdecorate>	

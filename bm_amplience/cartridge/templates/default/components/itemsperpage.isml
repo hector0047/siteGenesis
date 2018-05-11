@@ -1,0 +1,43 @@
+<!--- TEMPLATENAME: paginginformation.isml --->
+
+<iscomment>
+	Displays the state of the current paging model.
+</iscomment>
+
+<isscript>
+	importPackage( dw.web );
+</isscript>
+
+<isif condition="${!empty(pdict.pageurl) && !empty(pdict.pagingmodel) && !pdict.pagingmodel.isEmpty()}">
+
+<isset name="ItemsCount" value="${pdict.pagingmodel.getCount()}" scope="page" />
+<isif condition="${ ItemsCount > 10 }">
+
+<div class="items-per-page">
+	<p>
+		<isprint value="${Resource.msg('components.itemsperpage.show', 'locale', null)}" />
+		
+		<isif condition="${ ItemsCount > 10 && pdict.pagingmodel.getPageSize() != 10 }">
+			<a href="${PagingModel.appendPageSize(pdict.pageurl, 10)}" class="page-count-item" title='<isprint value="${Resource.msgf('components.itemsperpage.anchortitle', 'locale', null, 10)}" />'>10</a>
+		</isif>
+		
+		<isif condition="${ ItemsCount > 50 && pdict.pagingmodel.getPageSize() != 50 }">
+			<a href="${PagingModel.appendPageSize(pdict.pageurl, 50)}" class="page-count-item" title='<isprint value="${Resource.msgf('components.itemsperpage.anchortitle', 'locale', null, 50)}" />'>50</a>
+		</isif>
+		
+		<isif condition="${ ItemsCount > 100 && pdict.pagingmodel.getPageSize() != 100 }">
+			<a href="${PagingModel.appendPageSize(pdict.pageurl, 100)}" class="page-count-item" title='<isprint value="${Resource.msgf('components.itemsperpage.anchortitle', 'locale', null, 100)}" />'>100</a>
+		</isif>
+		
+		<isif condition="${ ItemsCount <= 5000 && pdict.pagingmodel.getPageSize() != ItemsCount }">
+			<a href="${PagingModel.appendPageSize(pdict.pageurl, ItemsCount)}" class="page-count-item" title='<isprint value="${Resource.msg('components.itemsperpage.showalltitle', 'locale', null)}" />'>
+				<isprint value="${Resource.msg('components.itemsperpage.showall', 'locale', null)}" />
+			</a>
+		</isif>
+		
+		<isprint value="${Resource.msg('components.itemsperpage.items', 'locale', null)}" />
+	</p>
+</div>
+
+</isif>
+</isif>

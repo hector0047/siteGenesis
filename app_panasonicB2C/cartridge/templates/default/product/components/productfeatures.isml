@@ -1,0 +1,22 @@
+<isinclude template="util/modules"/>
+<div class="features-content-holder">
+		<h2 class="block-headline">${Resource.msg('product.lefttab2','product',null)}</h2>
+			<div class="PDPFeaturecontent">
+				<div class="less-feature">
+					<isprint value="${pdict.Product.custom.overview}" encoding="off"/>
+				</div>
+				<iscomment>
+				<div class="more-feature">
+					<isprint value="${pdict.Product.custom.productMoreFeatures}" encoding="off"/>
+				</div>
+				<isif condition="${!empty(pdict.Product.custom.productMoreFeatures) && pdict.Product.custom.productMoreFeatures != 'null'}">	
+					<span class="more-feature-link-holder see-all-link">
+						<a href="javascript:void(0)" class="more-feature-link">
+							<span class="show-more">${Resource.msg('product.showmorefeature','product',null)}</span>
+							<span class="show-less">${Resource.msg('product.showlessfeature','product',null)}</span>
+						</a>
+					</span>
+				</isif>
+				</iscomment>
+			</div>
+</div>

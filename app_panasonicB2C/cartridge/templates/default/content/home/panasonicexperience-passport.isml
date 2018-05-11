@@ -1,0 +1,174 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isset name="pageTitle" value="Panasonic Experience" scope="page" />
+<isset name="metaDescription" value="Panasonic Adventure, Beauty, Grooming, Entertainment, Home, Imaging" scope="page" />
+<isdecorate template="content/home/pt_panasonicexperience-passport">
+
+<iscomment>this is the template rendering the adventure page</iscomment>
+
+<div class="adventure-page-wrapper pillar-page passport-success experience-page-wrapper">
+	<section class="adventure-spartan passport-event">
+		<div class="row">
+			<div class="column-3 spartan-logo">
+				<img src="${URLUtils.absStatic('../images/adventure/360-logo.png')}"/>
+			</div>
+			<div class="column-9 spartan-header">
+				<div class="header-content">
+					<h1>&#35;Panasonic360</h1>
+				</div>
+			</div>
+		</div>
+		<div class="spartan-passport row">
+			<div class="spartan-video-player column-6">
+				<iframe class="spartan-content" height="482px" width="482px" class="event-video-player" frameborder="0" src="" allowfullscreen></iframe>
+				<img class="spartan-content" class="event-video-player" src="" />
+			</div>
+			<div class="column-6">
+				<div class="event-description">
+					<div class="calendar-section">
+						<div class="calendar-description">
+							<h2 id="spartan-title" class="spartan-title">Hope you enjoyed your Panasonic 360° experience!</h2>
+							<p>Share it with your friends and family.</p>
+						</div>
+					</div>
+					<div class="view-all"><a class="button-blue" href="#adventure-gallery">VIEW ALL</a></div>
+					<h3 class="share-description">Share Your Adventure</h3>
+					<div class="addthis_toolbox" addthis:url="${pdict.CurrentRequest.httpHost + pdict.CurrentRequest.getHttpHeaders().get('x-is-path_info') + '?' + pdict.CurrentRequest.httpQueryString}" addthis:title="Check out my Panasonic 360&deg; videos!">
+						<div class="custom_images"></div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</section>
+	<section class="adventure-summary summary-short row">
+	    <div class="column-4 adventure-logo-block">
+	        <div>
+	        	<img src="${URLUtils.absStatic('../images/adventure/panasonic-logo.png')}"/>
+	        </div>
+	    </div>
+	    <div class="column-3 summary-social">
+	        <ul class="social">
+	        	<li>
+	        		<a href="https://www.facebook.com/Panasonic" class="ico-facebook">facebook</a>
+	        	</li>
+	        	<li>
+	        		<a href="https://twitter.com/PanaAdventure" class="ico-twitter">twitter</a>
+	        	</li>
+	        	<iscomment>
+	        	<li>
+	        		<a href="" class="ico-instagram">instagram</a>
+	        	</li>
+	        	</iscomment>
+	        	<li>
+	        		<a href="https://www.youtube.com/playlist?list=PLJj3demzZ_dRIinyeHYhztagPpCA0EaAy" class="ico-youtube">youtube</a>
+	        	</li>
+	        </ul>
+        </div>
+        <div class="column-5 summary-description">
+        	<p>Keep up to date on the latest news from Panasonic.</p>
+        </div>
+	</section>
+	<section class="adventure-products">
+		<h2>Explore Panasonic. See All Featured Products.</h2>
+		<div class="product-carousel row">
+	        <div class="product">
+	            <a href="${URLUtils.url('Product-Show','pid','DMC-G7HK')}">
+		        	<div class="product-image">
+			        	<img src="${URLUtils.absStatic('/images/adventure/product-lumix-1.png')}"/>
+		        	</div>
+		        	<h3>UMIX G7 Interchangeable Lens (DSLM) Camera Kit with 14-140mm Lens – Black</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','HX-A500H')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-a4500.png')}"/>
+		        	</div>
+		        	<h3>Panasonic A500: Point-of-View Wearable 4K Action Camera</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','HX-A1')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/A1_Slant1_K.png')}"/>
+		        	</div>
+		        	<h3>Panasonic A1: Ultra-Light Wearable HD Action Camera</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','DMC-TS6')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-lumix.png')}"/>
+		        	</div>
+		        	<h3>LUMIX WiFi Enabled Tough Adventure Camera DMC-TS6Z</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','DMC-TS30')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-camera.png')}"/>
+		        	</div>
+		        	<h3>Active Lifestyle Tough Camera: DMC-TS30R</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+     		    <a href="${URLUtils.url('Product-Show','pid','RP-HTX7')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-headphones.png')}"/>
+		        	</div>
+		        	<h3>Monitor Stereo Headphones</h3>
+	        	</a>
+	        </div>
+	    </div>
+		<div class="button-wrapper">
+			<iscomment>
+			<a class="button-blue" href="${URLUtils.url('Search-Show','cgid','lifetime')}">See All Products</a>
+			</iscomment>
+			<a class="button-blue" href="http://shop.panasonic.com/lifetime">See All Products</a>
+		</div>
+	</section>
+	<section class="adventure-gallery" id="adventure-gallery">
+		<div class="gallery-header">
+			<h1>Your Photos and Videos</h1>
+		</div>
+		<div class="gallery"></div>
+	</section>
+</div>
+<div class="adventure-page-wrapper pillar-page passport-error experience-page-wrapper">
+	<section class="adventure-spartan">
+		<div class="row">
+			<div class="spartan-content"></div>
+				<div class="column-3 spartan-logo">
+					<img src="${URLUtils.absStatic('../images/adventure/360-logo.png')}"/>
+				</div>
+				<div class="column-9 spartan-header">
+					<div class="header-content">
+						<h1>&#35;Panasonic360</h1>
+						<p>A Better Life. A Better World. A Better You. Share Your Panasonic Experience.</p>
+					</div>
+				</div>
+		</div>
+		<div class="spartan-passport row">
+			<div class="column-12">
+				<form name="passportform" class="spartan-form" action="${URLUtils.url('Search-PanasonicExperiencePassport')}" method="get">
+					<h1>Sorry!</h1>
+					<p>We could not locate your passport number. Please enter a valid passport number below.</p>
+					<div class="row form-content">
+						<div class="column-2">
+							<img src="${URLUtils.absStatic('../images/adventure/passport-360.png')}"/>
+						</div>
+						<div class="column-10">
+							<p class="form-description">GET YOUR PANASONIC 360° SOCIAL VIDEOS</p>
+							<input name="passport" type="text" required="required" placeholder="Enter your passport number"></input>
+							<input class="button-blue" type="submit" value="VIEW GALLERY"></input>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+</div>
+
+
+</isdecorate>

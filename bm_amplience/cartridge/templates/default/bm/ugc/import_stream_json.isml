@@ -1,0 +1,8 @@
+<isscript>
+	var response = {
+		streamImported : pdict.StreamImported
+	}
+</isscript>
+<isset name="ResponseJson" value="${JSON.stringify(response)}" scope="page" />
+
+<isprint value="${ResponseJson}" encoding=off />

@@ -1,0 +1,158 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<isset name="DecoratorTemplate" value="account/pt_support" scope="page"/>
+<isset name="bctext1" value="Support" scope="pdict"/>
+<isdecorate template="${DecoratorTemplate}">
+<iscomment>Whole Page if changed for PANC-1860 20/05/206 6:30PM IST</iscomment>
+<div class="pnsb2c-support-page">
+	<div class="support-welcome-search-wrapper">
+		<div class="heading-block-container"> 
+			<div class="welcome-head-block">
+				<span class="welcome-text">
+					<h1>${Resource.msg('support.welcome','components',null)}</h1>
+				</span>
+			</div>
+		</div>  
+		
+		<iscomment> PANC-459 : Support Landing Page</iscomment>
+		<div class="pnsb2c-support-gethelp-block">
+			<div class="support-search-helptext">
+			<div class="help-subhead-holder">
+				<iscontentasset aid="get-help-text"/>
+			</div>
+		
+			
+			<div class="global-search support-search-holder">
+			
+				<form role="search" action="${URLUtils.url('Search-Show').append('supportpage', true)}" method="get" name="simpleSearch" class="support-search-form">
+					<fieldset>
+						<legend class="visually-hidden">Search Catalog</legend>
+						<label class="visually-hidden" for="q">${Resource.msg('simplesearch.searchlabel','search',null)}</label>
+						<input class="submit-button" type="text" id="q" name="q" value=""  data-placeholder="${Resource.msg('simplesearch.supportsearchtext','search',null)}"/>		
+						<input type="submit" class="search-button support-submit" value="" > </input>
+					</fieldset>
+				</form>
+	
+			</div>
+			<div class="alert-msg-content">
+				<isslot id="support-optionalcontent-slot" context="global" description="Support Optional Content Slot"/> 
+			</div>
+			</div>
+		</div>
+		
+		<div class="pnsb2c-support-community-block">
+		 	<iscontentasset aid="get-community-help-text-2"/> 
+		 	<iscomment>
+			 	<ul class="ul-no-padding">
+			 		<li> <img alt="Community" src="${URLUtils.staticURL('/images/support/community.png')}" title="" /> </li>
+			 		<li class="community-head"> <span >Ask the Community</span> </li>
+			 		<li class="community-para"> <span>Our community site is a great place to find discussions on common issues, product tutorials, operating manuals, guides and more.</span></li>
+			 		<li> <a href="https://panasoniccustomercommunity.force.com/default/s/" target="_blank" value="" class="button-original-blue support-submit search community-support-btn"> GET COMMUNITY SUPPORT</a> </li>
+			 	</ul>
+			 </iscomment>
+		</div>
+	</div>
+	<div style="clear:both;"></div>
+	
+	<div class="pnsb2c-support-community-links">
+		<div class="support-account-links">
+			 <iscontentasset aid="account-support-links-4"/>  
+			<iscomment>
+			<div class="content-asset">
+				<ul>
+	                <li>
+	                	<img class="link-icons" src="${URLUtils.staticURL('/images/support/register-a-product.png')}" >
+	                    <a title="Register A Products" href="https://panasonic.registria.com/reg" target="_blank">Register a Product <img class="img-right-arrow-blk" src="${URLUtils.staticURL('/images/support/support-icn-blk.png')}"/></a>
+	              </li>
+	               <li>
+	                	<img class="link-icons" src="${URLUtils.staticURL('/images/support/find-a-service-center.png')}" >
+	                    <a title="Locate A Service" href="http://www.servicebench.com/templates/geo_americas/consumer_facing/panasonic_locator/panasonic_locator_results.jsp " target="_blank">Find a Service Center <img class="img-right-arrow-blk" src="${URLUtils.staticURL('/images/support/support-icn-blk.png')}"/></a>
+	               </li>
+	               <li>
+	               		<img class="link-icons" src="${URLUtils.staticURL('/images/support/submit-a-repair-request.png')}" >
+	                    <a title="Submit a Repair Request" href="${URLUtils.https('SBRepairRequest-ShowForm')}" target="_self">Submit a Repair Request <img class="img-right-arrow-blk" src="${URLUtils.staticURL('/images/support/support-icn-blk.png')}"/></a></span>
+	               </li>
+	               <li>
+	                 	<img class="link-icons" src="${URLUtils.staticURL('/images/support/order-parts.png')}" >
+	                    <a title="Order Parts" href="https://panasonic.encompass.com/ " target="_blank">Order Parts <img class="img-right-arrow-blk" src="${URLUtils.staticURL('/images/support/support-icn-blk.png')}"/></a>
+	               </li>
+	               <li>
+	               		<img class="link-icons" src="${URLUtils.staticURL('/images/support/process-a-return.png')}" >
+	                    <a title="Process a Return" href="${URLUtils.https('Account-Show')}" target="_self">Process a Return <img class="img-right-arrow-blk" src="${URLUtils.staticURL('/images/support/support-icn-blk.png')}"/></a>
+	               </li>
+				</ul>
+			</div>
+			</iscomment>
+		</div>
+	</div>
+	<div style="clear:both;"></div>
+
+	<div class="support-connect-links">
+		<div class="support-connect-order">
+		
+			<iscontentasset aid="support-connect-order-2" />
+		 
+		<iscomment>
+			<ul>
+				<li> <span class="support-connect-head">Need help with a new or existing order? </span> </li>
+				<li> <span class="support-connect-sublink"><a href="${URLUtils.https('Account-Show')}">Order Status</a><span class="need-helpbuttons-icn" ></span> </span> </li>
+				<li> <span class="support-connect-sublink"><a href="http://shop.panasonic.com/pna-shipping-faq.html">Shipping FAQ's</a><span class="need-helpbuttons-icn"></span></span></li>
+				<li> <span class="live-chat-content part-1 support-connect-sublink"><a href="javascript:void(0)" class="live-chat-link salesforce-chat post-chat">Shopping Live Chat</a><span class="need-helpbuttons-icn"></span></span><br> </li>
+				<li> <div class="order-phone-help"><span class="live-chat-content part-2 support-connect-phone">Operating Hours:</span><br><span class="office-time">Mon-Fri  9am-8pm EST</span></div></li>
+				<li> 
+					<span class="online-order-link support-connect-sublink"><a href="javascript:void(0)" >Online Order Help</a><span class="toggle-sign">+</span></span></span>
+					<div class="online-order-help">
+					<span class="support-connect-phone">1-800-405-0652</span><br><br>
+					<span class="support-connect-phone">Operating Hours:</span><br><span class="office-time">Mon-Fri  9am-8pm EST</span>
+					</div>
+				</li>
+			</ul>
+		</iscomment>
+		</div>
+		
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".online-order-help").hide();
+				
+				$('.online-order-link').toggle(function(){
+			       $(".toggle-sign").text("-");
+                   $(".online-order-help").css('display','block');
+			      /* $(".online-order-help").slideDown();*/
+			
+			   },function(){
+			       $(".toggle-sign").text("+");
+                   $(".online-order-help").css('display','none');
+			      /* $(".online-order-help").slideUp(); */
+			   });
+			   
+	
+			});
+		</script>
+		
+		<div  class="support-connect-social">
+			<iscontentasset aid="support-connect-social" />
+			<iscomment>
+			<div class="content-asset">
+				<ul style="padding: 0 0">
+					<li> <div class="support-connect-head support-social-connect-head"> Can't find what you are looking for? </div> </li>
+					<li>  
+						<div class="support-social-box">
+							<ul>  
+								<li> <span class="support-connect-sublink">Connect with Us!</span></li>
+								<li class="support-social-para" style="padding-right: 15px;"> <span >Reach out via Facebook or Twitter for quick answers to your support questions or check our YouTube channel for video tutorials & troubleshooting.</span></li>
+								<li> <div><a href=" https://www.facebook.com/Panasonic" target="_blank"><div class="social-facebook"></div></a><a href="https://twitter.com/PanasonicUSA" target="_blank"><div class="social-twitter"></div></a><a href="https://www.youtube.com/channel/UCSkQou6miz9nmVAZiLRwzlg" target="_blank"><div class="social-youtube"></div></a> </li>
+							</ul>				
+						</div> 
+					</li>
+					<li> <span class="live-chat-content part-1 support-connect-sublink supportlivechat" ><a href="javascript:void(0)" class="live-chat-link salesforce-chat post-chat">Support Live Chat</a><span class="need-helpbuttons-icn"></span></span></li>
+					<li> <span class="live-chat-content part-2  support-connect-phone support-social-connect-phone">Operating Hours:</span><br><div class="social-office-time">Mon-Fri  9am-9pm EST<br>Sat-Sun 10am-7pm EST</div><br></li>
+					<li> <span class="support-connect-sublink supportemailus"><a href=" mailto:panasonicwebcasesf@us.panasonic.com">Email Us</a><span class="need-helpbuttons-icn"></span></span></li>
+				</ul>
+			</div>	
+			</iscomment>
+		</div>
+	</div>
+	
+ 
+</div>
+</isdecorate>

@@ -1,0 +1,56 @@
+<iscomment>
+	Amplience Analytics Tagging
+</iscomment>
+
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceEnabled')}">
+
+<isset name="Order" value="${pdict.Order}" scope="page"/>
+
+<isset name="AnalyticsCollectorId" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('ampAnalyticsCollectorId')}" scope="page" />
+<isset name="UserId" value="${(session.getCustomer().registered) ? session.getCustomer().profile.customerNo : 'anonymous' }" scope="page" />
+
+<!-- Amplience Analytics Tagging -->
+
+<script type="text/javascript">
+(function(a,m,p,l,n,c,e){a['AmplienceAnalyticsObject']=n;a[n]=a[n]||function(){
+	(a[n].q=a[n].q||[]).push(arguments)},a[n].l=1*new Date();c=m.createElement(p),
+	e=m.getElementsByTagName(p)[0];c.async=1;c.src=l;e.parentNode.insertBefore(c,e);
+})(window,document,'script','//s1.adis.ws/analytics.js','aone');
+
+var orderItems = [];
+
+<isloop items="${Order.shipments}" var="shipment" status="shipmentloopstate">
+<isif condition="${shipment.productLineItems.size() > 0}">
+	
+	<isloop items="${shipment.productLineItems}" var="productLineItem" status="pliloopstate">
+	orderItems.push({
+		value: ${productLineItem.adjustedPrice.value.toString()},
+		sku: "${productLineItem.productID}",
+		qty: ${productLineItem.quantity.value.toFixed()},
+		currency: "${session.getCurrency().getCurrencyCode()}",
+		orderId: "${Order.orderNo}"
+	});
+	</isloop>
+	
+</isif>
+<isif condition="${shipment.giftCertificateLineItems.size() > 0}">
+
+	<isloop items="${shipment.giftCertificateLineItems}" var="giftCertificateLineItem" status="gcliloopstate">
+	orderItems.push({
+		value: ${giftCertificateLineItem.price.value.toString()},
+		sku: "Gift Certificate",
+		qty: 1,
+		currency: "${session.getCurrency().getCurrencyCode()}",
+		orderId: "${Order.orderNo}"
+	});
+	</isloop>
+
+</isif>
+</isloop>
+
+aone('create', '${AnalyticsCollectorId}', {userId: '${UserId}' });
+aone('trackEvents', 'amp:purchase', orderItems);
+
+</script>
+
+</isif>

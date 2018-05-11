@@ -1,0 +1,109 @@
+<div class="product-support-holder">
+	<h2 class="block-headline"><isprint value="${Resource.msg('product.lefttab9','product',null)}" encoding="off"/></h2>
+	<div class="PDPFeaturecontent">
+		<div class="prod-support-left-part">
+			<isif condition="${((!empty(pdict.FirmwareSupport) && pdict.FirmwareSupport != 'null') && pdict.FirmwareSupport.size() > 0) || ((!empty(pdict.Driver) && pdict.Driver != 'null') && pdict.Driver.size() > 0) || ((!empty(pdict.software) && pdict.software != 'null') && pdict.software.size() > 0)}">
+				<div class="support-content-block firmware-drivers-block">
+					<isinclude template="product/components/support/firmwareanddriverssupport"/>
+				</div>
+			</isif>
+			
+			<isif condition="${(!empty(pdict.OwnerShipUrls) && pdict.OwnerShipUrls != 'null') && pdict.OwnerShipUrls.size() > 0}">
+				<div class="support-content-block ownership-block">
+			   		<isinclude template="product/components/support/ownersmannualssupport"/>
+			   </div>
+		   	</isif>
+		   	
+		   	<isif condition="${(!empty(pdict.WarrentyUrls) && pdict.WarrentyUrls != 'null') && pdict.WarrentyUrls.size() > 0}">
+		       <div class="support-content-block warranty-repair-block">
+			   		<isinclude template="product/components/support/warrantyandrepairsupport"/>
+			   </div>
+		   	</isif>
+   	
+   			<isif condition="${(!empty(pdict.Others) && pdict.Others != 'null') && pdict.Others.size() > 0}">
+		       <div class="support-content-block other-block">
+			   		<isinclude template="product/components/support/othersupport"/> 
+			   </div>
+			</isif>
+			
+			<isif condition="${(!empty(pdict.HowToGuide) && pdict.HowToGuide != 'null') && pdict.HowToGuide.size() > 0}">
+				<div class="support-content-block tutorials-block">
+					<isinclude template="product/components/support/tutorialssupport"/>
+				</div>
+			</isif>
+		   	
+		   	<isif condition="${(!empty(pdict.supportVideoUrls) && pdict.supportVideoUrls != 'null') && pdict.supportVideoUrls.size() > 0}">
+			   <div class="support-content-block video-block">
+			   		<isinclude template="product/components/support/videossupport"/>
+			   </div>
+			</isif>
+		   	
+   			<isif condition="${(!empty(pdict.Faqs) && pdict.Faqs != 'null') && pdict.Faqs.size() > 0}">
+			   <div class="support-content-block faqs-block">
+			   		<isinclude template="product/components/support/faqssupport"/>
+			   </div>
+		   </isif>
+		   
+		   <isif condition="${('supportOnly' in pdict.Product.custom && pdict.Product.custom.supportOnly) || ('supportpage' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.supportpage.booleanValue)}">
+			  	<isif condition="${'energyRating' in pdict.Product.custom  && !empty(pdict.Product.custom.energyRating)}">
+					<div class="support-content-block ownership-block">	
+						<isinclude template="product/components/productenergyrating"/>
+					</div>	
+				</isif>
+				<isif condition="${(!empty(pdict.AdvancedFeaturesManuals) && pdict.AdvancedFeaturesManuals != 'null') && pdict.AdvancedFeaturesManuals.size() > 0}">
+					<div class="support-content-block advanced-feature-block">
+						<isinclude template="product/components/support/advancefeaturessupport"/>
+					 </div>
+				</isif>
+	
+				<isif condition="${(!empty(pdict.AdditionalDocuments) && pdict.AdditionalDocuments != 'null') && pdict.AdditionalDocuments.size() > 0}">
+					<div class="support-content-block additional-doc-block">
+						<isinclude template="product/components/support/additionaldocsupport"/>
+				   </div>
+				</isif>
+	
+				<isif condition="${(!empty(pdict.EHelpManual) && pdict.EHelpManual != 'null') && pdict.EHelpManual.size() > 0}">
+					<div class="support-content-block ehelp-block">
+						<isinclude template="product/components/support/ehelpsupport"/>
+					 </div>
+				</isif>
+	
+				<isif condition="${(!empty(pdict.DimensionSheet) && pdict.DimensionSheet != 'null') && pdict.DimensionSheet.size() > 0}">
+					<div class="support-content-block dimension-sheet-block">
+						<isinclude template="product/components/support/dimensionsheetsupport"/>
+					</div>
+				</isif> 
+		   </isif>
+		   
+		   
+			<div class="support-content-block">
+				<span class="block-content-head">CONTACT INFORMATION</span>
+				<div class="support-content-part-cntcinfo">
+				
+				<div class="support-tech-assistance">
+				Consumer Product Support and Technical Assistance
+				</div>
+				
+					<div class="left-inner-block">
+						<div class="left-top live-chat-content">
+						
+						<a href="https://panasoniccustomercommunity.force.com/default/s/" target="_blank">
+					       Panasonic Community
+					    </a>
+						<a href="javascript:void(0)" class="live-chat-link livechat pre-chat">
+							Support Live Chat
+						</a>
+							
+			      
+						</div>
+						<div class="left-bottom">
+						<div class="rb-head">Operating hours:</div>
+						<div class="lr-contect">Mon-Fri 9am-8pm EST</div>
+						<div class="lr-contect">Sat-Sun 10am-7pm EST</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

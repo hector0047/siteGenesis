@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="synchInstance" basedir="." default="info">
+	
+    <tstamp>
+     	<format property="build.date" pattern="yyyyMMdd" locale="en,UK"/>
+    </tstamp>
+	
+	<!-- static vars -->
+	<property name="local.temp" value="D:\\temp\\synch"/>
+	<property name="local.temp.download" value="${local.temp}/${build.date}/download"/>
+	
+	<target name="info" depends="setup_build_environment">
+	
+	</target>
+	
+	<target name="setup_build_environment" depends="load_external_tasks,load_properties"
+		    description="load required task defs and any properties files"/>
+	
+	<target name="load_external_tasks" 
+		    description="Load up the task defs for the web dav and ant contrib tasks">
+		<taskdef resource="org/apache/webdav/ant/taskdefs.properties" />
+	  	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+	</target>
+
+    <target name="load_properties"
+    	    description="load up the build properties and dependency lists for the builds">
+
+      	<echo message="Trying to load synch.properties" level="info"/>	 
+      	<property file="synch.properties" /> 
+
+  	  	<condition property="test.failed"><not><isset property="src.instance.hostname"/></not></condition>	
+      	<fail if="test.failed" message="Missing src.instance.hostname"/>    	
+  	  	<condition property="test.failed"><not><isset property="src.webdav.username"/></not></condition>	
+      	<fail if="test.failed" message="Missing src.webdav.username"/>    	
+  	  	<condition property="test.failed"><not><isset property="src.webdav.password"/></not></condition>	
+      	<fail if="test.failed" message="Missing src.webdav.password"/>    
+    	
+    	<condition property="test.failed"><not><isset property="target.instance.hostname"/></not></condition>	
+      	<fail if="test.failed" message="Missing target.instance.hostname"/>    	
+  	  	<condition property="test.failed"><not><isset property="target.webdav.username"/></not></condition>	
+      	<fail if="test.failed" message="Missing target.webdav.username"/>    	
+  	  	<condition property="test.failed"><not><isset property="target.webdav.password"/></not></condition>	
+      	<fail if="test.failed" message="Missing target.webdav.password"/>    
+    	
+  	  	<condition property="test.failed"><not><isset property="instance.backup.timestamp"/></not></condition>	
+      	<fail if="test.failed" message="Missing instance.backup.timestamp"/> 
+    	
+    	<property name="webdav.folder.structure" value="/on/demandware.servlet/webdav/Sites/ImpEx" />
+    </target>
+	
+	<target name="clean"
+			depends="setup_build_environment"
+			description="clean up all the folders">
+		
+		<delete dir="${local.temp}" />
+		
+	</target>
+		
+	<target name="download_zip"
+			depends="setup_build_environment, clean"
+			description="download the backup zip file">
+		<!--<davget url="https://${src.instance.hostname}${webdav.folder.structure}"
+				userid="${src.webdav.username}" password="${src.webdav.password}"
+			    todir="${local.temp.download}"
+				verbose="true">
+			<davfileset dir="/src/instance">
+				<include name="backup_*${instance.backup.timestamp}*.zip"/>
+			</davfileset>
+		</davget>-->
+		<davget url="https://${src.instance.hostname}${webdav.folder.structure}/src/instance/backup_20091004180002.zip"
+				userid="${src.webdav.username}" password="${src.webdav.password}"
+			    tofile="${local.temp.download}/backup_20091004180002.zip"
+				verbose="true">
+		</davget>
+	</target>
+
+</project>

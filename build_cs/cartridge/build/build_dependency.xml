@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Demandware CS Build Suite - Cartridge Dependency related tasks" basedir=".">
+
+	<!--
+		Loading cartridge properties files 
+
+		This task resolves dependencies for all cartridges in the built. 
+		The fully resolved list of dependencies will be stored in cartridge." + cartridgeID + ".dependson. 
+		This task requires all cartridges to define their dependencies in their catridge/{cartridge_id}.properties file.
+		The full list of cartridges will be stored in property cartridge.list.
+	
+		The below depicts how it works:
+	   
+	    app_mysite_richUI.properties 
+	      demandware.cartridges.app_mysite_richUI.multipleLanguageStorefront=true
+	      demandware.cartridges.app_mysite_richUI.id=app_mysite_richUI
+	      demandware.cartridges.app_mysite_richUI.dependson=app_mysite_core
+	
+	    app_mysite_core.properties
+	       demandware.cartridges.app_mysite_core.multipleLanguageStorefront=true
+	       demandware.cartridges.app_mysite_core.id=app_mysite_core
+	       demandware.cartridges.app_mysite_core.dependson=int_mysite,bc_bazaarvoice,bc_ecircle
+	
+		The dependencies for app_mysite_richUI resolve to app_mysite_core, int_mysite, bc_bazaarvoice and bc_ecircle. 
+	-->
+	<target name="load_cartridge_properties" depends="load_properties">
+		<if>
+			<equals arg1="${cartridges.dependencies.resolve}" arg2="true" />
+			<then>
+				<property name="cartridges.path" value="${local.cartridge.root}/${build.project.version}/" />
+				<!-- Loading cartridge properties files -->
+			    <script language="javascript">
+				    <![CDATA[
+			    		importPackage(java.io);
+		    			importPackage(java.util);
+
+    					println( 'Trying to load cartridge.properties files and resolve cartridge dependencies.' );
+			    		var cartridgesPath = project.getProperty("cartridges.path");
+	    				var cartridgesDirectory = new File( cartridgesPath );
+			    		var cartridgesArray = [];
+			    		var cartridgeDependencyMap = {};
+			    		//load cartridge properties files
+	    				if ( cartridgesDirectory.exists() && cartridgesDirectory.isDirectory()) {
+			    			var directoryList = cartridgesDirectory.list();
+			    			for ( var i = 0 ; i<directoryList.length; i++ ) {
+			    				var cartridgeID = directoryList[i];
+			    				var cartridgeDirectory = new File( cartridgesDirectory, cartridgeID );
+			    				if ( cartridgeDirectory.exists() && cartridgeDirectory.isDirectory() ) {
+			    					cartridgesArray.push(cartridgeID);
+			    					var filename = [ cartridgesPath, [cartridgeID, 'cartridge', cartridgeID].join( File.separator ), '.properties' ].join('');
+									var file = new File( filename );
+			    					if ( file.exists() ) {
+										print( "Loading properties file: " + filename);
+										var fis = new FileInputStream( file );
+										var p = new Properties();
+										p.load(fis);
+			    						var keys = p.propertyNames();
+			    						while ( keys.hasMoreElements() ) {
+			    							var key = keys.nextElement();
+			    							var value = p.getProperty(key)
+			    							if ( key.match(/\.dependson$/) ) {
+			    								var projectDepKey = "cartridge." + cartridgeID + ".dependson"
+			    								var currentValue = project.getProperty( projectDepKey );
+			    								if ( currentValue ) {
+			    									println("Using predefined dependson definitions: " + currentValue);
+			    								} else {
+													cartridgeDependencyMap[cartridgeID] =  value;
+			    								}
+												//println( "Dependencies: " + value);
+			    							}
+			    							//println( "adding: " + key + "=" + value);
+			    							project.setProperty( key, value );
+			    						}
+			    					} else {
+										print( "Properties file doesn't exist: " + filename);
+			    					}
+			    				} 
+			    			}
+	    				} else {
+			    			println( 'Couldn\'t find cartridges directory' );
+			    		}
+		    			project.setProperty( 'cartridge.list', cartridgesArray.join(':') );
+			    		println( "Full list of cartridges in the built: " + cartridgesArray.join(':') );
+						
+			    		//resolve full dependency path for cartridges
+			    		var resolveCartridgeDependencies = true;
+			    		while ( resolveCartridgeDependencies ) {
+	    					resolveCartridgeDependencies = false;
+			    			for ( var cartridgeID in cartridgeDependencyMap ) {
+			    				var cartridgeArray = cartridgeDependencyMap[cartridgeID].split(':');
+			    				var newCartridgeArray = [];
+			    				for ( i = 0; i<cartridgeArray.length; i++ ) {
+    								newCartridgeArray.push( cartridgeArray[i] );
+			    				}
+			    				for ( i = 0; i<cartridgeArray.length; i++ ) {
+			    					var dependsonCart = cartridgeArray[i];
+			    					if ( cartridgeDependencyMap[dependsonCart] != null ) {
+			    						var dependsonCartArray = cartridgeDependencyMap[dependsonCart].split(':');
+    									for ( let j = 0; j<dependsonCartArray.length; j++) {
+			    							var dependsonCart2 = dependsonCartArray[j];
+			    							if ( newCartridgeArray.indexOf(dependsonCart2) == -1 ) {
+			    								newCartridgeArray.push( dependsonCart2 );
+												resolveCartridgeDependencies = true;
+			    							} 
+			    						}
+			    					}
+			    				}
+			    				cartridgeDependencyMap[cartridgeID] = newCartridgeArray.join(':');
+			    			}
+			    		}
+
+		    			for ( var cartridgeID in cartridgeDependencyMap ) {
+			    			var dependsOnKey = "cartridge." + cartridgeID + ".dependson";
+			    			println( 'Resolved cartridge dependencies for ' + dependsOnKey + ': ' + cartridgeDependencyMap[cartridgeID] );
+							project.setProperty( dependsOnKey, cartridgeDependencyMap[cartridgeID] );
+						}
+			    	
+			    	]]>
+				</script>
+			</then>
+		</if>
+	</target>
+
+	<!--
+		determine cartridge dependencies
+		===========================================================================
+		This checks whether or not all cartridges which are referenced in the built are available.
+		If one of the catridges is not available in the build the process will be terminated with an error.
+              
+		To enable the check 'cartridges.dependencies.check' needs to be enabled.
+	-->
+	<target name="check_cartridge_dependencies" depends="load_properties,load_cartridge_properties,create_build_directory,set_classpath">
+		<if>
+			<and>
+				<equals arg1="${cartridges.dependencies.resolve}" arg2="true" />
+				<equals arg1="${cartridges.dependencies.check}" arg2="true" />
+			</and>
+			<then>
+			    <script language="javascript">
+				    <![CDATA[
+						var cartridges = project.getProperty("cartridge.list");
+			    		if ( cartridges != null ) {
+							println( "Checking dependencies for following cartridges: " + cartridges );
+			    			var cartridgesArray = cartridges.split(':');
+							
+			    			//helper function as Array.indexOf(value) doesn't seem to work properly
+			    			function cartridgeAvailable( currentCartridgeID ) {
+			    				for ( index = 0; index < cartridgesArray.length; index++) {
+			    					if ( cartridgesArray[index] == currentCartridgeID ) {
+			    						return true;
+			    					}
+			    				}
+			    				return false;
+			    			}
+			    			
+			    			//Looping though all cartridges and validating existence of cartridges they depend on
+			    			for ( i = 0; i < cartridgesArray.length; i++ ) {
+								var cartridgeID = cartridgesArray[i];
+	    						var requiredCartrides = project.getProperty( "cartridge." + cartridgeID + ".dependson" );
+			    				if ( requiredCartrides == null ) {
+			    					println( "Cartridge " + cartridgeID + " doesn't have dependencies defined. Skipping test.");
+			    				} else {
+			    					var requiredCartridesArray = requiredCartrides.split(':');
+				    				for ( var j = 0; j<requiredCartridesArray.length; j++) {
+			    						var requiredCartridge = requiredCartridesArray[j];
+					    				if ( requiredCartridge != '' && !cartridgeAvailable(requiredCartridge) ) {
+											println( "Cartridge does not exist: " + requiredCartridge );
+					    					project.setProperty( "dependencycheck.failed", "true" );
+											project.setProperty( "dependencycheck.errormessage", "Cartridge " + cartridgeID + " references " + requiredCartridge + " but this cartridge doesn't exist in the built path!");
+					    					break;
+					    				}
+						    		}
+			    				}
+			    			}
+			    		}
+				    ]]>
+				</script>
+				<if>
+					<equals arg1="${dependencycheck.failed}" arg2="true"/>
+					<then>
+						<fail message="${dependencycheck.errormessage}" />
+					</then>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<!--
+		Gets list of dependent cartridges as colon (':') delimited list
+		
+		param: cartridge.id
+		return: required.cartridges
+	-->
+	<target name="required_cartridges" depends="load_properties,load_cartridge_properties">
+		<if>
+			<equals arg1="${cartridges.dependencies.resolve}" arg2="true" />
+			<then>
+			    <script language="javascript">
+				    <![CDATA[
+			    		var cartridgeID = project.getProperty( 'cartridge.id' );
+						println( "cartridgeID: " + cartridgeID);
+			    		var requiredCartridgesList = [];
+			    		if ( cartridgeID != null ) {
+			    			var requiredCartridges = project.getProperty( "cartridge." + cartridgeID + ".dependson" );
+		    				project.setProperty( 'required.cartridges', requiredCartridges );
+							println( "required.cartridges: " + requiredCartridges);
+			    		}
+				    ]]>
+				</script>
+			</then>
+		</if>
+		<!-- If nothing was found we simply return an empty string -->
+		<if>
+			<equals arg1="${required.cartridges}" arg2="$${required.cartridges}" />
+			<then>
+				<property name="required.cartridges" value=""/>
+			</then>
+		</if>
+		<echo>Returning ${required.cartridges} for cartridge ${cartridge.id}</echo>
+	</target>
+	
+	<!--
+		For a given cartridge this task compiles all root paths for cartridges the given cartridge depends on.
+
+		It can be used as follows:
+
+			<for list="${cartridge.list}" param="cartridge.id" delimiter=":">
+				<sequential>
+					<antcallback target="compile_static_files_paths" return="dep.static.paths, cart.static.path">
+						<param name="cartridge.id" value="@{cartridge.id}"/>
+					</antcallback>
+					<for list="${dep.static.paths}" param="dep.static.path" delimiter="@@">
+						<sequential>
+							<copy todir="${cart.static.path}" failonerror="false" overwrite="false">
+								<path>
+									<fileset dir="@{dep.static.path}" casesensitive="no">
+										<include name="**/*.less" />
+									</fileset>
+								</path>
+							</copy>
+						</sequential>
+					</for>
+				</sequential>
+			</for>
+
+		param: cartridge.id 
+	-->	
+	<target name="compile_static_files_paths">
+		<if>
+			<equals arg1="${cartridges.dependencies.resolve}" arg2="true" />
+			<then>
+				<!--<echo>Compile directory list for ${cartridge.id}</echo>-->
+			    <script language="javascript">
+				    <![CDATA[
+			    		var cartridgeID = project.getProperty( 'cartridge.id' );
+			    		var requiredCartridgesList = [];
+		    			var cartridgesPath = project.getProperty("cartridges.path");
+			    		if ( cartridgeID != null) {
+			    			var requiredCartridges = project.getProperty( "cartridge." + cartridgeID + ".dependson" );
+    						var directoryArray = [];
+			    			if ( requiredCartridges != null ) {
+			    				requiredCartridgesList = requiredCartridges.split(":");
+			    				for ( var i = 0; i<requiredCartridgesList.length; i++ ) {
+			    					directoryArray.push( [ cartridgesPath, requiredCartridgesList[i], '/' ].join('') );
+			    				}
+			    				project.setProperty( 'cart.static.path', [ cartridgesPath, cartridgeID, '/' ].join('') )
+			    				project.setProperty( 'dep.static.path', directoryArray.join("@@") )
+			    			}
+		    				project.setProperty( 'cart.static.path', [ cartridgesPath, cartridgeID, '/' ].join('') )
+		    				project.setProperty( 'dep.static.paths', directoryArray.join("@@") )
+			    		}
+				    ]]>
+				</script>
+			</then>
+		</if>
+	</target>
+	
+</project>

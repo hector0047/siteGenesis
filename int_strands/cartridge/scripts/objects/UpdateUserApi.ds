@@ -1,0 +1,18 @@
+function UpdateUserApi() {}
+
+UpdateUserApi.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};
+	},	
+	
+	getDummyResponse: function(text) {
+		
+	},
+	
+	dummy: function() {
+		
+	}
+}
+module.exports = UpdateUserApi;

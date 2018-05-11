@@ -1,0 +1,100 @@
+/**
+ * Sanitize, format, and return data related to a product or product set.
+ *
+ */
+
+importPackage(dw.system);
+importPackage(dw.order);
+importPackage(dw.catalog);
+importPackage(dw.web);
+importScript("int_dis:product/ProductImageSO.ds");
+
+/**
+	Parse and sanitize a single product object
+**/
+function parseProduct(product:Product){
+	var obj = {
+		brand: "" + (product.brand || ""),
+		manufacturer: "" + (product.manufacturerName || ""),
+		name: ("" + product.name || "").replace(/"/g, '\\"'),
+		sku: "" + product.ID || "",
+		categoryID: "",
+		category: "",
+		categoryList: new Array(),
+		categoryIDList: new Array(),
+		price: "",
+		classification: "",
+		/*setting support only flag status to the obj*/
+		support: product.custom.supportOnly
+	};
+	
+	/* Set Category Lists */
+	if (product.categories != null){
+		for(var id in product.categories){
+			obj.categoryList.push(product.categories[id].displayName);
+			obj.categoryIDList.push(product.categories[id].ID);
+		}
+	}
+		
+	/* Set Main Category ID */
+	if (product.primaryCategory != null){
+		obj.categoryID = "" + product.primaryCategory.ID;				
+	} else if(product.master == false && product.variant == true && product.masterProduct != null && product.masterProduct.primaryCategory != null){
+		obj.categoryID = "" + product.masterProduct.primaryCategory.ID;					
+	}
+	/* Set Main Category Name */
+	if(product.classificationCategory){
+		obj.category = "" + product.classificationCategory.displayName.replace(/"/g, '\\"');
+	}else if(product.primaryCategory){
+		obj.category = "" + product.primaryCategory.displayName.replace(/"/g, '\\"');
+	}else if(product.variant == true && product.masterProduct){
+		obj.category = "" + product.masterProduct.primaryCategory.displayName.replace(/"/g, '\\"');
+	}
+	/* Set Price */
+	if (product.priceModel.price.value != "0"){
+		obj.price = "" + product.priceModel.price.value.toFixed(2);
+	}else if (product.priceModel.maxPrice.value != "0"){
+		obj.price = "" + product.priceModel.maxPrice.value.toFixed(2);
+	}else{
+		obj.price = "" + product.priceModel.minPrice.value.toFixed(2);
+	}
+	return obj;
+}
+
+/** 
+	Parse and sanitize a category object
+ **/
+ function parseCategory(category:Category){
+ 	var obj = {
+ 		name: "",
+ 		id: ""
+ 	};
+       if(!empty(category)){
+             obj.name = "" + category.displayName.replace(/"/g, '\\"');
+             obj.id = "" + category.ID;
+       }
+ 	return obj;
+ }
+ 
+ /**
+ 	Parse Basket line items
+ **/
+ 
+function parseProductLine(productLineObject){
+	
+	var productLineItemsCollection = productLineObject;
+	var products = new Array();
+	for each(var item : ProductLineItem in productLineItemsCollection){
+		var prod = parseProduct(item.product);
+		prod.quantity = ("" + item.quantityValue);
+		if(prod.sku){
+			prod.URL = ("" + URLUtils.http('Product-Show', 'pid' , item.product.ID).toString());
+			prod.IMG = ("" + new ProductImage('image360X360',item.product,0));
+		}
+		prod.totalPrice = "" + item.adjustedNetPrice.value;
+		prod.tax = "" + item.adjustedTax;
+		prod.isGift = "" + item.gift || "false";
+		products.push(prod);	
+	}
+	return products;
+}

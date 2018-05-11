@@ -1,0 +1,76 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<iscomment>
+	This template renders the summary of the current basket at the right hand side
+	of all checkout pages. It includes an order summary including order totals,
+	a list of all included shipments as well as the payment methods used to pay
+	the basket.
+</iscomment>
+
+<isif condition="${!empty(pdict.checkoutstep)}">
+	<isset name="checkoutstep" value="${pdict.checkoutstep}" scope="page"/>
+</isif>
+<isif condition="${typeof checkoutstep !== 'undefined' && !empty(checkoutstep) && (checkoutstep >= 2)}">
+	<iscomment><iscontentasset aid="cs-contact-number"/></iscomment>
+	<isif condition="${checkoutstep <= 5}">
+		<div class="mobileBlock mobilesectionHdr">SHIPPING AND BILLING INFORMATION</div>
+		<div class="desktopBlock">
+		<h3>
+		${Resource.msg('summary.title','checkout',null)} 
+			<iscomment>
+				The edit link depends on the basket content: if there is just one gift 
+				certificate in the basket the edit link leads to the gift certificate purchase page
+				offering to edit the gift certificate settings.
+			
+			<isset name="editUrl" value="${URLUtils.url('Cart-Show')}" scope="page"/>
+			<isif condition="${pdict.Basket.productLineItems.size() == 0 && pdict.Basket.giftCertificateLineItems.size() == 1}">
+				<isset name="editUrl" value="${URLUtils.url('GiftCert-Edit','GiftCertificateLineItemID', pdict.Basket.giftCertificateLineItems[0].UUID)}" scope="page"/>
+			</isif>
+			<a class="section-header-note" href="${editUrl}">${Resource.msg('global.edit','locale',null)}</a>
+			</iscomment>
+			
+		</h3>
+		</div>
+		<div class="desktopBlock">
+		<div class="checkout-mini-cart">
+		<iscomment>Lineitems should be shown even in summary page</iscomment>			
+      		<isminilineitems p_lineitemctnr="${pdict.Basket}"/>
+      	</div>
+      	</div>
+	</isif>
+
+	<iscomment>render the order totals</iscomment>
+	<div class="desktopBlock">
+	<div class="checkout-order-totals">
+		<isif condition="${checkoutstep > 3}">
+			<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${true}" p_shipmenteditable="${true}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${false}" multishipmentdiscount="${pdict.multishippingadjustedprice}"/>
+		<iselse/>
+			<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${false}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${false}"/>
+		</isif>
+	</div>
+	</div>
+
+	<iscomment>render single shipment boxes</iscomment>
+	<isif condition="${pdict.CurrentForms.multishipping.entered != true}">
+		<isinclude template="checkout/shipping/minishipments"/>
+	</isif>
+	<iscomment>render billing information: billing address and payment instruments</iscomment>	
+	<isinclude template="checkout/billing/minibillinginfo"/>
+	<div class="mobileBlock">
+	<div class="mobileBlock mobilesectionHdr">ORDER SUMMARY</div>
+	<iscomment>render the order totals</iscomment>
+	<div class="checkout-order-totals">
+		<isif condition="${checkoutstep > 3}">
+			<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${true}" p_shipmenteditable="${true}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${false}" multishipmentdiscount="${pdict.multishippingadjustedprice}"/>
+		<iselse/>
+			<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${true}" p_shipmenteditable="${false}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${false}"/>
+		</isif>
+	</div>
+	</div>
+	
+	<div class="desktopBlock">
+	<div class="help-nav-asset">
+		<iscontentasset aid="account-nav-text-prechat"/>
+	</div>	
+	</div>
+</isif>

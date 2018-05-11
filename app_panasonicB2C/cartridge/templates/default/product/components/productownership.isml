@@ -1,0 +1,45 @@
+<div class="product-support-block">
+	<div class="product-ownership-holder">
+		<h2 class="block-headline">${Resource.msg('product.lefttab7','product',null)}</h2>
+			<isif condition="${(!empty(pdict.OwnerShipUrls) && pdict.OwnerShipUrls != 'null') && pdict.OwnerShipUrls.size() > 0}">
+				<div class="ownership-content-block block-1">
+					<span class="block-content-head">${Resource.msg('product.ownemanuals','product',null)}</span>
+					<ul class="block-content-ul">
+					
+						<isloop items="${pdict.OwnerShipUrls}" var="url" status="loopstate">
+						<li class="block-content-li">
+							<span class="block-img-holder">
+								<isset name="pdf" value="${url.toString().split('$')[1].toString().toLowerCase().indexOf('.pdf') < 0 ? false : true }" scope="page"/>
+								<isif condition="${pdf}">
+									<a href="${url.toString().split('$')[1]}" target="_blank"><img src="${URLUtils.staticURL('/images/pdp-ownership-icon.jpg')}"></a>
+								</isif>	
+							</span>
+							<span class="block-info-holder"><a href="${url.toString().split('$')[1]}" target="_blank"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></a></span>
+						</li>
+						</isloop>
+					
+					
+					</ul>
+				</div>
+		 </isif>	
+	<isif condition="${(!empty(pdict.WarrentyUrls) && pdict.WarrentyUrls != 'null') && pdict.WarrentyUrls.size() > 0}">
+		<div class="ownership-content-block block-2">
+			<span class="block-content-head">${Resource.msg('product.lefttab8','product',null)}</span>
+			<ul class="block-content-ul">
+			
+				<isloop items="${pdict.WarrentyUrls}" var="url" status="loopstate">
+					<li class="block-content-li">
+						<span class="block-img-holder">
+							<isset name="pdf" value="${url.toString().split('$')[1].toString().toLowerCase().indexOf('.pdf') < 0 ? false : true }" scope="page"/>
+							<isif condition="${pdf}">
+								<a href="${url.toString().split('$')[1]}" target="_blank"><img src="${URLUtils.staticURL('/images/pdp-ownership-icon.jpg')}"></a>
+							</isif>	
+						</span>
+						<span class="block-info-holder"><a href="${url.toString().split('$')[1]}" target="_blank"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></a></span>
+					</li>
+				</isloop>
+			</ul>
+		</div>
+	</isif>
+	</div>
+</div>

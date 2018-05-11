@@ -1,0 +1,172 @@
+<isdecorate template="storelocator/pt_storelocatorresults">
+	
+	<isinclude template="util/modules"/>
+	 
+	<h1>
+		${Resource.msg('storelocator.storelocatorresults.yoursearchfound','storelocator',null)} 
+		<isprint value="${pdict.StoresCount}"/> ${Resource.msg('storelocator.storelocatorresults.stores','storelocator',null)}
+	</h1>
+
+    <isif condition="${!empty(pdict.Stores)}">
+   
+   		<a href="${URLUtils.url('Stores-Find')}">&lt;&lt; ${Resource.msg('storelocator.storelocatorresults.backtolocator','storelocator',null)}</a>
+
+       	<div class="store-locator-header">
+       		${Resource.msg('storelocator.storelocatorresults.allstores','storelocator',null)} 
+       		<span><isprint value="${pdict.SearchString}"/></span>
+       	</div>
+ 	<div class="storelocator_cont">
+ 		<div class="storelocator_table">
+       <table id="store-location-results" class="item-list">
+           <thead>
+               <tr>
+                   <th class="section-header">${Resource.msg('storelocator.storelocatorresults.storename','storelocator',null)}</th>
+                   <th class="section-header">${Resource.msg('storelocator.storelocatorresults.address','storelocator',null)}</th>
+                   
+               </tr>
+           </thead>
+           
+           <tbody>
+               <isloop items="${pdict.Stores}" var="Store" status="loopstate">
+                   <tr>                   
+                       <td class="store-information">
+                       
+                       	<a class="store-click store-name" href="" target="_blank">
+                           
+	                         	<isprint value="${Store.name}"/>
+	                         <iscomment>   	(<a class="editbutton dialogify" 
+	                           		target="_blank" id="${Store.ID}" 
+	                           		href="${URLUtils.url('Stores-Details','StoreID', Store.ID)}" 
+	                           		title="${Resource.msg('storelocator.storelocatorresults.storedetails','storelocator',null)}"
+	                           		data-dlg-options='{"width":900,"height":600}'>${Resource.msg('storelocator.storelocatorresults.storedetails','storelocator',null)}</a>)</iscomment>
+                          	
+                          	</a>
+
+                           <isif condition="${Store.storeHours != null}">
+                               <div class="store-hours">
+                               		<isprint value="${Store.storeHours}" encoding="off"/>
+                               </div>
+                           </isif>
+
+                           <isif condition="${Store.storeEvents != null}">
+                               <div class="store-events">
+                               		<isprint value="${Store.storeEvents}" encoding="off"/>
+                               </div>
+                           </isif>
+                           
+                       </td>
+                       <iscomment>Example for a link to a map service</iscomment>
+                       <isscript>
+                           var qAttr = "";
+                           if(Store.address1    != null) qAttr += Store.address1 + ", ";
+                           if(Store.address2    != null) qAttr += Store.address2 + ", ";
+                           if(Store.city        != null) qAttr += Store.city + ", ";
+                           if(Store.postalCode  != null) qAttr += Store.postalCode + ", ";
+                           if(Store.stateCode   != null) qAttr += Store.stateCode + ", ";
+                           if(Store.countryCode != null) qAttr += Store.countryCode;
+
+                           var glink = "http://maps.google.com/maps?hl=en&f=q&q=" + encodeURI(qAttr);
+                       </isscript>
+                       <td class="store-address">
+                       	   <a class="stores result-map-addres" href="${glink}" target="_blank">
+	                       <div class="click-area"> 		
+                           <isprint value="${Store.address1}"/><br/>
+                           <isprint value="${Store.city}"/><isif condition="${Store.city != null && Store.stateCode != null}">,</isif> <isprint value="${Store.stateCode}"/> <isprint value="${Store.postalCode}"/><br/>
+                           <isprint value="${Store.countryCode}"/>
+                           </div>  
+                           </a>
+                       </td>
+                       
+                       
+                       
+                   </tr>
+               </isloop>
+           </tbody>
+       </table>
+       </div>
+       <div id="map_canvas" style="width:754px;height:380px;"></div>
+       <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?sensor=false"></script>
+	</div>
+       
+       <script type="text/javascript">
+       jQuery(document).ready(function() {
+    	  
+    	   $('.store-click').click(function(e) {
+    		     e.preventDefault();
+    		    
+    		  });
+    	
+    	   
+    	   // map code starts
+    	   var bounds = new google.maps.LatLngBounds();
+    	   var myLatlng = new google.maps.LatLng(37.09024, -95.712891);
+    	   var myOptions = {center: myLatlng,zoom:10,mapTypeId: google.maps.MapTypeId.ROADMAP};
+    	   var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    	   
+    	 // custom marker icon
+		    var myMarkerIcon = new google.maps.MarkerImage("https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRtddxUGSlaLPbBbWfZik-ouEa9tP-M4K-Wl9J-irmMHGk1jWEOTQ");
+			var markers = [];
+			
+		 // go through results and create map points for each
+	          <isloop items="${pdict.Stores}" var="Store" status="loopstate">
+				var myLatlng = new google.maps.LatLng(<isprint value="${Store.latitude.toFixed(6)}"/>, <isprint value="${Store.longitude.toFixed(6)}"/>);
+				
+				var markerContent = 
+				'<div class="store-infowindow">'+
+						'<h2><isprint value="${Store.name}"/></h2>'+
+						'<div class="storeimage">'+
+						'</div>'+
+						'<p><isprint value="${Store.address1}"/><br /><isprint value="${Store.city}"/>, <isprint value="${Store.stateCode}"/> <isprint value="${Store.postalCode}"/></p>'+
+						'<div class="storephone"><isprint value="${Store.phone}"/><br/><isprint value="${Store.getEmail()}"/></div>'+
+						'<div class="storemap"><a class="googlemap" href="http://maps.google.com/maps?hl=en&f=q&q=${Store.address1},${Store.city},${Store.stateCode},${Store.postalCode},${Store.countryCode}" target="_blank">View on larger map</a></div>'+
+				'</div>';
+	
+			    var marker = new google.maps.Marker({
+			        position: myLatlng, 
+			        map: map,
+			        title: "<isprint value="${Store.name}"/>",
+			        content: markerContent,
+			        icon: myMarkerIcon
+				});
+				bounds.extend(myLatlng);
+				markers.push(marker);
+	        </isloop>
+	      //open info windows
+			var infowindow = new google.maps.InfoWindow({
+				content: 'loading...'
+			});
+			for (var i = 0; i < markers.length; i++) {
+				var marker = markers[i];
+				marker.index = i;
+	
+				    // click events for the map and listings
+				    google.maps.event.addListener(marker, 'click', function () {
+					// where I have added .html to the marker object.
+					infowindow.setContent(this.content);
+					infowindow.open(map, this);
+					// scroll the pane to the top
+					
+				});
+			}
+			//rebind the map
+			setTimeout( function() { map.fitBounds( bounds ); }, 1 ); 
+			jQuery('.store-click').each(function(i){
+				jQuery(this).bind('click',function(e){
+					e.preventDefault();
+					google.maps.event.trigger(markers[i],'click');
+				});
+			}); 
+    	   
+    	   // map code ends
+    	  
+    	  $('.pt_store-locator #secondary').css({"display": "none"});
+    	  $('.pt_store-locator .page-content .primary-content').css({"width": "95%","padding": "0","border-width":"0","float":"none","margin":"0 auto"});
+       });//end of document readdy
+       
+       </script>
+      
+
+    </isif>
+    
+
+</isdecorate>

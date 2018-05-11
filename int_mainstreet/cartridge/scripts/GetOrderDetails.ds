@@ -1,0 +1,35 @@
+/**
+* This script receives detail information about an order which is part of
+* the main street system.
+*
+* @author Demandware
+* @creationdate 2010-07-22
+*
+* @input OrderNo : String
+* @input InputOrder : Object
+* @output Order : Object
+*
+*/
+importPackage( dw.system );
+importScript("int_mainstreet:library/libMainstreetNew_PANB2C.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+    var mainstreet = new MainStreet();
+    if(empty(args.InputOrder)) {
+
+    	var order = mainstreet.GetListOrdersByOrderId(new Array(args.OrderNo));
+    	
+    	if(!empty(order)) {
+    		args.Order = mainstreet.makeDemandwareBigOrder(mainstreet.makeDemandwareSmallOrder(order.orders[0]), order.orders[0]);
+    		return PIPELET_NEXT;
+    	} else {
+    		return PIPELET_ERROR;
+    	}
+    } else {
+    
+    	args.Order = mainstreet.makeDemandwareBigOrder(args.InputOrder, mainstreet.GetOrderDetail(args.OrderNo));
+    }
+    return PIPELET_NEXT;
+}

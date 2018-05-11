@@ -1,0 +1,41 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isscript>
+	importScript( "util/ViewHelpers.ds" );
+</isscript>
+
+<isset name="topCat" value="${pdict.category}" scope="page"/>
+<isset name="flyOutRenderer" value="${MainNavigationUtilities.generateFlyoutRendering(topCat)}" scope="page"/>
+<isif condition="${'enableMegaNavImageTemplate' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableMegaNavImageTemplate}">
+	<isset name="showImage" value="${dw.system.Site.current.preferences.custom.enableMegaNavImageTemplate}" scope="page" />
+<iselse/>
+	<isset name="showImage" value="${dw.system.Site.current.preferences.custom.enableMegaNavImageTemplate}" scope="page" />
+</isif>
+<isif condition="${flyOutRenderer.renderFlyout}">
+<div class="mobileIcn level-2 ${flyOutRenderer.colLayoutHoriz ? 'menu-horizontal' : ''}">
+	<div class="menu-wrapper">
+		<ul class="level-2">
+		<isloop items="${flyOutRenderer.subCategories}" var="subCat" begin="0" end="${flyOutRenderer.firstcolcount-1}" status="subcatstatus">
+			<li ${subcatstatus.first ? 'class=first' : ''} ${subcatstatus.last ? 'class=last' : ''}>
+				<a href="<isprint value="${MainNavigationUtilities.getCategoryUrl(subCat)}" encoding="off"/>" class="level-2">
+					<isif condition="${showImage!=null && showImage}"> 
+						<isset name="subCatimage" value="${subCat.thumbnail}" scope="page" />
+						
+                    	<isif condition="${!empty(subCatimage)}"> 
+                       		<div class="category-img"><img src="${subCat.thumbnail.URL}" alt="${subCat.thumbnail.alt}" title="${subCat.getDisplayName()}"/></div>
+                   		</isif> 
+                   		<div class="category-title"><isprint value="${subCat.getDisplayName()}"/></div>
+					<iselse/>
+						<div class="category-title"><isprint value="${subCat.getDisplayName()}"/></div>
+					</isif>
+				</a>
+			</li>
+		</isloop>
+		</ul>
+		<iscomment>
+			<isif condition="${flyOutRenderer.hasCustomContent}">
+				<div class="custom"><isprint value="${topCat.custom.headerMenuBanner}" encoding="off"/></div>
+			</isif>
+		</iscomment>	
+	</div>	
+</div>
+</isif>

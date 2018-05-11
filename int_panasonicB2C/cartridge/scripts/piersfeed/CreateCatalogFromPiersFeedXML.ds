@@ -1,0 +1,123 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*   
+*	@input CurrentWorkflowComponentInstance : Object The current workflow component instance
+*   @output successfullUMNs : Array
+*   @output successfullProductIds : Array
+*
+*/
+ 
+ importPackage( dw.system );
+ importPackage( dw.util );
+ importPackage( dw.web );
+ importPackage( dw.net );
+ importPackage( dw.catalog );
+ importPackage( dw.object );
+ importPackage( dw.io );
+ importPackage( dw.content );
+ 
+ importScript( "lib/libPiersFeed.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{	
+	Logger.debug("Piers Feed Job :  Starting Catalog creation.");
+	
+	var PiersFeedHelper : Object = getPiersFeedHelper();	
+	var CurrentWorkflowComponentInstance : Object = pdict.CurrentWorkflowComponentInstance;
+	var successfullUMNs : Array = new Array();
+	var successfullProductIds : Array = new Array();
+	
+	var PFfilePath : String = CurrentWorkflowComponentInstance.getParameterValue('filePath');
+	//var tempXMLPiersFeedFilePath : String = File.IMPEX +'/src/piers/temp/tempXMLPiersFeedFilePath.xml';
+	var tempXMLPiersFeedFilePath : String = File.IMPEX + File.SEPARATOR + PFfilePath + File.SEPARATOR + 'temp/tempXMLPiersFeedFilePath.xml';	
+	var tempXMLPiersFeedFile : File  = new File(tempXMLPiersFeedFilePath);
+	PiersFeedHelper.parsePiersFeedTempXML(tempXMLPiersFeedFile);
+	
+	
+	// code block for Catalog xml file	
+	// catalogFilesPath is path of folder in impex where Catalog need to be create. Read this value from CurrentWorkflowComponentInstance
+	//var catalogFilePath : String = File.IMPEX +'/src';
+	var catalogFilePath : String = File.IMPEX + File.SEPARATOR + CurrentWorkflowComponentInstance.getParameterValue('catalogPath');
+	// catalogFileName read from CurrentWorkflowComponentInstance 
+	var calendar : Calendar = new Calendar();	
+	calendar.timeZone = "GMT";		
+	var dateString : String = dw.util.StringUtils.formatCalendar(calendar, "yyyyMMddhmm");	
+	
+	//var catalogFileName : String = "catalog_" + dateString;
+	var catalogFileName : String = CurrentWorkflowComponentInstance.getParameterValue('filePattern') + dateString;
+	
+	var catalogFile : File  = new File(catalogFilePath + File.SEPARATOR + catalogFileName + ".xml");	
+	var catalogFileWriter : FileWriter = new FileWriter(catalogFile, "UTF-8"); 		
+ 	var catalogXMLStreamWriter : XMLStreamWriter = new XMLStreamWriter(catalogFileWriter); 	
+ 	catalogXMLStreamWriter.writeRaw('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
+		catalogXMLStreamWriter.writeStartElement("catalog");
+			catalogXMLStreamWriter.writeDefaultNamespace("http://www.demandware.com/xml/impex/catalog/2006-10-31");
+	    	catalogXMLStreamWriter.writeAttribute("catalog-id","shop-pna-master-catalog");
+	
+	
+	
+			
+	try {
+			var cat : Catalog = dw.catalog.CatalogMgr.siteCatalog;
+			var productList : SeekableIterator = dw.catalog.ProductMgr.queryProductsInCatalogSorted(cat);
+    		var productID : String;
+			var product : Product;
+			var counter : Number = 0;
+			var technicalspecificationContent : XMLList;
+			var technicalspecificationString : String; 
+			//while(productList.hasNext() && counter < 10) {
+			while(productList.hasNext()) {
+				technicalspecificationString = ""; 				
+				product = productList.next();
+				productID = product.ID;
+				if(product.custom.UMN != null) {
+					technicalspecificationContent = PiersFeedHelper.technicalspecificationContentsList.(@UMN == product.custom.UMN);
+					
+					for each ( var technicalspecificationObject : XML in technicalspecificationContent) {
+						technicalspecificationString = technicalspecificationObject.technicalspecification.(@attribute == "value");
+					}
+					
+					
+					
+					if(technicalspecificationString.toString() != "") {
+						catalogXMLStreamWriter.writeStartElement("product");
+							catalogXMLStreamWriter.writeAttribute("product-id",productID);
+							catalogXMLStreamWriter.writeStartElement("custom-attributes");						
+								catalogXMLStreamWriter.writeStartElement("custom-attribute");
+									catalogXMLStreamWriter.writeAttribute("attribute-id","technicalSpecAttributes");
+									catalogXMLStreamWriter.writeCharacters(technicalspecificationString);
+								catalogXMLStreamWriter.writeEndElement();
+							catalogXMLStreamWriter.writeEndElement();
+						catalogXMLStreamWriter.writeEndElement();
+						successfullUMNs[counter] = product.custom.UMN;
+						successfullProductIds[counter] = product.ID;
+						Logger.debug("Piers Feed Job : Feed exported in Catalog for productID : " + productID + "----UMN" + product.custom.UMN);
+						counter = counter + 1;
+					}
+					
+				} else {
+					Logger.debug("Piers Feed Job : UMN is not defined in catalog for productID : " + productID);
+				}
+			}
+		}		
+	catch(ex) {
+		Logger.error("[CreateCatalogFromPiersFeedXML.ds] - Piers Feed Job ended with error : ( {0} )",ex.message);
+		return PIPELET_ERROR;
+	} 
+	
+	
+	catalogXMLStreamWriter.writeEndElement();
+	catalogXMLStreamWriter.close();
+	catalogFileWriter.close();
+	Logger.debug("Piers Feed Job :  Ending Catalog creation.");
+	pdict.successfullUMNs = successfullUMNs;
+	pdict.successfullProductIds = successfullProductIds;
+	return PIPELET_NEXT;	
+}

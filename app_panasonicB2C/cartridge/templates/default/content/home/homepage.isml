@@ -1,0 +1,67 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isdecorate template="content/home/pt_storefront">
+<iscomment> Farhan's Dev team PANC-1601 15/02/2016 whole page is changed as per the mentioned ticket</iscomment>
+<iscomment>this is the template rendering the homepage</iscomment>
+<!-- +1.888.553.9216 --><!--This phone is a requirement to support existing Gomez monitor of SiteGenesis. Demadware customers can remove this.-->
+	<div id="oc"></div>
+	
+
+
+<div class="post-container"> 
+	<section class="home-banner home-bannerSlider slider">
+	   <div class=""><isslot id="home-mainbanner-1" description="Home Page Main Banner" context="global" />
+	   		<div class="promobutton"><isslot id="promo-bannerbottom" context="global" description="Home Banner Bottom Promotion"/></div>
+	   </div>
+		<div class=""><isslot id="home-banner-2" context="global" description="Home Page Banner 2"/></div>
+		<div class=""><isslot id="home-banner-3" context="global" description="Home Page Banner 3"/></div>
+		<div class=""><isslot id="home-banner-4" context="global" description="Home Page Banner 4"/> </div>
+	</section>
+	<div style="clear:both"></div>
+	<div class="shop-weekly">
+		<isslot id="shop-mobile-button" context="global" description="Home Banner Bottom Promotion For Mobiles Only"/>
+	</div>
+	<div class="mobile-homecategory mobile-homecategorySlider">
+	    <isslot id="mobile-home-category" context="global" description="Icon Content "/>
+	 </div>
+	
+	<div class="desktop-iconcontent">
+		<isslot id="icon-content" context="global" description="Icon Content "/> </li>
+	</div>
+	<div class="mob-home-newproducts home-newproductsSlider">
+		<isslot id="product-content-new" context="global" description="Product Content "/>
+	</div>
+	<div style="clear:both"></div>
+	<div class="shop-whatsnew">
+		<isslot id="shop-products-mobile-button" context="global" description="Home Product Shop Button"/>
+	</div>
+
+<div class="mob-business-header" style>PANASONIC FOR BUSINESS</div>
+<section class="home-business home-businessSlider slider">
+	<div><isslot id="home-business-1" context="global" description="Home Business Section 1"/></div>
+	<div><isslot id="home-business-2" context="global" description="Home Business Section 2"/></div>
+	<div><isslot id="home-business-3" context="global" description="Home Business Section 3"/></div>
+	<div><isslot id="home-business-4" context="global" description="Home Business Section 4"/></div>
+</section>
+	
+</div></div>
+
+<script>
+
+     $(document).on('ready', function() {
+	     if($(window).width() < 1025)
+			{
+		       $(".home-banner").slick({ dots: true, infinite: true, arrows: false, slidesToShow: 1 });
+		       $(".home-business").slick({ dots: true, infinite: true, slidesToShow: 1, arrows: false, slidesToScroll: 1 });
+		       $(".mobile-homecategory").slick({ dots: false, infinite: true, slidesToShow: 4, arrows: false, slidesToScroll: 2 });
+		       $(".home-newproducts").slick({ dots: false, infinite: true, slidesToShow: 1, arrows: true, slidesToScroll: 1 });
+			} else {
+				$(".home-banner").slick('unslick');
+			    $(".home-business").slick('unslick');
+			    $(".mobile-homecategory").slick('unslick'); 
+			    $(".home-newproducts").slick('unslick');
+			}
+    });
+</script>
+
+</isdecorate>

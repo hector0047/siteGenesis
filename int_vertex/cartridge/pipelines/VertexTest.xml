@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="MyTest">
+    <segment>
+      <node>
+        <start-node name="MyTest" secure="false"/>
+        <node-display x="1" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="GetBasket" pipelet-set-identifier="bc_api">
+          <config-property key="Create" value="true"/>
+          <key-binding alias="Basket" key="Basket"/>
+          <key-binding alias="null" key="StoredBasket"/>
+        </pipelet-node>
+        <node-display x="-1" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b3.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="GetProduct" pipelet-set-identifier="bc_api">
+          <key-binding alias="product1" key="Product"/>
+          <key-binding alias="&quot;F33Y1901KGNG08&quot;" key="ProductID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="GetProduct" pipelet-set-identifier="bc_api">
+          <key-binding alias="product2" key="Product"/>
+          <key-binding alias="&quot;F33Y1901KGNG07&quot;" key="ProductID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b5.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="AddProductToBasket" pipelet-set-identifier="bc_api">
+          <key-binding alias="product1" key="Product"/>
+          <key-binding alias="null" key="Quantity"/>
+          <key-binding alias="ProductLineItem1" key="ProductLineItem"/>
+          <key-binding alias="Basket" key="Basket"/>
+          <key-binding alias="null" key="ProductOptionModel"/>
+          <key-binding alias="null" key="Shipment"/>
+          <key-binding alias="null" key="Category"/>
+          <key-binding alias="null" key="ProductListItem"/>
+          <key-binding alias="null" key="ProductInventoryList"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b5" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b6.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="AddProductToBasket" pipelet-set-identifier="bc_api">
+          <key-binding alias="product2" key="Product"/>
+          <key-binding alias="null" key="Quantity"/>
+          <key-binding alias="ProductLineItem2" key="ProductLineItem"/>
+          <key-binding alias="Basket" key="Basket"/>
+          <key-binding alias="null" key="ProductOptionModel"/>
+          <key-binding alias="null" key="Shipment"/>
+          <key-binding alias="null" key="Category"/>
+          <key-binding alias="null" key="ProductListItem"/>
+          <key-binding alias="null" key="ProductInventoryList"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b6" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../b7.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="CreateBillingAddress" pipelet-set-identifier="bc_api">
+          <key-binding alias="Basket" key="Basket"/>
+          <key-binding alias="Address" key="Address"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="Testing/AddBillingAddressToBasket.ds"/>
+          <key-binding alias="log" key="ScriptLog"/>
+          <key-binding alias="Address" key="Address"/>
+          <key-binding alias="Basket" key="Basket"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b7" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b8.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <call-node start-name-ref="Cart-Calculate"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="test3.ds"/>
+          <key-binding alias="log" key="ScriptLog"/>
+          <key-binding alias="Basket" key="Basket"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b8" source-connector="error">
+          <transition target-connector="in1">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="2"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="-1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="out"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Test2">
+    <segment>
+      <node>
+        <start-node name="Test2" secure="false"/>
+        <node-display x="3" y="0"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node custom-name="test3.ds" pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="test3.ds"/>
+          <key-binding alias="log" key="ScriptLog"/>
+        </pipelet-node>
+        <node-display x="0" y="2"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="testout"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="Connect">
+    <segment>
+      <node>
+        <start-node name="Connect" secure="false"/>
+        <node-display x="5" y="0"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="test4.ds"/>
+          <key-binding alias="log" key="ScriptLog"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="1"/>
+            </node>
+            <transition target-connector="in3" target-path="../+1">
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="2"/>
+              </transition-display>
+            </transition>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="2"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <interaction-node transaction-required="false">
+          <template buffered="true" dynamic="false" name="testout"/>
+        </interaction-node>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

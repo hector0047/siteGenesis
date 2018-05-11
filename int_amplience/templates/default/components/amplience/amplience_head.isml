@@ -1,0 +1,34 @@
+<isset name="ampSPath" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceStaticBasePath')}" scope="page" />
+<isset name="ampClient" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceCompany')}" scope="page" />
+
+<!-- Ampliance default objects -->
+<script type="text/javascript" src="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceCDN')}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceClient')}/swfobject.min.js"> </script>
+<script type="text/javascript" src="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceCDN')}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceClient')}/interact.min.js"> </script>
+
+<!-- Ampliance custom events -->
+<script type="text/javascript">
+	$(document).ready(function () {
+		app.urls.WishlistAdd = "${URLUtils.https('Wishlist-Add').toString()}";
+	});
+</script>
+<script src="${URLUtils.staticURL('/js/amplience/amplience.js')}"></script>
+
+<!-- Ampliance product images -->
+<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceEnabled')}">
+	<link href="${URLUtils.staticURL('/css/amplience.css')}" rel="stylesheet" type="text/css" media="screen" />
+	<link href="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceZoomCSS')}" rel="stylesheet" type="text/css" media="screen" />
+	<script src="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceZoomJS')}" type="text/javascript"> </script>	
+	<script type="text/javascript" src="${ampSPath}${ampClient}/${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceZoomID')}.js"> </script>
+	
+	<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceSpinEnabled')}">
+		<link rel="stylesheet" type="text/css" href="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceSpinCSS')}" />
+		<script type="text/javascript" src="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceSpinJS')}"> </script>
+		<script type="text/javascript" src="${ampSPath}${ampClient}/${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceSpinID')}.js"></script>
+	</isif>
+	
+	<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceVideoEnabled')}">
+		<link rel="stylesheet" type="text/css" href="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceVideoCSS')}" />
+		<script type="text/javascript" src="${ampSPath}${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceVideoJS')}"> </script>
+		<script type="text/javascript" src="${ampSPath}${ampClient}/${dw.system.Site.getCurrent().getCustomPreferenceValue('AmplienceVideoID')}.js"></script>
+	</isif>
+</isif>

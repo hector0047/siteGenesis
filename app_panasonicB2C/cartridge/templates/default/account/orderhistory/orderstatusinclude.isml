@@ -1,0 +1,44 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<iscomment>
+	This template renders an order's status.
+	There must be an object called 'Order' in page scope.
+</iscomment>
+
+<isif condition="${!empty(pdict.pnaOrderStatus)}">
+	<isset name="orderStatus" value="${pdict.pnaOrderStatus}" scope="page"/>	 
+<iselse>
+	<isset name="orderStatus" value="${Order.status}" scope="page"/>
+</isif>
+
+<div class="order-status">
+	<span class="label">${Resource.msg('orderstatusinclude.statuslabel','account',null)}</span>
+	
+	<isif condition="${((orderStatus==dw.order.Order.ORDER_STATUS_NEW || orderStatus == dw.order.Order.ORDER_STATUS_OPEN) && Order.shippingStatus == dw.order.Order.SHIPPING_STATUS_SHIPPED) || orderStatus==dw.order.Order.ORDER_STATUS_COMPLETED}">
+
+		<span class="value order_shipped">${Resource.msg('orderstatusinclude.ordershipped','account',null)}</span>
+
+	<iselseif condition="${(orderStatus==dw.order.Order.ORDER_STATUS_NEW || orderStatus==dw.order.Order.ORDER_STATUS_OPEN) && Order.shippingStatus != dw.order.Order.SHIPPING_STATUS_SHIPPED}">
+
+		<span class="value processing order_processed">${Resource.msg('orderstatusinclude.orderprocessed','account',null)}</span>
+
+	<iselseif condition="${orderStatus==dw.order.Order.ORDER_STATUS_CANCELLED}">
+
+		<span class="value order_canceled">${Resource.msg('orderstatusinclude.ordercanceled','account',null)}</span>
+
+	<iselse/>
+		 <isif condition="${orderStatus.equals('Waiting Approval') || orderStatus.equals('Waiting Allocation')}">
+		 	<isset name="omsOrderStatus" value="${false}" scope="page" />
+		 	<span class="value clearfix"><isprint value="${Resource.msg('orderstatusinclude.orderproccessing','account',null)}"/></span>		 
+		 <iselseif condition="${orderStatus.equals('Waiting Fulfillment')}" >
+		 	<isset name="omsOrderStatus" value="${false}" scope="page" />
+		 	<span class="value clearfix"><isprint value="${Resource.msg('orderstatusinclude.orderreadyforshipment','account',null)}"/></span>
+		 <iselseif condition="${orderStatus.equals('Closed')}" >
+		 	<isset name="omsOrderStatus" value="${true}" scope="page" />
+		 	<span class="value clearfix"><isprint value="${Resource.msg('orderstatusinclude.orderclosed','account',null)}"/></span>
+		 <iselse/>
+		 	<span class="value clearfix"><isprint value="${orderStatus}"/></span>		 
+		 </isif>
+	</isif>
+	
+</div>

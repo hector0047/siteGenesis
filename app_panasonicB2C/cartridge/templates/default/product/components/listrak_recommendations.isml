@@ -1,0 +1,23 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<div class="recommendations cross-sell">	
+	<h2>				
+			${Resource.msg('recommendations.products','product',null)}
+	</h2>
+	
+	<isif condition="${pdict.CurrentCustomer.authenticated}">
+		<input type="hidden" name="email" id="profileEmail" value="${pdict.CurrentCustomer.profile.email}" />
+	</isif>
+	
+	<input type="hidden" name="sku" id="ltkSkuId" value="${pdict.Product.ID}" />
+	<input type="hidden" name="catID" id="ltkProdCategory" value="${pdict.Product.primaryCategory.displayName}" />
+	<input type="hidden" name="eventType" id="ltkEventType" value="productbrowse" />
+	
+	<isif condition = "${dw.system.Site.current.preferences.custom.Listrak_RECOM_Enabled}">
+		<input type="hidden" name="enableListrakRecom" id="enableListrakRecom" value="true" />
+	</isif>
+	
+	<ul id="carousel-recomendations">		
+		<iscomment>Restore the Product instance</iscomment>
+		<isset name="Product" value="${pdict.Product}" scope="pdict"/>		 
+	</ul>
+</div>

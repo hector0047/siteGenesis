@@ -1,0 +1,71 @@
+/**
+ * Base class of XML via HTTP(S) web services.
+ *
+ * @class
+ * @augments AbstractHTTPService
+ */
+var AbstractXMLBaseService = require('./AbstractHTTPService').extend(
+/** @lends AbstractXMLBaseService.prototype */
+{
+	
+    /**
+     * Create a new XML web service instance.
+     * Set default values for encoding, authentication type and directives.
+     *
+     * Note: Custom encoding needs to be set before calling this constructor 
+     *
+     * @constructs
+     *
+     * @param {String} serviceName A unique name of the service
+     * @param {Object} object The object instance which willl be used as reponse wrapper
+     *
+     */
+	init : function(serviceName : String, object : Object){
+		this._super(serviceName, object);
+		this.requestType = "POST";
+		/** XML directives appearing on top of the file, i.e. the most common xml directive */
+		this.directives = ['<?xml version="1.0" encoding="'+this.encoding+'"?>'];
+		this.setRequestHeader("Content-Type", "text/xml");
+	},
+	
+	/**
+	 * Add a directive that appears at the top of the message. Please note that the xml directive is 
+	 * added by default.
+	 *
+     * @param {String} directive The directive to add
+	 */
+	addDirective : function(directive) : Object {
+		// log request and response message if feature is enabled
+		this.directives.push(directive);
+	},
+	
+	/**
+	 * Sends XML request with the configured parameters
+     *
+     * It is assumed that a credentials object is present which defines url, username and password
+	 */
+	executeServiceCall : function() {
+		var requestText : String;
+		if (this.request && this.request instanceof XML) {
+			requestText = this.request.toXMLString();
+
+			// add control statement
+			requestText = this.directives.join("\n") + "\n" + requestText;
+		}else{
+			// support legacy behaviour
+			requestText = this.request;
+		}
+		this.request = requestText;
+		
+		return new XML (this._super());
+	},
+	
+	logCommunication : function() : Object {
+		// log request and response message if feature is enabled
+		this.serviceClientLogger.logCommunicationPlain(empty(this.request) ? "" : this.request.toXMLString(),empty(this.response) ? "" : this.response.toXMLString(), this.serviceName, this.configuration);
+	}
+	
+
+});
+
+module.exports = AbstractXMLBaseService;

@@ -1,0 +1,157 @@
+/**
+ * libAmplienceUgcPagingModel.ds
+ */
+ 
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+
+function UgcPagingModel() {
+	
+	/**
+	 * Define paging model properties.
+	 */
+	var count : Number, currentPage : Number , emptyPage : Boolean, end : Number, 
+		maxPage : Number, pageCount : Number, pageSize : Number, start : Number;
+		
+	var	pageElements : ArrayList = new ArrayList();
+	
+	/**
+	 * Initialize streams custop paging model.
+	 *
+	 * @param {Object} streamsContent - Loaded streams content from Amplience API.
+	 */
+	this.init = function ( streamsContent : Object ) {
+		
+		if ( !('data' in streamsContent) ) {
+			
+			throw new Error('Amplience streams data is missing.');	
+			
+		}
+		
+		/**
+		 * Initialize paging model properties.
+		 */
+		count = !empty(streamsContent['numFound']) ? streamsContent['numFound'] : 0;
+		pageCount = !empty(streamsContent['count']) ? streamsContent['count'] : 0;
+		pageSize = !empty(streamsContent['pageSize']) ? streamsContent['pageSize'] : 0;
+		start = !empty(streamsContent['start']) ? streamsContent['start'] : 0;
+		
+		currentPage = Math.floor(start / pageSize);
+		emptyPage = (pageCount == 0);
+		end = start + pageCount - 1;
+		maxPage = (count / pageSize) == 1 ? 0 : Math.floor(count / pageSize);
+		
+		streamsContent['data'].forEach(function (val, index) {
+			pageElements.push(val);
+		});
+
+	};
+
+	/**
+	 * Returns an URL by appending the current page start position 
+	 * and the current page size to the URL.
+	 *
+	 * @param {URL} url -  The URL to append the paging parameter to.
+	 * @param {Number} position -  The start position.
+	 *
+	 * @return {String} url - A string URL that contains the paging parameters.
+	 */
+	this.appendPaging = function (url : URL, position : Number) : String {
+		if (!empty(url) && !empty(position)) {
+			url.append(PagingModel.PAGING_START_PARAMETER, position);
+			url.append(PagingModel.PAGING_SIZE_PARAMETER, pageSize);
+			
+			var stringUrl : String = url.toString();
+			
+			url.remove(PagingModel.PAGING_START_PARAMETER);
+			url.remove(PagingModel.PAGING_SIZE_PARAMETER);
+			
+			return stringUrl;
+		}
+	}
+
+	/**
+	 * Returns the count of the number of items in the model.
+	 *
+	 * @return {Number} count - The count of the number of items in the model.
+	 */
+	this.getCount = function () : Number {
+		return count;
+	};
+	
+	/**
+	 * Returns the index number of the current page. The page counting starts with 0.
+	 *
+	 * @return {Number} currentPage - The index number of the current page.
+	 */
+	this.getCurrentPage = function () : Number {
+		return currentPage;
+	};
+	
+	/**
+	 * Identifies if the model is empty.
+	 *
+	 * @return {Boolean} emptyPage - True if the model is empty, false otherwise.
+	 */
+	this.isEmpty = function () : Boolean {
+		return emptyPage;
+	};
+	
+	/**
+	 * Returns the index of the last element on the current page.
+	 *
+	 * @return {Number} end - The index of the last element on the current page.
+	 */
+	this.getEnd = function () : Number {
+		return end;
+	};
+	
+	/**
+	 * Returns the maximum possible page number. Counting for pages starts with 0.
+	 *
+	 * @return {Number} maxPage - The maximum possible page number.
+	 */
+	this.getMaxPage = function () : Number {
+		return maxPage;
+	};
+	
+	/**
+	 * Returns the total page count.
+	 *
+	 * @return {Number} pageCount - The total page count.
+	 */
+	this.getPageCount = function () : Number {
+		return pageCount;
+	};
+	
+	/**
+	 * Returns a coollection that can be used to iterate 
+	 * through the elements of the current page.
+	 *
+	 * @return {Collection} pageElements - A collection that you use to iterate 
+	 * through the elements of the current page.
+	 */
+	this.getPageElements = function () : Collection {
+		return pageElements;
+	};
+	
+	/**
+	 * Returns the size of the page.
+	 *
+	 * @return {Number} pageSize - The size of the page.
+	 */
+	this.getPageSize = function () : Number {
+		return pageSize;
+	};
+	
+	/**
+	 * Returns the current start position from which iteration will start.
+	 *
+	 * @return {Number} start - The current start position from which iteration will start.
+	 */
+	this.getStart = function () : Number {
+		return start;
+	};
+	
+};

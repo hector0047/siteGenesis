@@ -1,0 +1,17 @@
+function GetSbRRStatusObj() {}
+
+GetSbRRStatusObj.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};
+	},	
+	
+	getDummyResponse: function(text) {
+		
+	},
+	
+	dummy: function() {
+	}
+}
+module.exports = GetSbRRStatusObj;

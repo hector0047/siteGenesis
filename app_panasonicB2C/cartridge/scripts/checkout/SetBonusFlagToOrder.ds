@@ -1,0 +1,35 @@
+/**
+* Set the order export status to EXPORT_STATUS_READY
+*
+* @input Order : dw.order.Order The order.
+* @output customString : String
+*/
+importPackage( dw.order );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+    // read pipeline dictionary input parameter
+    var order : Order = pdict.Order;
+    var customStr : String = "";
+	try{
+ 		for each(var pl : ProductLineItem in order.allProductLineItems){
+ 			if(pl.bonusProductLineItem){
+ 			  var temp : String = pl.productID.concat(':').concat(pl.quantityValue.toString());
+ 			  
+ 			  if(customStr.length!=0){
+ 			 	 customStr = customStr.concat(',').concat(temp);
+ 			  }else{
+ 			  	 customStr = temp;
+ 			  }
+ 			  
+ 			}
+ 		}
+		pdict.customString=customStr;
+		return PIPELET_NEXT;
+	}catch(e){
+		Logger.error("Error while executing the script SetBonusFlagToOrder.ds  Error : "+e.message);
+		pdict.customString="";
+		return PIPELET_ERROR;
+	}
+}

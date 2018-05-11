@@ -1,0 +1,25 @@
+/**
+*	This pipelet uses a service that performs an HTTP FORM Post 
+*
+*	@output Result : Object
+*	@output Status : Object
+*/
+
+var sf = require("bc_serviceframework");
+
+function execute(pdict) {
+	var HTTPFormPostService = sf.getService('HTTPFormPostService'),
+	    service = new HTTPFormPostService();
+	
+	service.call({
+		"firstname": "John",
+		"lastname": "Smith",
+		"username": "JSmith",
+		"password": "Password"
+	});
+		
+	pdict.Result = service.object; 
+	pdict.Status = service.status;	
+   	
+	return PIPELET_NEXT;
+}

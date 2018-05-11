@@ -1,0 +1,49 @@
+/**
+* Demandware Script File
+* This script checks default credit card available or not in payment methods of customer.
+* if it already available make the boolean flag to true and break from loop. otherwise the boolean flg is to false 
+*
+* @input CustomerPaymentInstruments : dw.util.Collection the payment instruments to search
+* @output defaultCreditCardVal : Boolean
+*
+*/
+importPackage( dw.customer );
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	try{
+		
+		var instruments : Collection = pdict.CustomerPaymentInstruments;
+		var defaultCC : Boolean = false;
+		
+		pdict.defaultCreditCardVal = false;
+		
+		// ensure mandatory parameter 'CustomerPaymentInstruments' 
+		// in pipeline dictionary and collection is not empty
+		if( instruments == null || instruments.empty)
+		{
+			return PIPELET_ERROR;
+		}
+		
+		// find credit card in payment instruments
+		var instrumentsIter : Iterator = instruments.iterator();
+		while( instrumentsIter.hasNext() )
+		{
+			creditCardInstrument = instrumentsIter.next();
+			if( creditCardInstrument.custom.defaultCreditCard )
+			{
+				defaultCC = true;
+				pdict.defaultCreditCardVal = true;
+				break;
+			}			
+		}		
+	}
+	
+	catch(e){
+		Logger.error("Error while executing the script AddDefaultCreditCard.ds. Error : "+e.message);
+		return PIPELET_ERROR;
+	}
+	return PIPELET_NEXT;
+}

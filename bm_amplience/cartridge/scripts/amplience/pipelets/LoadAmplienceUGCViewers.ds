@@ -1,0 +1,43 @@
+/**
+* Load UGC viewers
+*
+* Params:
+*
+* @input StreamID : String
+*
+* @output AvailableViewers : Array
+* @output DisabledViewers : Array
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+
+importScript( 'amplience/AmplienceUGCHelper.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var streamId : String = args.StreamID;
+		
+		/**
+		 * Initialize helper object.
+		 */
+		var amplienceUGCHelper = new AmplienceUGCHelper();
+		
+		var viewers : Object = amplienceUGCHelper.getViewers( streamId );
+		
+		args.AvailableViewers = viewers['availableViewers'];
+		args.DisabledViewers = viewers['disabledViewers'];
+
+	}
+	catch(e) {
+		var errMsg = 'LoadAmplienceUGCViewers.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

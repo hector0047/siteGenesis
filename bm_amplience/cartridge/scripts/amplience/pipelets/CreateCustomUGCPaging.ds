@@ -1,0 +1,40 @@
+/**
+* Creates custom paging model for loaded streams
+*
+* Params:
+*
+* @input LoadedContent : Object
+*
+* @output UgcPagingModel : Object
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+
+importScript( 'bc_amplience:/ugc/libAmplienceUgcPagingModel.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var streamsContent = args.LoadedContent;
+		
+		/**
+		 * Create custom paging model object
+		 */
+		var ugcPagingModel : Object = new UgcPagingModel();
+		ugcPagingModel.init(streamsContent);
+		
+		args.UgcPagingModel = ugcPagingModel;
+
+	}
+	catch(e) {
+		var errMsg = 'CreateCustomUGCPaging.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

@@ -1,0 +1,23 @@
+function execute(args){
+	var sax = require("sax"),
+	  strict = true, // set to false for html-mode
+	  parser = sax.parser(strict);
+	
+	parser.onerror = function (e) {
+	  // an error happened.
+	};
+	parser.ontext = function (t) {
+	  // got some text.  t is the string of text.
+	};
+	parser.onopentag = function (node) {
+	  dw.system.Logger.warn("Opening tag: "+JSON.stringify(node));
+	};
+	parser.onattribute = function (attr) {
+	  dw.system.Logger.warn("Attribute: "+JSON.stringify(attr));
+	};
+	parser.onend = function () {
+	  // parser stream is done, and ready to have more stuff written to it.
+	};
+	parser.write('<xml>Hello, <who name="world">world</who>!</xml>').close();
+	return PIPELET_NEXT;
+}

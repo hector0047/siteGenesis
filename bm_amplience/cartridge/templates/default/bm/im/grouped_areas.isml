@@ -1,0 +1,174 @@
+<!--- TEMPLATENAME: imported_streams.isml --->
+
+<isinclude template="util/modules"/>
+
+<isdecorate template="bm/table_decorator">
+<isif condition="${empty(pdict.ErrorMsg)}">
+	<table class="grouped-streams-table items-table" width="100%" cellspacing="0" cellpadding="0" border="0">
+		<thead>
+			<tr>
+			<th class="table_header area-select center w e s n"><a href="#" class="select-all-grouped-areas"><isprint value="${Resource.msg('ugc.viewerstable.selectall', 'locale', null)}" /></a></th>
+			<th class="table_header s e n">
+				<isscript>
+					var groupNameCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'groupnamedesc') {
+						
+							groupNameCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'groupnameasc') {
+						
+							groupNameCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+
+				<a href="#" id="order-by-group-name" ${groupNameCssClassCode}>
+					<span>${Resource.msg('components.itemsperpage.group', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header stream-preview e s n"><isprint value="${Resource.msg('ugc.itemstable.preview', 'locale', null)}" /></th>
+			<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.publishingarea', 'locale', null)}" /></th>
+			<th class="table_header s e n">
+				<isscript>
+					var creationDateCssClassCode : String = '';
+					
+					if ( !empty(pdict.OrderBy) ) {
+					
+						if (pdict.OrderBy == 'creationdatedesc') {
+						
+							creationDateCssClassCode = "class='amp-orderby-desc'";
+							
+						} else if (pdict.OrderBy == 'creationdateasc') {
+						
+							creationDateCssClassCode = "class='amp-orderby-asc'";
+						}
+					}
+				</isscript>
+
+				<a href="#" id="order-by-creation-date" ${creationDateCssClassCode}>
+					<span>${Resource.msg('im.creationdate', 'locale', null)}</span>
+				</a>
+			</th>
+			<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.associatedmodule', 'locale', null)}" /></th>
+			<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.width', 'locale', null)}" /></th>
+			<th class="table_header s e n"><isprint value="${Resource.msg('im.itemstable.height', 'locale', null)}" /></th>
+		</tr>
+		</thead>
+
+		<tbody>
+		
+			<isloop items="${pdict.PagingResult.pageElements}" var="item" status="loopstate">
+				<isscript>
+					var areaGroup = item['areaGroup'];
+					var assetId = item['assetId'];
+					var assetUUID = item['assetUUID'];
+					var groupName = item['groupName'];
+					var groupDescription = item['groupDescription'];
+					var groupLastModified = empty( item['groupLastModified'] ) ? '' : new Date( item['groupLastModified'] ).toUTCString();
+				</isscript>		
+				<tr>
+					<td class="table_detail w e s middle center">
+						<input type="checkbox" value="${assetId}" name="asset-id" />
+					</td>
+					
+					<td class="table_detail e s middle">
+						<strong><a href="${URLUtils.url('ViewLibraryContent_52-Start', 'ContentUUID', assetUUID )}" title="${groupName}">${groupName}</a></strong>
+						<p>${groupDescription}</p>
+					</td>
+					
+					<td class="table_detail e s middle thumb-container">
+						<isloop items="${areaGroup}" var="area" status="loopstate">
+							<isscript>
+								var thumbURL = !empty(area['amplienceThumbnail']) ? decodeURI(area['amplienceThumbnail']) + '?w=220' : '';
+							</isscript>
+							<isif condition="${!empty(thumbURL)}">
+								<div>
+									<img src="${thumbURL}" width="58" height="58" class="thumb-img" />
+								</div>
+							</isif>
+						</isloop>	
+					</td>
+					<td class="table_detail e s middle">
+						<isloop items="${areaGroup}" var="area" status="loopstate">
+							<isscript>
+								var name = area['assetName'];
+								var id = area['amplienceId'];
+							</isscript>
+							<p>${name}</p>
+							<p>${Resource.msg('im.itemstable.guid', 'locale', null)}: ${id}</p>
+						</isloop>
+					</td>
+					<td class="table_detail e s middle">
+						<p>${groupLastModified}</p>
+					</td>
+					<td class="table_detail e s middle">
+						<isloop items="${areaGroup}" var="area" status="loopstate">
+							<isscript>
+								var associatedModuleName = area['amplienceAssociatedModuleName'];
+							</isscript>
+							<p>${associatedModuleName}</p>
+							<p>&nbsp;</p>
+						</isloop>
+					</td>
+					<td class="table_detail e s middle">
+						<isloop items="${areaGroup}" var="area" status="loopstate">
+							<isscript>
+								var width = area['amplienceWidth'];
+							</isscript>
+							<p>${width}</p>
+							<p>&nbsp;</p>
+						</isloop>
+					</td>
+					<td class="table_detail e s middle">
+						<isloop items="${areaGroup}" var="area" status="loopstate">
+							<isscript>
+								var height = area['amplienceHeight'];
+							</isscript>
+							<p>${height}</p>
+							<p>&nbsp;</p>
+						</isloop>
+					</td>
+				</tr>
+			</isloop>
+
+			<isif condition="${empty(pdict.PagingResult.pageElements)}">
+				<tr>
+					<td colspan="8" class="empty-table-td">
+						${Resource.msg('im.notgroupitems', 'locale', null)}
+					</td>
+				</tr>
+			</isif>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="8" align="left" class="w e s">
+					<isif condition="${!empty(pdict.PagingResult.pageElements)}">			
+						<button class="button ungroup-area" disabled>${Resource.msg('components.itemsperpage.ungroup', 'locale', null)}</button>				
+					</isif>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+	
+	<iscomment> URL to re-execute the exact same query. </iscomment>
+	<isset name="PageSearchURL" value="${URLUtils.url('InteractiveMerchandising-GetGroupedAreas')}" scope="page" />
+	
+	<div class="amp-module-pagination clearfix">
+		
+		<isitemsinfo pagingmodel="${pdict.PagingResult}"/>
+		
+		<ispagingbar pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+		
+		<isitemsperpage pagingmodel="${pdict.PagingResult}" pageurl="${PageSearchURL}"/>
+	</div>
+<iselse>
+
+	<div class="page-error-container">
+		<isprint value="${Resource.msg('ugc.pageerror', 'locale', null)}" />
+	</div>
+	
+</isif>	
+</isdecorate>

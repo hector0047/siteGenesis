@@ -1,0 +1,55 @@
+/**
+*	Move the found sub file into a unique location and prepares parameters for the import
+*
+* @input FileForImport : dw.io.File
+* @input CurrentWorkflowComponentInstance : Object
+* @input LogObject : Object
+* @output ImportFile : String
+* @output ImportFileObject : dw.io.File
+* @output ImportMode : String
+*/
+importPackage( dw.system );
+importPackage( dw.catalog );
+importPackage( dw.io );
+
+importScript("bc_library:io/libFileUtils.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var fileToMove : File = pdict.FileForImport; 
+	// only process xml files
+	if (!fileToMove.isDirectory() && 
+		(fileToMove.getFullPath().substring(fileToMove.getFullPath().length-3, fileToMove.getFullPath().length) == "xml" ||
+		 	(pdict.CurrentWorkflowComponentInstance.getParameterValue('objectType') == 'activedata' && 
+		 	fileToMove.getFullPath().substring(fileToMove.getFullPath().length-3, fileToMove.getFullPath().length) == "csv") ||
+		 fileToMove.getFullPath().substring(fileToMove.getFullPath().length-6, fileToMove.getFullPath().length) == "xml.gz")) {
+		pdict.CurrentWorkflowComponentInstance.addMessage("Beginn processing file: " + fileToMove.getFullPath(), "INFO");
+		// single location for simple follow up actions
+		var destinationRelative = "temp" + File.SEPARATOR + "filetoimport.xml";
+		if(fileToMove.getFullPath().substring(fileToMove.getFullPath().length-6, fileToMove.getFullPath().length) == "xml.gz") {
+			destinationRelative += ".gz";
+		}
+
+		var destinationFolder : File = new File(File.IMPEX + File.SEPARATOR + "src" + File.SEPARATOR + destinationRelative.slice(0, destinationRelative.lastIndexOf(File.SEPARATOR)));
+		if(!destinationFolder.exists()){
+			destinationFolder.mkdirs();
+		}
+
+		var destinationFile : File = new File(File.IMPEX + File.SEPARATOR + "src" + File.SEPARATOR + destinationRelative);
+		if (destinationFile.exists()) {
+			destinationFile.remove();
+		}
+		
+		fileToMove.renameTo(destinationFile);
+		pdict.ImportFile = destinationRelative;
+		pdict.ImportFileObject = destinationFile;
+		pdict.ImportMode = pdict.CurrentWorkflowComponentInstance.getParameterValue('importMode');
+		
+		
+		
+	    return PIPELET_NEXT;
+	} else {
+		pdict.CurrentWorkflowComponentInstance.addMessage("Invalid File or folder found: " + fileToMove.getFullPath(), "ERROR");		
+	    return PIPELET_ERROR;
+	}
+}

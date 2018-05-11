@@ -1,0 +1,14 @@
+function OrderHistorySoap() {}
+
+OrderHistorySoap.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};		
+	},	
+	
+	dummy: function() {
+		
+	}
+}
+module.exports = OrderHistorySoap;

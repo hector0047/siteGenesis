@@ -1,0 +1,51 @@
+<!--- TEMPLATENAME: HOPUnitTest.isml --->
+<isscript>
+importScript('cybersource/libCybersource.ds');
+var CybersourceHelper = getCybersourceHelper();
+var time = Math.round((new Date()).getTime()).toString();
+var merchantID = CybersourceHelper.getMerchantID();
+var amount = 0;
+var currency = "usd";
+var transactionType = "subscription";
+var orderNumber = "123";
+var today = new Date();
+var startDate = dw.util.StringUtils.formatCalendar(new Calendar(today),"YYYYMMdd");
+
+</isscript>
+
+<form action="https://orderpagetest.ic3.com/hop/ProcessOrder.do" method="post">
+merchantReferenceCode <input name="merchantReferenceCode" value="482046C3A7E94F5" /><br/>
+billTo_firstName <input name="billTo_firstName" value="John" /><br/>
+billTo_lastName <input name="billTo_lastName" value="Doe" /><br/>
+billTo_street1 <input name="billTo_street1" value="1295 Charleston Rd." /><br/>
+billTo_city <input name="billTo_city" value="Mountain View" /><br/>
+billTo_state <input name="billTo_state" value="CA" /><br/>
+billTo_postalCode <input name="billTo_postalCode" value="94043" /><br/>
+billTo_country <input name="billTo_country" value="US" /><br/>
+billTo_phoneNumber <input name="billTo_phoneNumber" value="650-965-6000" /><br/>
+billTo_email <input name="billTo_email" value="jdoe@example.com" /><br/>
+card_expirationMonth <input name="card_expirationMonth" value="12" /><br/>
+card_expirationYear <input name="card_expirationYear" value="2015" /><br/>
+card_accountNumber <input name="card_accountNumber" value="4111111111111111" /><br/>
+card_cardType <input name="card_cardType" value="001" /><br />
+card_cvNumber <input name="card_cvNumber" value="111" /><br />
+paymentOption <input name="paymentOption" value="credit_card"/><br/>
+orderPage_receiptResponseURL <input name="orderPage_receiptResponseURL" value="${URLUtils.continueURL()}" /><br/>
+orderPage_declineResponseURL <input name="orderPage_declineResponseURL" value="http://www.htmlcodetutorial.com/cgi-bin/mycgi.pl" /><br/>
+<isscript>
+var map = new dw.util.HashMap();
+map.put("amount","0");
+map.put("currency","usd");
+map.put("orderPage_transactionType","subscription");
+//map.put("orderNumber",orderNumber);
+map.put("recurringSubscriptionInfo_amount","0");
+map.put("recurringSubscriptionInfo_numberOfPayments","0");
+map.put("recurringSubscriptionInfo_frequency","on-demand");
+map.put("recurringSubscriptionInfo_startDate",startDate);
+map.put("recurringSubscriptionInfo_automaticRenew","false"); 
+</isscript>
+<isprint value="${CybersourceHelper.insertSignature(map)}" encoding="off" />
+<isprint value="${CybersourceHelper.insertSubscriptionSignature('0',startDate,'on-demand',null,'false')}" encoding="off" />
+<input type="submit" value="Submit" />
+
+</form>

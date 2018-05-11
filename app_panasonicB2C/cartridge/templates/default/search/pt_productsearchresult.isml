@@ -1,0 +1,68 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+	<isscript>var pageContext={title:'Product Search Results', type:'search', ns:'search'};</isscript>
+	<isinclude template="util/modules"/>	
+	<iscomment>
+		Please mind that the productsearchrefinebar contains price information that is subject to personalization.
+		Make sure the decorated template specifies ISCACHE varyby="price_promotion".
+	</iscomment>
+
+	<isinclude template="components/header/htmlhead"/>
+	
+	<isif condition="${(pdict.CurrentHttpParameterMap.q.submitted && pdict.CurrentHttpParameterMap.q.value != '')}">
+			<link rel="canonical" href="${URLUtils.http('Search-Show','q', pdict.CurrentHttpParameterMap.q)}" />	
+	</isif>
+	<isif condition="${(pdict.CurrentHttpParameterMap.cgid.submitted && pdict.CurrentHttpParameterMap.cgid.value != '')}">
+		<link rel="canonical" href="${URLUtils.http('Search-Show','cgid', pdict.CurrentHttpParameterMap.cgid)}" />	
+	</isif>	
+	<link rel="alternate" href="${URLUtils.http('Search-Show','cgid', pdict.CurrentHttpParameterMap.cgid)}" hreflang="en-us"/>
+</head>
+<body>
+
+	<div id="wrapper" class="pt_product-search-result">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',true)}"/>
+			<isif condition="${pdict.ProductSearchResult.categorySearch  && ('dynamicCategory' in pdict.ProductSearchResult.category.getParent().custom && pdict.ProductSearchResult.category.getParent().custom.dynamicCategory)}">
+				<isif condition="${('dynamicCategoryBanner' in pdict.ProductSearchResult.category.custom && !empty(pdict.ProductSearchResult.category.custom.dynamicCategoryBanner))}">
+					<isprint value="${pdict.ProductSearchResult.category.custom.dynamicCategoryBanner}" encoding="off"/>
+				</isif>
+				<isif condition="${!('disableSubcatNav' in pdict.CurrentHttpParameterMap && pdict.CurrentHttpParameterMap.disableSubcatNav.booleanValue)}">
+					<isinclude template="rendering/category/dynamiccategoryproducthitsnavigations"/>
+				</isif>
+			</isif>
+		<div id="main" role="main" class="clearfix">
+			<isinclude template="components/browsertoolscheck"/>
+			<isreplace/>			
+		</div>
+			
+		<isinclude template="components/footer/footer"/>
+		<isinclude template="search/pt_productsearchresult_UI"/>
+		<isinclude template="search/pt_productsearchresult_VARS"/>		
+		<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<isscript> 
+ 			var categoriesArr = new Array();  	
+			var currentCategory = pdict.ProductSearchResult.category; 
+ 			do { 
+			categoriesArr.push( currentCategory.getDisplayName() );   
+			currentCategory = currentCategory.getParent();  
+ 			} 
+			while( !empty(currentCategory) && !currentCategory.isRoot() );  	
+			var categoryPath = categoriesArr.reverse().join('/'); 	 
+		</isscript> 
+		<script type="text/javascript"> 
+			pageTypeCode = "category";  
+			pageData = {   
+			id:    '<isprint value="${pdict.ProductSearchResult.category.ID}">',   
+			name:    '<isprint value="${pdict.ProductSearchResult.category.displayName}">',   
+			taxonomy:   '<isprint value="${categoryPath}">' 
+		 	}; 
+		</script> 
+		<iscomment>End of PANC-1672</iscomment>
+	</div>
+</body>
+</html>

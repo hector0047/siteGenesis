@@ -1,0 +1,8 @@
+<isscript>
+	var response = {
+		assetsDelete : pdict.AssetsDelete
+	}
+</isscript>
+<isset name="ResponseJson" value="${JSON.stringify(response)}" scope="page" />
+
+<isprint value="${ResponseJson}" encoding=off />

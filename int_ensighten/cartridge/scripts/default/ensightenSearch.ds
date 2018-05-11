@@ -1,0 +1,20 @@
+/**
+ * Retrieve data related to the current search
+ * @input term : String The search term
+ * @input results : String The result count
+ * @output ens_search : Object An object containing current user information
+ *
+ */
+ 
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	var data = new Object();
+	data.results = pdict.results;
+	data.keyword = pdict.term;
+
+	pdict.ens_search = data;
+	
+    return PIPELET_NEXT;
+}

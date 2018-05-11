@@ -1,0 +1,127 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	SendError.ds
+ *  
+ *	This script tries to send the any error that is received as an input to
+ *	Strands Recommender. In case there is an error during the transmission, 
+ *	it is logged.
+ *
+ *	@input ErrorLevel : String Error level
+ *	@input ErrorMsg : String Error message to send
+ *	@input ErrorCode : String Error code to send
+ *
+ */
+
+importPackage( dw.net );
+importPackage( dw.web );
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var errorLevel : String = "";
+	var errorCode : String = "";
+	var errorMsg : String = "";
+	 
+	var apiID : String = "";  
+	
+	if (!empty(pdict.ErrorLevel))
+		errorLevel = pdict.ErrorLevel;
+	else 
+		errorLevel = "5";	
+		
+	if ( ('StrandsLogLevel' in Site.current.preferences.custom) && ! empty(Site.current.preferences.custom.StrandsLogLevel)) {
+		
+		var logLevel = Site.current.preferences.custom.StrandsLogLevel;
+		
+		if (Number(errorLevel) < logLevel) {
+			return PIPELET_NEXT;
+		}
+	}
+		
+	
+	if (!empty(pdict.ErrorMsg))
+		errorMsg = pdict.ErrorMsg;
+	else
+		errorMsg = "empty";
+		
+	if (!empty(pdict.ErrorCode))
+		errorCode = pdict.ErrorCode;
+	else
+		errorCode = "900";
+		
+	if( ! ('StrandsApiID' in Site.current.preferences.custom) || empty(Site.current.preferences.custom.StrandsApiID))
+		apiID = request.httpHost;
+	else
+		apiID = Site.current.preferences.custom.StrandsApiID;
+	
+	
+	var strandsUrl = 'http://bizsolutions.strands.com/api2/';
+
+	var setError = strandsUrl + 'alert/message/manage.sbs?'
+						+ 'apid=' + dw.crypto.Encoding.toURI(apiID)
+						+ '&pluginName=' + 'demandware'
+						+ '&level=' + errorLevel
+						+ '&code=' + errorCode
+						+ '&msg=' + dw.crypto.Encoding.toURI(errorMsg);
+	
+	if (("last" in session.clickStream) && !empty(session.clickStream.last.pipelineName))
+		setError += '&pipeline=' + session.clickStream.last.pipelineName;
+	else
+		setError += '&pipeline=' + 'empty';						
+					
+    var setMsgError : HTTPClient = new HTTPClient();
+    try
+	{
+    	setMsgError.setTimeout(1000);
+    	setMsgError.open("GET", setError);
+    	setMsgError.send();    		
+    }
+    catch(e) 
+    {
+      Logger.error("(Strands Get Tracking Type) Request to "+setError+" failed: {0}", e.message);
+      return PIPELET_NEXT;
+    }
+    
+    
+    if ( ! ('StrandsLogLevel' in Site.current.preferences.custom)) {
+		errorCode = '121';
+		errorLevel = '5';
+		Logger.error("(Strands Get Tracking Type) StrandsLogLevel is not present -> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+	}
+	
+	if ( empty(setMsgError.getText())) {
+		errorCode = '212';
+		errorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) No value returned from the call-> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+	}
+	
+	var logLevel : Number;
+	try
+	{
+		logLevel = Number (setMsgError.getText());
+	}
+	catch(e)
+	{
+		errorCode = '213';
+		errorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) Value returned from the call is not a number-> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+	}
+	
+	if (logLevel < 1 || logLevel > 5) {
+		errorCode = '214';
+		errorLevel = '4';
+		Logger.error("(Strands Get Tracking Type) Invalid value returned from the call-> errorCode: "+errorCode+" errorLevel: "+errorLevel);
+		return PIPELET_ERROR;
+	}
+	
+	//Site.current.preferences.custom.StrandsLogLevel = logLevel;
+    
+	return PIPELET_NEXT;
+}

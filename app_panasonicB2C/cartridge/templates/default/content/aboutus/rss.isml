@@ -1,0 +1,25 @@
+<iscontent type="application/rss+xml" charset="UTF-8" compact="true" encoding="xml"/><?xml version="1.0" encoding="UTF-8" ?><iscache type="daily" minute="30" />
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+ <title>Panasonic North America | Latest News and Press Releases</title>
+ <description>The latest news and press releases from Panasonic Corporation of North America</description>
+ <link>${URLUtils.http('Search-ShowContent','fdid','latest-news')}</link>
+ <atom:link href="${URLUtils.http('AboutUs-RSS')}" rel="self" type="application/rss+xml" />
+ <isset name="dateObj" scope="PAGE" value="${new Date()}"/>
+ <lastBuildDate><isprint value="${dateObj}" formatter="EEE, dd MMM yyyy hh:mm:ss z" timezone="utc" /></lastBuildDate>
+ <iscomment>Wed, 02 Oct 2002 08:00:00 EST</iscomment>
+ <pubDate><isprint value="${dateObj}" formatter="EEE, dd MMM yyyy hh:mm:ss z" timezone="utc" /></pubDate>
+ <ttl>1800</ttl>
+ <isloop items="${pdict.ContentSearchResult.getContent()}" var="content" status="loopstate">
+	 <isif condition="${content.custom.displayDate != null}">
+	 <item>
+	  <title>${content.name}</title>
+	  <description><isif condition="${content.custom.subtitle != null}">${content.custom.subtitle}</isif></description>
+	  <link>${URLUtils.http('Page-Show','cid',content.ID)}</link>
+	  <guid isPermaLink="true">${URLUtils.http('Page-Show','cid',content.ID)}</guid>
+	  <pubDate><isprint value="${content.custom.displayDate}" formatter="EEE, dd MMM yyyy hh:mm:ss z" timezone="utc" /></pubDate>
+	 </item>
+	 </isif>
+ </isloop>
+</channel>
+</rss>

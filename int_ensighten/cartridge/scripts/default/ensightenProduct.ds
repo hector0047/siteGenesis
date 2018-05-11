@@ -1,0 +1,24 @@
+/**
+ * Retrieve data related to the product a client is currently viewing
+ * @input ProductIn : dw.catalog.Product The product object
+ * @output ens_products : Object An object containing product page informatoin
+ *
+ */
+ 
+importPackage( dw.system );
+importScript( "default/ensightenDataHelper.ds" );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	var data = new Object();
+	if(pdict.ProductIn != null && pdict.CurrentHttpParameterMap.pid!=null){
+		data.item = [parseProduct(pdict.ProductIn)];
+		data.isSet = false;
+		data.name = data.item[0].name;
+		data.sku = data.item[0].sku;
+		data.supportvalue = data.item[0].support;
+	}
+	pdict.ens_products = data;
+	
+    return PIPELET_NEXT;
+}

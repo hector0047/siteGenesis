@@ -1,0 +1,73 @@
+/* Page Layout */
+body { font: 12px Helvetica, Tahoma, Arial, sans-serif; margin:0;}
+
+#header { position: fixed; top: 9px; left: 0px; right: 0; border-bottom:1px solid #636363; text-align: center; height: 40px; background: url(images/dw.png) no-repeat 20px 0px; }
+
+#index { position: fixed; top: 50px; bottom: 30px; left: 0px; width: 360px; padding: 8px; overflow-x:hidden; overflow-y:auto; border-right:1px solid #636363;}
+
+#content { top: 50px; left: 390px; right: 0; bottom: 30px; overflow-x:auto; overflow-y:scroll; position: fixed; padding-right:10px;}
+
+.fineprint { position: fixed; bottom: 10px; left: 0px; right: 0; text-align: center; font-size: 12px; color: #BBB; border-top:1px solid #636363; height: 19px;}
+.fineprint a { font-size: 12px; color: #BBB; }
+
+/* general stuff */
+
+h1 { font-size: 150%; font-weight: bold; padding: 0; padding: 0 0 0 .3em; color: white; background-color: #54585a; }
+h1.classTitle {	font-size: 170%; line-height: 130%; }
+h2 { font-size: 120%; color: white; background-color: #54585a; padding:3px;}
+
+hr { border: none 0; border-top: 1px solid #7F8FB1; height: 1px; }
+
+pre.code {	display: block; padding: 8px; border: 1px dashed #ccc; }
+
+.classList { list-style-type: none; padding: 0; margin: 0 0 0 8px; font-family: arial, sans-serif; font-size: 1em; overflow: auto; }
+.classList li {	padding: 0;  line-height:1.5em;}
+
+caption,
+div.sectionTitle { background-color: #84BD00; color: #fff; font-size: 130%; text-align: left; padding: 2px 6px 2px 6px; border: 1px #7F8FB1 solid;}
+div.sectionTitle { margin-bottom: 8px; }
+
+.summaryTable {	width: 100%; }
+.summaryTable thead { display: none; }
+.summaryTable td { vertical-align: top; padding: 4px; border-bottom: 1px #7F8FB1 solid; border-right: 1px #7F8FB1 solid; }
+.summaryTable td.attributes { border-left: 1px #7F8FB1 solid; width: 140px; text-align: right; }
+td.attributes,.fixedFont { line-height: 15px; color: #00629b; font-family: Helvetica, Courier, monospace; font-size: 13px;}
+.summaryTable td.nameDescription { text-align: left; font-size: 13px; line-height: 15px; }
+.summaryTable td.nameDescription,.description {	line-height: 15px; padding: 4px; padding-left: 4px; }
+.summaryTable {	margin-bottom: 8px; }
+
+
+
+ul.inheritsList { list-style: square; margin-left: 20px; padding-left: 0; }
+
+.detailList { margin-left: 20px; line-height: 15px; }
+.detailList dt { margin-left: 20px; }
+.detailList .heading { font-weight: bold; padding-bottom: 6px; margin-left: 0; }
+
+.light,td.attributes,.light a:link,.light a:visited { color: #777; font-style: italic; }
+a{color:#00629b}
+a:hover { background-color:#F0F0FF; border-bottom:1px solid #6699FF; border-top:1px solid #6699FF; }
+
+.level_0{padding-left:17px;}
+.level_1{padding-left:17px;}
+.level_2{padding-left:17px;}
+.level_3{padding-left:17px;}
+.level_4{padding-left:17px;}
+.level_5{padding-left:17px;}
+
+.filtermenu{text-align: center;margin-bottom: 10px;}
+.open { background: url(images/open.png) no-repeat 0px 6px !important; }
+.closed { background: url(images/closed.png) no-repeat 0px 6px !important; }
+.clickable { cursor: pointer; }
+
+.searchForm {position:absolute;right:8px;top:13px;}
+input {
+	border: solid 1px #7F8FB1;
+}
+
+input[type=text] {
+
+	background: url(images/search.png) no-repeat;
+	padding-left:24px;
+	width:150px;
+}

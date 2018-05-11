@@ -1,0 +1,136 @@
+var sf = require("bc_serviceframework");
+var GetTax = require("../objects/GetTax");
+
+importPackage(dw.system);
+importPackage(dw.net);
+importPackage( dw.order );
+importScript("int_vertex:lib/libVertexRPCQuotation.ds");
+
+
+var vertexHelper = getVertexRPCQuotationHelper();
+var disableLog : Boolean =  Site.getCurrent().getCustomPreferenceValue("DisableVertexLog");
+
+function getGetTaxService() {
+	return GetTaxService;
+}
+
+var GetTaxService = sf.getService('AbstractHTTPService').extend (
+/** @lends GetTaxService.prototype */ 
+{
+	/**
+	 * @constructs GetTaxService
+	 * @augments AbstractHTTPService
+	 */
+	init : function() {
+		this._super("GetTaxService", new GetTax()); 	
+		
+	},
+	
+	//Creating the request envelope.
+	createRequest: function (basket) {
+		Logger.info("Entered into GetTAxService createRequest method");		
+		var request = new Object();
+		
+		if(disableLog == null)
+	 		disableLog = false;
+		 if(!disableLog)
+		 	Logger.debug("calculateTax Started. shipData={0} multiShip={1}","",false);
+		//var avalableShipments : ArrayList = new ArrayList();
+	   if(!disableLog)
+		  Logger.debug("calculateTax creating request string.");
+				
+		var requestString : String = vertexHelper.getQuotationRequestString(basket,null,false);
+		
+		if(requestString == null || requestString.length <= 0 ) {
+		 	Logger.error("calculateTax Request string is null. ");
+		 	vertexHelper.applyDefaultTax(basket);
+		 	vertexHelper.performPriceAdjustment(basket);
+		 	basket.updateTotals();
+		 	return  PIPELET_NEXT;
+		}
+		
+	    if(!disableLog)
+		 Logger.info("calculateTax request string" + requestString);		
+		request.requestString = requestString;
+		request.basket = basket;
+		if(!disableLog)
+		Logger.info("Request object created by createRequest method :"+request.toString());
+		Logger.info("Finished GetTAxService createRequest method");
+		return request;
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+	
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {
+	
+	try{		
+		Logger.info("Entered into GetTAxService executeServiceCall method");
+		var responseString : String ="";			
+		var basket : Basket = this.request.basket;
+		if(disableLog == null)
+	 		disableLog = false;
+		 vertexHelper.vtxsoapError = "";
+		 if(!disableLog){
+		 	Logger.debug("sendSoapRequest Started.");
+		 }
+		 
+		 //Create http client request 
+		 var httpClientRequest : HTTPClient = new dw.net.HTTPClient();
+		 var url : String = Site.getCurrent().getCustomPreferenceValue("VertexWebUrl");
+		 
+		 httpClientRequest.open('POST', url);
+	     httpClientRequest.setRequestHeader("Content-Type", "text/xml; charset=utf-8" ); 
+	     httpClientRequest.setRequestHeader("SOAPAction", "calculateTax70" ); 
+	     if('vertexUserAgent' in dw.system.Site.current.preferences.custom && !empty(dw.system.Site.current.preferences.custom.vertexUserAgent)){
+	     	 httpClientRequest.setRequestHeader("user-agent", dw.system.Site.getCurrent().getCustomPreferenceValue('vertexUserAgent'));
+	     }
+	     httpClientRequest.timeout = Site.getCurrent().getCustomPreferenceValue("VertexTimeOut");
+	     if(httpClientRequest.timeout  <= 0)
+	     	httpClientRequest.timeout = 6000;
+	     	
+	     	//Hitting vertex tax service
+	     	httpClientRequest.send(this.request.requestString);	     
+	     	responseString = httpClientRequest.getText();	
+	     	//Parsing Error if any error
+	     	if(!empty(httpClientRequest.getErrorText())){
+	     		vertexHelper.parseVertexError(httpClientRequest.getErrorText());
+	     	  }
+	     	     
+	     if(!disableLog){
+	     	Logger.debug("Send completed");
+	     	Logger.info("Received response. Response string="+responseString );
+	     }
+		 if(vertexHelper.vtxsoapError == "Timeout" ||  vertexHelper.vtxsoapError == "VertexInvalidAddressException" || responseString == null  || responseString.length <= 0){
+		 	if(!disableLog)
+		 		Logger.info("Uable to get tax from Vertex. Error={0}. Using default tax.",vertexHelper.vtxsoapError);
+		 	vertexHelper.applyDefaultTax(basket);
+		} 
+		else {
+			 if(!disableLog)
+			 	Logger.info("Received response. Response string="+responseString );
+				vertexHelper.parseQuotationResponseString(basket,responseString );
+			 if(!disableLog)
+				Logger.debug("Response string parsed and Basket updated.");
+		}
+		vertexHelper.performPriceAdjustment(basket);
+		basket.updateTotals();
+		 if(!disableLog)
+			Logger.debug("calculateTax Completed.");
+		 	return responseString;
+		}catch(e){
+			// handle exception
+			var strError : String = e;
+			Logger.error(" calculateTax Exception thrown. Error=" + e );
+		}
+		Logger.info("Finished GetTAxService executeServiceCall method");
+	},
+	
+});
+
+sf.registerService("GetTaxService", GetTaxService);

@@ -1,0 +1,240 @@
+/**
+* Demandware Script File TestRPC.ds
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*-   @input ExampleIn : String This is a sample comment.
+*-   @output ExampleOut : Number
+*
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+importPackage(dw.web);
+importPackage(dw.customer);
+importPackage( dw.io );
+
+
+
+var VertexRPCQuotationHelper = {
+	
+	getUsername : function () {
+		return Site.getCurrent().getCustomPreferenceValue("VertexUsername");
+	},	
+	
+	getPassword : function () {
+		return Site.getCurrent().getCustomPreferenceValue("VertexPassword");
+	},	
+	
+	getSellerLocationCode : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerLocationCode");
+	},
+
+	getSellerCompany : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexSellerCompany");
+	},
+	
+	getTransactionType : function()  {
+		return Site.getCurrent().getCustomPreferenceValue("VertexTransactionType");
+	},	
+	/*****************************************************************************	
+	 * basket  : Basket 
+	 *****************************************************************************/	
+	
+	getQuotationRequestString : function (basket : Basket){
+		
+	try{
+		 var xmlVertexQuotationReq : XML = <?xml version="1.0" encoding="utf-8"?>
+		 <VertexQuotationRequest>
+		 </VertexQuotationRequest>;
+		
+		 
+		 var strUser:String = VertexRPCQuotationHelper.getUsername();
+		 var strPwd:String =  VertexRPCQuotationHelper.getPassword();
+		 var atrTrans :String = VertexRPCQuotationHelper.getTransactionType();
+		 var atrDocdt : String = "9999-12-12";
+		 var atrDocNo : String = "WEB-99991212";
+		 var today : Date = new Date();
+   		 var currentYear : String = today.getFullYear().toString();
+   		 var currentMonth :String =  today.getMonth().toString();
+   		 var currentDate :String = today.getDate().toString();
+   		 atrDocdt = currentYear + "-" + currentMonth + "-" + currentDate;
+   		 atrDocNo = "WEB" + atrDocdt;
+   		 
+   		 
+   		 var xmlCustomer: XML = <Customer>
+		</Customer>
+		
+		var seller :XML = <Seller>
+				<Company>
+					<Division>1048</Division>
+				</Company>
+				<PhysicalOrigin>
+					<StreetAddress>2501 McGee</StreetAddress>
+					<City>Kansas City</City>
+					<MainDivision>MO</MainDivision>
+					<PostalCode>64108-2615</PostalCode>
+					<Country>USA</Country>
+				</PhysicalOrigin>
+			</Seller>;
+   		 
+		 strUser = "admin";
+		 strPwd  = "Vertex";
+		 atrTrans = "SALE";
+		 
+		//var xmlQuotationReq :XML = new XML("<QuotationRequest transactionType={atrTrans} documentDate=\"123\" documentNumber=\"123\" postingDate=\"123\" > </QuotationRequest>");
+		var xmlQuotationReq :XML = <QuotationRequest transactionType={atrTrans}  documentDate={atrDocdt} documentNumber={atrDocNo}  postingDate={atrDocdt}>
+		 </QuotationRequest>;
+		 
+		 var xmlLogin : XML = <Login></Login>;
+		 	 
+		 
+		 xmlLogin.UserName = strUser;
+		 xmlLogin.Password = strPwd;
+		 xmlVertexQuotationReq.appendChild(xmlLogin);
+		
+		 var billingAddress : OrderAddress = basket.billingAddress;
+		 
+		 if(billingAddress != null)
+		 {
+	  		xmlCustomer.Destination.StreetAddress=billingAddress.getAddress1();
+	  		xmlCustomer.Destination.City=billingAddress.getCity();
+	  		xmlCustomer.Destination.MainDivision=billingAddress.getStateCode();
+	  		xmlCustomer.Destination.PostalCode=billingAddress.getPostalCode();
+	  		xmlCustomer.Destination.Country=billingAddress.getCountryCode();
+		 }
+		
+		xmlQuotationReq.appendChild(xmlCustomer);
+		
+		//iterate through the each shipment in the basket to create line item array.
+		if(basket == null)
+			Logger.debug("Basket is null.");
+		else if( basket.shipments ==  null)
+			Logger.debug("No shipments in Basket.");
+		else {	
+		for each (var shipment : Shipment in basket.shipments) {
+			var lineItemNo : Number  = 1;
+			var shippingAddress : OrderAddress = shipment.getShippingAddress();
+			if(shippingAddress == null)
+				shippingAddress = billingAddress;
+			if (shipment.productLineItems.empty){
+				// no line items for this shipment
+				// to be handled later
+			} else {
+				
+				// get all product line items for this shipment
+				for each (var productLineItem : ProductLineItem in shipment.productLineItems) {
+					var atrLineItemId : String =  productLineItem.getProductID();
+		  			var atrLineItemNo : String =  lineItemNo.toString();
+		  			var xmlLineItem : XML = <LineItem lineItemId={atrLineItemId} lineItemNumber={atrLineItemNo}> </LineItem>;
+		  			xmlLineItem.Customer.Destination.StreetAddress = shippingAddress.getAddress1();
+		  			xmlLineItem.Customer.Destination.City = shippingAddress.getCity();
+		  			xmlLineItem.Customer.Destination.MainDivision=shippingAddress.getStateCode();
+		  			xmlLineItem.Customer.Destination.PostalCode=shippingAddress.getPostalCode();
+		  			xmlLineItem.Customer.Destination.Country=shippingAddress.getCountryCode();
+		  			var atrProductClass : String = "63";
+		  			var extendedPrice : String = "0.49";
+		  			var shipMethodId : String = "1PGC5166";
+		  			if(shipment != null)
+		  			{
+		  				 if(shipment.getShippingMethod() != null)
+		  				 {
+		  				 	atrProductClass = shipment.getShippingMethod().getTaxClassID();
+		  				 	shipMethodId = shipment.getShippingMethod().getID();
+		  				 }
+		  				 extendedPrice = shipment.getAdjustedShippingTotalNetPrice().getValue();
+		  			}
+		  			var xmlProduct : XML = <Product productClass={atrProductClass}>{shipMethodId}</Product>; 
+					xmlLineItem.appendChild(xmlProduct);
+					xmlLineItem.ExtendedPrice = extendedPrice;
+					xmlLineItem.appendChild(seller); 
+					xmlQuotationReq.appendChild(xmlLineItem);
+				}
+			}
+		}
+		}	
+		xmlVertexQuotationReq.appendChild(xmlQuotationReq);
+		
+		 return xmlVertexQuotationReq.toXMLString();
+		 }
+		 catch(e){
+		// handle exception
+		Logger.error("VertexRPCQuotationHelper: Exception thrown. Error=" + e );
+		}
+	},
+	parseQuotationResponseString : function (basket : Basket , responseStr :String){
+		try{
+			Logger.info("*****************************************************   Parsing the Response"+ responseStr);
+			Logger.info("       +++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			var xmlResponseStr : XML;
+			
+			Logger.info("Assigning the response to XML object");
+			xmlResponseStr = responseStr;
+			Logger.info("Assigning  completed");
+			
+			
+			var responseXmlReader : XMLStreamReader = new XMLStreamReader( new Reader( responseStr ) );
+			while(responseXmlReader.hasNext() ){
+				var eventType : Number =  responseXmlReader.next();
+				
+				if(eventType == XMLStreamConstants.START_ELEMENT)
+				{
+					Logger.info("Local Name=" + responseXmlReader.localName);
+					if(responseXmlReader.localName == "LineItem"){
+						var lineItemXml : XML = responseXmlReader.XMLObject;
+						var lineItemId : String = lineItemXml.@["lineItemId"].toString();
+						
+						var totalTax : XML = lineItemXml.*::["TotalTax"];
+						Logger.info("Totaltax=" + totalTax.toString());
+						if(basket != null && basket.shipments !=  null){
+							for each (var shipment : Shipment in basket.shipments) {
+								for each (var productLineItem : ProductLineItem in shipment.productLineItems) {
+										 var basketLineItemId : String =  productLineItem.getProductID();
+										 if(basketLineItemId == lineItemId)
+										 {
+										 	Logger.info("LineItemId=" + lineItemId + "Basket lineItemId="+basketLineItemId);
+										 }
+										 var tax = new dw.value.Money(""+totalTax.toString(),"USD");
+										 Logger.info("Tax value=" + tax.toString());
+	   									 productLineItem.setTax(tax);
+										
+									}
+							}
+						}
+						
+					}
+					else{
+						Logger.info("Reader local name="+responseXmlReader.localName );
+					}
+				}
+				
+			}
+			
+		}	
+		catch(e){
+		// handle exception
+		Logger.error("VertexRPCQuotationHelper:parseQuotationResponseString Exception thrown. Error=" + e );
+		}
+		
+	}
+}
+
+function getVertexRPCQuotationHelper()
+{
+	return VertexRPCQuotationHelper;
+}
+
+
+
+

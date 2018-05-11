@@ -1,0 +1,97 @@
+<!--- TEMPLATENAME: newsarticlelist.isml --->
+	<isinclude template="util/modules"/>
+  <isset name="currentTab" value="news" scope="page"/>
+  <isset name="start" value="${pdict.CurrentHttpParameterMap.start.value}" scope="page" />
+
+
+	
+	<iscomment>create reporting event</iscomment>
+	<isinclude template="util/reporting/ReportSearch.isml"/>
+	
+		<isif condition="${!pdict.ContentPagingModel.empty}">
+	
+			<iscomment>calculated correct index position to separate the result columns</iscomment>
+			<isscript>
+				var count = pdict.ContentPagingModel.end + 1;
+				var cutIndex = Math.ceil( count / 2 ) - 1;
+				var endIndex = cutIndex + (cutIndex + 1);
+			</isscript>
+			
+			<div class="newsarticle-content-list">
+			<isloop items="${pdict.ContentPagingModel.pageElements}" var="asset" status="loopstate" end="${endIndex}">
+        <iscomment>
+        </iscomment>
+
+        <isset name="articleURL" value="${URLUtils.url('Page-Show','cid', asset.ID,'tab','news', 'start', start)}" scope="page"/>
+
+        <isif condition="${loopstate.count == 1}">
+
+        <div class="newsarticle-content-list__row">
+	        <isif condition="${!empty(asset.custom.imageUrl)}">
+	          <div class="newsarticle newsarticle-with-image newsarticle--first newsarticle--${loopstate.count}">
+	          <div class="newsarticle__image"><a href="${articleURL}"><img src="${asset.custom.imageUrl.URL}" alt="${asset.name}" /></a></div>
+	        <iselse>
+	          <div class="newsarticle newsarticle--first newsarticle--${loopstate.count}">
+	        </iselse>
+	        </isif>
+          <div class="newsarticle__pubdate"><a href="${articleURL}" class="article-pubdate"><isprint value="${asset.custom.displayDate}" formatter="MM/dd/yyyy" timezone="SITE" /></a></div>
+          <div class="newsarticle__headline"><a href="${articleURL}"><isprint value="${asset.name}"/></a></div>
+        <isif condition="${!empty(asset.custom.contentSummary)}">
+        <div class="newsarticle__summary"><p><isprint value="${asset.custom.contentSummary}"/><span class="newsarticle__morelink"><a href="${articleURL}">Read More</a></span></p></div>
+        </isif>          </div>
+        </div>
+
+        <iselse>
+
+        <isif condition="${loopstate.even}">
+          <div class="newsarticle-content-list__row">
+        </isif>
+
+        <isif condition="${!empty(asset.custom.imageUrl)}">
+          <div class="newsarticle newsarticle-with-image newsarticle--${loopstate.count}">
+        <iselse>
+          <div class="newsarticle newsarticle--${loopstate.count}">
+        </iselse>
+        </isif>
+
+         <div class="newsarticle__pubdate"><a href="${articleURL}" class="article-pubdate"><isprint value="${asset.custom.displayDate}" formatter="MM/dd/yyyy" timezone="SITE" /></a></div>
+         <div class="newsarticle__headline"><a href="${articleURL}"><isprint value="${asset.name}"/></a></div>
+
+        <isif condition="${!empty(asset.custom.imageUrl)}">
+          <div class="newsarticle__image"><a href="${articleURL}"><img src="${asset.custom.imageUrl.URL}" alt="${asset.name}" /></a></div>
+        </isif>
+
+        <isif condition="${!empty(asset.custom.contentShortSummary)}">
+        <div class="newsarticle__summary"><p><isprint value="${asset.custom.contentShortSummary}"/><span class="newsarticle__morelink"><a href="${articleURL}">Read More</a></span></p></div>
+        </isif>
+        
+        </div>
+        
+        <isif condition="${loopstate.odd || loopstate.last}">
+          </div>
+        </isif>
+
+        </iselse>
+
+
+
+
+
+
+
+
+
+
+
+
+        </isif>
+			</isloop>
+			</div>
+
+
+        
+			<iscomment>pagination</iscomment>
+			
+			<isnewslistpagingbar pageurl="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','news')}"  pagingmodel="${pdict.ContentPagingModel}" pagingstartvar="nstart" />
+
+		</isif>

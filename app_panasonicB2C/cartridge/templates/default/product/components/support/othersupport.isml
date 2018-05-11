@@ -1,0 +1,19 @@
+<div class="block-content-holder">
+	<span class="block-content-head"><isprint value="${Resource.msg('product.others','product',null)}" /></span>
+	<ul class="block-content-ul">
+		<isloop items="${pdict.Others}" var="url" status="loopstate">
+			<li class="block-content-li">
+				<div class="headblock">	
+					<a href="${url.toString().split('$')[1]}" target="_blank">
+					<isset name="ext" value="${url.toString().split('$')[1].toString().toLowerCase().match('\.[0-9a-zA-Z]+$')[0].split('.')[1]}" scope="page"/>
+						<div class="headicon ${ext+'-icon'}">
+							<isprint value="${ext.toUpperCase()}" />
+						</div>
+						<div class="block-info-holder"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></div>	
+					</a>
+				</div>
+				<div class="actionicon"><a href="${url.toString().split('$')[1]}" target="_blank"><img src="${URLUtils.absStatic('images/downloadButton.png')}"></a></div>
+			</li>
+		</isloop>
+	</ul>
+</div>

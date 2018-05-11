@@ -1,0 +1,67 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isscript>var pageContext={title:'Checkout',type:'checkout',ns:'checkout'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="checkout/pt_checkout_UI"/>
+
+	<iscomment>Add template-specific header information here.</iscomment>	
+</head>
+
+<body>
+
+		<div id="wrapper" class="pt_checkout">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',false)}"/>
+			
+		<div id="main" role="main" class="primary-focus clearfix">
+			<div class="mobileBlock">
+			<isif condition="${!(pdict.CurrentCustomer.registered) && (!pdict.CurrentCustomer.authenticated)}"> 
+			    <isif condition="${('p_shippingpage' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.p_shippingpage) && pdict.CurrentHttpParameterMap.p_shippingpage.booleanValue == true) || (!empty(pdict.p_shippingpage) && pdict.p_shippingpage == true) || (PageName !=undefined && PageName =='ShippingPage')}">
+			     <isinclude template="account/login/cartlogin.isml"/>
+			    </isif>
+		   </isif>
+			</div>
+			<div id="primary" class="primary-content">
+				<isreplace/>
+			</div>
+			<div class="mobileBlock">
+			<div class="help-nav-asset mobileHelp">
+				<iscontentasset aid="account-nav-text-prechat"/>
+			</div>	
+			</div>	
+			<div class="desktopBlock">
+			<div id="secondary" class="nav summary">
+				<div class="checkout-login">	
+					<isif condition="${('p_shippingpage' in pdict.CurrentHttpParameterMap && !empty(pdict.CurrentHttpParameterMap.p_shippingpage) && pdict.CurrentHttpParameterMap.p_shippingpage.booleanValue == true) || (!empty(pdict.p_shippingpage) && pdict.p_shippingpage == true) || (PageName !=undefined && PageName =='ShippingPage')}"> 
+	 					<isinclude template="checkout/shipping/logininshippingpage"/>
+					</isif>
+				</div>
+				<div class="mini-summary-sec">
+					<isinclude template="checkout/minisummary"/>
+				</div>
+			</div>
+			</div> 
+		</div>
+	
+	
+		<isinclude template="components/footer/footer"/>
+		<isinclude template="checkout/pt_checkout_VARS"/>
+		<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<script type="text/javascript"> 
+ 			pageTypeCode = "checkout";  	
+			pageData = {}; 
+		</script> 
+		<iscomment>End of PANC-1672</iscomment>
+	</div>
+	
+</body>
+</html>

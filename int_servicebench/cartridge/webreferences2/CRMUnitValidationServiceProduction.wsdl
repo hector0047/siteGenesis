@@ -1,0 +1,143 @@
+<?xml version='1.0' encoding='UTF-8'?><definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://servicebench.com/entitlement/service" xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://servicebench.com/entitlement/service/types" xmlns="http://schemas.xmlsoap.org/wsdl/" name="CRMUnitValidationService" targetNamespace="http://servicebench.com/entitlement/service">
+
+<types>
+<schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://servicebench.com/entitlement/service/types" xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://servicebench.com/entitlement/service/types" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://servicebench.com/entitlement/service/types">
+<complexType name="statusDetails">
+<sequence>
+<element maxOccurs="unbounded" name="statusDetail" type="tns:statusDetail"/>
+</sequence>
+</complexType>
+<complexType name="sourceSystemInfo">
+<sequence>
+<element minOccurs="0" name="sourceSystemName" type="xsd:string"/>
+<element minOccurs="0" name="sourceSystemVersion" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="UnitValidationRequestDetails">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="model" type="xsd:string"/>
+<element minOccurs="0" name="serial" type="xsd:string"/>
+<element default="92" name="serviceAdministrator" type="xsd:string"/>
+<element minOccurs="0" name="purchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="responseDetails">
+<sequence>
+<element minOccurs="0" name="msgStatus" type="xsd:string"/>
+<element minOccurs="0" name="statusDetails" type="tns:statusDetails"/>
+</sequence>
+</complexType>
+<complexType name="statusDetail">
+<sequence>
+<element minOccurs="0" name="errorCode" type="xsd:string"/>
+<element minOccurs="0" name="errorText" type="xsd:string"/>
+<element minOccurs="0" name="errorField" type="xsd:string"/>
+<element minOccurs="0" name="errorFieldID" type="xsd:string"/>
+<element minOccurs="0" name="Comments" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="warrantyInfo">
+<sequence>
+<element maxOccurs="unbounded" name="warrantyType" type="tns:warrantyType"/>
+</sequence>
+</complexType>
+<complexType name="warrantyType">
+<sequence>
+<element minOccurs="0" name="warrantyTypeName" type="xsd:string"/>
+<element minOccurs="0" name="warrantyEndDate" type="xsd:string"/>
+<element minOccurs="0" name="warrantyStatus" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="amountInfo">
+<sequence>
+<element minOccurs="0" name="amountType" type="xsd:string"/>
+<element minOccurs="0" name="amount" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="unitValidationRequest">
+<complexType>
+<sequence>
+<element name="sourceSystemInfo" type="tns:sourceSystemInfo"/>
+<element name="UnitValidationRequestDetails" type="tns:UnitValidationRequestDetails"/>
+</sequence>
+</complexType>
+</element>
+<element name="unitValidationResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="validUnit" type="xsd:string"/>
+<element minOccurs="0" name="validationCode" type="xsd:string"/>
+<element minOccurs="0" name="validationDetail" type="xsd:string"/>
+<element minOccurs="0" name="model" type="xsd:string"/>
+<element minOccurs="0" name="serial" type="xsd:string"/>
+<element minOccurs="0" name="purchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element minOccurs="0" name="effectiveDate" type="xsd:string"/>
+<element minOccurs="0" name="productStatus" type="xsd:string"/>
+<element minOccurs="0" name="commentText" type="xsd:string"/>
+<element name="warrantyInfo" type="tns:warrantyInfo"/>
+<element maxOccurs="unbounded" name="amountInfo" type="tns:amountInfo"/>
+<element minOccurs="0" name="onlineRepairQualification" type="xsd:string"/>
+<element minOccurs="0" name="exchangeQualification" type="xsd:string"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="unitValidationResponse">
+<part element="ns1:unitValidationResponse" name="out"></part>
+</message>
+<message name="unitValidationRequest">
+<part element="ns1:unitValidationRequest" name="in"></part>
+</message>
+<portType name="CRMUnitPortType">
+<operation name="unitValidation">
+<input message="tns:unitValidationRequest" name="unitValidationRequest"></input>
+<output message="tns:unitValidationResponse" name="unitValidationResponse"></output>
+</operation>
+</portType>
+<binding name="CRMUnitBinding" type="tns:CRMUnitPortType">
+<wsp:PolicyReference URI="#UsernameTokenPolicy"/>
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="unitValidation">
+<soap:operation soapAction="" style="document"/>
+<input name="unitValidationRequest">
+<soap:body use="literal"/>
+</input>
+<output name="unitValidationResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="CRMUnitValidationService">
+<port binding="tns:CRMUnitBinding" name="CRMUnitPort">
+<soap:address location="http://www.servicebench.com/servicebenchv5/services/CRMUnitValidationService"/>
+</port>
+</service>
+<wsp:Policy wsu:Id="UsernameTokenPolicy">
+<wsp:ExactlyOne>
+<wsp:All>
+<sp:SupportingTokens>
+<wsp:Policy>
+<sp:UsernameToken sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/AlwaysToRecipient">
+<wsp:Policy>
+<wsp:ExactlyOne>
+<wsp:All>
+<sp:WssUsernameToken10/>
+</wsp:All>
+</wsp:ExactlyOne>
+</wsp:Policy>
+</sp:UsernameToken>
+</wsp:Policy>
+</sp:SupportingTokens>
+</wsp:All>
+</wsp:ExactlyOne>
+</wsp:Policy>
+</definitions>

@@ -1,0 +1,98 @@
+/**
+ *	Strands Recommender v2.0.0
+ *
+ *	Created By: Strands Recommender
+ *	Last Modified On: 04/22/2013 
+ *
+ *	Recommendations.ds
+ *  
+ *	This script tries to send the tracking event of adding an item to the 
+ *	shopping cart to Strands Recommender. In case an error occurs, it will 
+ * 	output the corresponding error.
+ *
+ * @input User : String The final user
+ * @input product : dw.catalog.Product
+ * @output ErrorCode : String Error Code
+ * @output ErrorLevel : String Error Message
+ * @output Response : dw.util.ArrayList
+ * @output tpl : String
+ * @output rrq : String
+ * @output AccessoriesResponseIds : String
+ */
+importPackage( dw.net );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.system );
+
+var sf = require("bc_serviceframework");
+require("../services/AccessoriesService");
+
+function execute(pdict) {
+	
+	var AccessoriesService = sf.getService('AccessoriesService');
+	
+	var service = new AccessoriesService();
+	try{
+		
+		var accessoryprod : Object = new Object();
+		accessoryprod.user  = pdict.User;
+		accessoryprod.product  = pdict.product.ID;
+		
+		//Passing master product ID always if the product is variant
+		if(pdict.product.variant){
+			var masterID : String = pdict.product.variationModel.getMaster().ID;
+			accessoryprod.product  = masterID;
+		}
+		
+		service.call(accessoryprod);
+		var response =  service.response;
+		
+		var jsonObj : Object =JSON.parse( response.text);
+		var list : ArrayList = jsonObj.result.recommendations;
+		//Initializing response
+    	var responsearray : ArrayList = new ArrayList();
+    	var respIDS : String ="";
+    	
+    	for each (var Obj : Object in list){
+    		var pObj : Product = ProductMgr.getProduct(Obj.itemId);
+	    		if(pObj.master){
+	    			var PVM : dw.catalog.ProductVariationModel = pObj.variationModel;
+					var defaultVariant : dw.catalog.Product = null;
+						if(!empty(PVM.defaultVariant)) {
+						 		defaultVariant = PVM.defaultVariant;
+						  	} else if(PVM.variants.length > 0) {
+						  		defaultVariant = PVM.variants[0];
+							}else{
+								defaultVariant=pObj;
+							}
+					pObj = defaultVariant;
+	    		}
+	    		if(!empty(pObj) && pObj != 'null' && !empty(pObj.availabilityModel.availabilityStatus) && (pObj.availabilityModel.availabilityStatus != dw.catalog.ProductAvailabilityModel.AVAILABILITY_STATUS_NOT_AVAILABLE) && (pObj.availabilityModel.availability>0)){
+					//Set response object
+						responsearray.add(Obj);
+					//set response string ids
+						if(respIDS.length != 0){
+							respIDS = respIDS.concat(':').concat(pObj.ID);
+						}else{
+							respIDS = respIDS.concat(pObj.ID);
+						}
+	    		}		
+		}
+    	pdict.Response = responsearray;
+    	pdict.tpl = jsonObj.result.tpl;
+    	pdict.rrq = jsonObj.result.reqId;
+    	pdict.AccessoriesResponseIds = respIDS;
+	}catch(e){
+		Logger.error("===================Strands==================",+ e);
+		
+		return PIPELET_ERROR;
+	}
+   
+
+   return PIPELET_NEXT;
+}
+

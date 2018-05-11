@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="analyzeLogs" basedir="." default="analyze_errorlogs">
+	<!--
+	This ant script analyzes the error and custom error log files on a Demandware
+	instance and sends an email with HTML summary information and the log files attached
+	as a ZIP file. 
+	
+	Main Target:
+		- analyze_errorlogs
+			Downloads the web page for the LOGS web dav folder
+			Parses the error log file names from the web page
+			Iterate through the error log file names and download each file
+			Iterate through the downloaded files and parse them and generate summary
+			Zip the error log files
+			Email the summary with the zipped log files attached
+			
+	Properties:
+		webdav.username=The username for the account with webdav access to the Demandware instance
+		
+		webdav.password=The password for the account with webdav access to the Demandware instance
+		
+		webdav.server=The Demandware instance from which to download the log files
+		
+		local.output.errorlogs=The local folder to store the error logs
+		
+		mail.host=The mail server for your network/domain
+		 
+		mail.from=The "from" email address
+		 
+		mail.tolist=The comma-separated list of recipients of the email 			
+	-->
+	
+	<target name="setup_build_environment" depends="set_classpath,load_external_tasks,load_properties" description="load required task defs and any properties files, and sets the date" />
+	
+	<!-- 
+       set_classpath
+       ===========================================================================
+       This task sets the classpath to the required external libraries.
+    -->
+	<target name="set_classpath" description="set classpath to required external libraries">
+		<path id="classpath">			
+			<pathelement path="lib/mail.jar" />			
+		</path>
+		<!-- fikin ant tools requires separate classpath -->
+		<path id="fikin">
+			<pathelement path="lib/webdav/commons-logging.jar" />
+			<pathelement path="lib/fikin/commons-codec-1.3.jar" />
+			<pathelement path="lib/fikin/commons-httpclient-3.0-rc1.jar" />
+			<pathelement path="lib/fikin/fikin-ant-1.7.3.jar" />
+		</path>	
+	</target>
+	
+	<target name="load_external_tasks" depends="set_classpath" description="Load up the task defs for the web dav and ant contrib tasks">		
+		<taskdef name="httpget" classname="net.sf.fikin.ant.httpclientanttask.AntGetMethod" classpathref="fikin" />		
+	</target>
+
+    <target name="load_properties" depends="load_external_tasks" description="load up the build properties">
+		<!-- we need to load antcontrib now for special tasks like <if> -->
+		<path id="classpath">
+			<pathelement path="lib/ant/ant-contrib-1.0b3.jar" />
+		</path>
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="classpath" />
+
+      	<echo message="Trying to load analyzeLogs.properties" level="info"/>	 
+      	<property file="analyzeLogs.properties" /> 
+		
+    	<for list="webdav.username,webdav.password,webdav.server,local.output.errorlogs,mail.host,mail.from,mail.tolist" param="p">
+			<sequential>	
+				<echo>@{P}: ${@{p}}</echo>
+				<if>
+					<not>
+						<and>	
+							<isset property="@{p}" />
+							<length string="${@{p}}" trim="true" when="greater" length="0" />
+						</and>	
+					</not>
+					<then>
+						<fail message="Missing property: @{p}" />
+					</then>			
+				</if>				
+			</sequential>
+		</for>
+    </target>
+	
+	<!-- 
+       clean
+       ===========================================================================	    
+	   This task deletes the error log output directory (if it exists) and 
+	   creates it
+	-->
+	<target name="clean" depends="setup_build_environment" description="clean up all the folders">	
+		<delete dir="${local.output.errorlogs}" quiet="true" />
+		<mkdir dir="${local.output.errorlogs}" />	
+	</target>
+	
+	<!-- 
+       set_date
+       ===========================================================================	    
+	   This task sets the log date string used to determine which log files to
+	   download 
+	   
+	-->
+	<target name="set_date">		
+		<if>
+			<not>
+				<and>
+					<isset property="log.date" />
+					<length string="${log.date}" trim="true" when="greater" length="0" />
+				</and>
+			</not>
+			<then>
+				 <tstamp>
+			        <format property="log.date" pattern="yyyyMMdd" />
+			    </tstamp>				
+			</then>			
+		</if>
+	</target>
+
+	<!-- 
+       analyze_error_logs
+       ===========================================================================	    
+	   This task analyzes the error logs from a Demandware server
+	-->
+	<target name="analyze_errorlogs" depends="clean,set_date" description="Analyzes error logs">
+		<antcallback target="get_errorlog_http_page" return="response" />
+							
+		<antcallback target="get_errorlog_filenames" return="errorlog.filenames">			
+			<param name="response" value="${response}"/>
+			<param name="log.date" value="${log.date}"/>
+		</antcallback>		
+		
+		<if>
+			<length string="${errorlog.filenames}" trim="true" when="greater" length="0" />
+			<then>
+				<for list="${errorlog.filenames}" param="file">					
+					<sequential>			
+						<echo>Downloading error log: @{file}</echo>
+						<antcallback target="get_errorlog_content" return="response">	
+							<param name="error.log.file" value="@{file}"/>					
+						</antcallback>
+						<echo file="${local.output.errorlogs}/@{file}">${response}</echo>
+					</sequential>
+				</for>		
+				 
+				<antcallback target="parse_errorlog_files" return="summary">
+					<param name="error.log.dir" value="${local.output.errorlogs}"/>
+				</antcallback>
+				
+				<echo file="${local.output.errorlogs}/summary.htm">${summary}</echo>
+				
+				<zip destfile="${local.output.errorlogs}/logs.zip" basedir="${local.output.errorlogs}"  includes="**/*.log" />
+				
+				<loadfile property="message.body" srcFile="${local.output.errorlogs}/summary.htm">
+					<filterchain>
+						<tokenfilter>
+						    <replaceregex pattern="\$\{" replace="$ {" flags="gi"/>
+						</tokenfilter>
+					</filterchain>
+				</loadfile>
+								
+		    	<mail 
+		    		mailhost="${mail.host}" 
+		    		tolist="${mail.tolist}"
+		    		subject="Error Log Summary. Server: ${webdav.server}"  
+		    		message="${message.body}" 
+		    		messagemimetype="text/html">
+				  <from address="${mail.from}"/>				 
+				  <attachments>
+				    <fileset dir="${local.output.errorlogs}">
+				      <include name="**/*.zip"/>
+				    </fileset>
+				  </attachments>
+				</mail>		
+			</then>			
+			<else>
+				<echo>No error log files found on server: ${webdav.server}</echo>	
+				<mail 
+					tolist="${mail.tolist}"
+					mailhost="${mail.host}" 
+					subject="Error Log Summary. Server: ${webdav.server}">
+				  <from address="${mail.from}"/>
+				  
+				  <message>Congratulations, you don't have any errors!</message>	  
+				</mail>
+			</else>
+		</if>				
+	</target>
+	
+	<!-- 
+       get_errorlog_http_page
+       ===========================================================================	    
+	   This tasks gets http page for the error logs
+	-->
+	<target name="get_errorlog_http_page" description="This tasks gets http page for the error logs">
+		<echo message="Getting log files from: ${webdav.server}" />
+
+		<httpget url="https://${webdav.server}/on/demandware.servlet/webdav/Sites/Logs" logLevel="none" cookiePolicy="rfc2109" responseProperty="response">
+			<userCredentials host="${webdav.server}" domain="demandware.net" username="${webdav.username}" password="${webdav.password}" />
+		</httpget>
+	</target>
+	
+	<!-- 
+       get_errorlog_filenames
+       ===========================================================================	    
+	   This tasks gets comma-separated list of error log file names
+	   Parameters:
+	   		The HTTP response from the task get_errorlog_http_page
+	   		The log.date to filter the results by 
+	   Returns:
+	   		An array of strings representing the error log file names, or an empty
+	   		array if there were error logs found for the given log.date parameter
+	-->	
+	<target name="get_errorlog_filenames" description="This task returns list of error log filenames">
+		   <script language="javascript">
+		        <![CDATA[			   	
+		   		var response = project.getProperty("response"),
+		   			logDate = project.getProperty("log.date"),
+					files = parseErrorLogFileNames(response, logDate);
+						
+				project.setProperty("errorlog.filenames", files);		
+			
+	   			function parseErrorLogFileNames(response, logDate) {	
+				   	var files = [],
+		   				re = /\<a href="\/([^\/]*)\/([^\/]*)\/([^\/]*)\/([^\/]*)\/([^\/]*)\/(.*error\-blade.*.log)"/gm,
+		   				matches = [],
+		   				match;
+		   			
+		   			//Get the matching lines from the regular expression
+		   			do {
+		   				match = re.exec(response);	   					
+	   					match && matches.push(match);
+	   				} while (match);
+
+		   			//If there were matches then filter them by the logDate
+	   				if (matches.length) {
+		   				for (var i=0; i < matches.length; i++) {
+							var filename = matches[i][6];
+							if (filename.indexOf(logDate) !== -1) {
+								files.push(filename);
+							};   					
+		   				};	   					
+	   				};
+	   			
+	   				return files;
+	   			};		   					
+	            ]]>
+		    </script>
+	</target>
+	
+	<!-- 
+       get_errorlog_content
+       ===========================================================================	    
+	   This tasks gets error log content
+	-->
+	<target name="get_errorlog_content" description="This task gets content of an error log">
+		 <httpget url="https://${webdav.server}/on/demandware.servlet/webdav/Sites/Logs/${error.log.file}" logLevel="none" cookiePolicy="rfc2109" responseProperty="response">
+			<userCredentials host="${webdav.server}" domain="" username="${webdav.username}" password="${webdav.password}" />
+		</httpget>
+	</target>
+
+	<!-- 
+       parse_errorlog_files
+       ===========================================================================	    
+	   This tasks parses the error logs
+	-->
+	<target name="parse_errorlog_files" description="This task parses the log files.">
+		<script language="javascript"> <![CDATA[	
+			var arrayHelper = new ArrayHelper(),
+				stringHelper = new StringHelper(),
+				fileManager = new FileManager();
+			
+			main();
+			
+			function main() {			
+				var logDir = project.getProperty("error.log.dir"),
+					logParser = LogParser();
+															
+				// iterate over that array
+				arrayHelper.forEach(fileManager.getFiles(logDir), function(file) {
+					var errorCount = logParser.parse(file.filename, file.getContents());			
+					print(file.filename + " - " + errorCount + " errors - " + file.size + " bytes");
+				});
+							
+				project.setProperty("summary", logParser.summary());
+			}
+			
+			function LogParser() {
+				var totalErrors = [];
+
+				// Parse a log file and return an array of error objects 
+				function parseLog(fileName, contents) {
+					var errorRegex = /^\[([^\]]*)\]([^\|]*)\|([^\|]*)\|([^\|]*)\|([^\|]*)\|([^\|]*)\|(.*)$/gm,
+						match, matches = [], errors = [];
+					
+					do {
+						match = errorRegex.exec(contents);
+						match && matches.push(match);
+					} while (match);
+
+					if (matches.length) {
+						arrayHelper.forEach(matches, function (m) {
+							var website = stringHelper.trim(m[4]),
+								pipeline = stringHelper.trim(m[5]),
+								errorMessage = stringHelper.trim(m[7]).replace(/\r/g, ""),
+								sessionid = stringHelper.trim(m[3]);				
+							
+							if (website.substr(0,6).toLowerCase() === "sites-") {					
+								errors.push({
+									"index": m.index,
+									"match": m[0],
+									"errorDate": m[1],
+									"errorSource": stringHelper.trim(m[2]),
+									"sessionid": sessionid,
+									"website": website,
+									"pipeline": pipeline,
+									"errorMessage": errorMessage
+								});
+							} else {
+								errors.push({
+									"index": m.index,
+									"match": m[0],
+									"errorDate": m[1],
+									"errorSource": stringHelper.trim(m[2]),
+									"sessionid": "",
+									"website": "unspecified",
+									"pipeline": "unspecified",
+									"errorMessage": m[0]
+								});
+							};
+						});
+
+						arrayHelper.forEach(errors, function (error, index) {
+							var start, length;
+							start = error.index + error.match.length;
+							length = 0;
+
+							if ((index + 1) < errors.length) {
+								length = errors[index + 1].index - start;
+							} else {
+								length = contents.length;
+							};
+
+							if (error.website === "unspecified") {
+								error.errorKey = error.errorMessage.substr(0, 500);
+							} else {
+								error.errorDetail = stringHelper.trim(contents.substr(start, length)).replace(/\r$/g, "");
+								if (error.errorDetail.substr(0,6) !== "Trace:") {
+									error.errorDetail = error.errorDetail.substr(error.errorDetail.indexOf("\n")+1);
+								};
+								
+								error.errorKey = fileName.indexOf("custom") !== -1 ? stringHelper.trim(error.errorMessage.substr(error.errorMessage.indexOf("custom"))) : stringHelper.trim(error.errorMessage.substring(error.errorMessage.indexOf("\"")));
+								error.errorKey += " " + error.errorDetail.substring(0, error.errorDetail.indexOf("\n")-1);
+							};
+													
+							delete error.index;
+							delete error.match;
+						});
+					};
+
+					return errors;
+				};
+
+				// Generates the "summary" data, which consists of the total errors per website and for each
+				// website the total errors per pipeline
+				function summarizeErrorsByWebSite(errors) {
+					var sortedErrors, summary = "",
+						prevWebSite, countWebSite, totalErrorCount, results = [];
+
+					sortedErrors = arrayHelper.sortObjects(errors, "website");
+					prevWebSite = sortedErrors[0] ? sortedErrors[0].website : "unspecified";
+					countWebSite = 0;
+					totalErrorCount = 0;
+
+					arrayHelper.forEach(sortedErrors, function (ele) {
+						if (ele.website !== prevWebSite) {
+							results.push({
+								"website": prevWebSite,
+								"count": countWebSite
+							});
+							totalErrorCount += countWebSite;
+							countWebSite = 1;
+							prevWebSite = ele.website;
+						} else {
+							countWebSite++;
+						};
+					});
+
+					totalErrorCount += countWebSite;
+					results.push({
+						"website": sortedErrors[sortedErrors.length - 1] ? sortedErrors[sortedErrors.length - 1].website : "unspecified",
+						"count": countWebSite
+					});
+
+					//Sort websites by error count descending	
+					results = arrayHelper.sortObjects(results, "count", true);
+							
+					arrayHelper.forEach(results, function (ele) {
+						var currWebSite = ele.website;		
+						summary += "<ul>";
+						summary += "<li><strong>" + ele.count + "</strong>&nbsp;" + currWebSite + "</li>";			
+						summary += "<ul>";			
+						summary += summarizeErrorsByPipeline(arrayHelper.filter(sortedErrors, function (ele) {
+							return ele.website === currWebSite;
+						}));		
+						summary += "</ul>";			
+						summary += "</ul>";
+					});
+							
+					return summary;
+				};
+
+				// This function is called by the "summarizeErrorsByWebSite" function to produce the list of 
+				// pipelines for a specific website and the count of errors for each pipeline.
+				// The "errors" parameter is assumed to be a subset of the "errors" array produced by filtering 
+				// on the "website" property.
+				function summarizeErrorsByPipeline(errors) {
+					var sortedErrors, summary = "",
+						prevPipeline, countPipeline, results = [];
+
+					sortedErrors = arrayHelper.sortObjects(errors, "pipeline");
+					prevPipeline = sortedErrors[0] ? sortedErrors[0].pipeline : "unspecified";
+					countPipeline = 0;
+
+					arrayHelper.forEach(sortedErrors, function (ele) {
+						if (ele.pipeline !== prevPipeline) {
+							results.push({
+								"pipeline": prevPipeline,
+								"count": countPipeline
+							});
+							countPipeline = 1;
+							prevPipeline = ele.pipeline;
+						} else {
+							countPipeline++;
+						};
+					});
+
+					results.push({
+						"pipeline": sortedErrors[sortedErrors.length - 1] ? sortedErrors[sortedErrors.length - 1].pipeline : "unspecified",
+						"count": countPipeline
+					});
+
+					//Sort pipelines by error count descending
+					results = arrayHelper.sortObjects(results, "count", true);
+
+					arrayHelper.forEach(results, function (ele) {
+						var currPipeline = ele.pipeline;		
+						summary += "<ul>";
+						summary += "<li><strong>" + ele.count + "</strong>&nbsp;" + currPipeline + "</li>";			
+						summary += "<ul>";			
+						summary += summarizeErrorsByErrorKey(arrayHelper.filter(sortedErrors, function (ele) {
+							return ele.pipeline === currPipeline;
+						}));
+						summary += "</ul>";			
+						summary += "</ul>";
+					});
+
+					return summary;
+				};
+
+				// This function is called by the "summarizeErrorsByWebSite" function to produce the list of 
+				// pipelines for a specific website and the count of errors for each pipeline.
+				// The "errors" parameter is assumed to be a subset of the "errors" array produced by filtering 
+				// on the "website" property.
+				function summarizeErrorsByErrorKey(errors) {
+					var sortedErrors, summary = "",
+						prevError, lastError, countError, results = [];
+
+					sortedErrors = arrayHelper.sortObjects(errors, "errorKey");
+					prevError = sortedErrors[0] ? sortedErrors[0].errorKey : "unspecified";
+					countError = 0;
+
+					arrayHelper.forEach(sortedErrors, function (ele) {
+						var currError = ele.errorKey;
+						if (currError !== prevError) {
+							results.push({
+								"error": prevError,
+								"count": countError
+							});
+							countError = 1;
+							prevError = currError;
+						} else {
+							countError++;
+						};
+					});
+					
+					lastError = sortedErrors[sortedErrors.length - 1] ? sortedErrors[sortedErrors.length - 1].errorKey : "unspecified";
+					results.push({
+						"error": lastError,
+						"count": countError
+					});
+					
+					//Sort errors by error count descending
+					results = arrayHelper.sortObjects(results, "count", true);
+
+					arrayHelper.forEach(results, function (ele, index) {			
+						summary += "<li><div" + (index % 2 === 0 ? " style='background-color:lightgray'>" : ">") + "<strong>" + ele.count + "</strong>&nbsp;" + ele.error + "</div></li>";			
+					});
+
+					return summary;
+				};
+				
+				return {
+					"parse": function(fileName, fileContents) {			
+						var errors = parseLog(fileName, fileContents);
+						arrayHelper.forEach(errors, function (ele) {
+							totalErrors.push(ele);
+						});
+						return errors.length;
+					},
+					"summary": function(config) {
+						var summary = "";						
+						summary += "<html><body>";			
+						//summary += "Server: <strong>" + config.server + "</strong></br>";
+						//summary += "Log Date: <strong>" + config.logDate.toDateString() + "</strong></br>";
+						summary += "Total Errors: <strong>" + totalErrors.length + "</strong>";			
+						summary += summarizeErrorsByWebSite(totalErrors)
+						summary += "</body></html>";
+						delete totalErrors;			
+						return summary;
+					}
+				};
+			}			
+			
+			function StringHelper() {
+				this.trim = function (str) {
+					// Trim whitespace from beginning and end of the string    
+					return str.replace(/^\s*/, "").replace(/\s*$/, "");
+				};
+			}
+			
+			function ArrayHelper() {
+				this.forEach = function (array, func) {
+					// This function iterates through an array and calls a function for each element in the array    
+					var index, result, limit = array.length;
+					for (index = 0; index < limit; index++) {
+						result = func(array[index], index, array);
+						//Exit if the function "func" returned a "truthy" value
+						if (result) {
+							return;
+						};
+					};    
+				};
+			
+				this.filter = function (array, func) {
+					// This function produces a new array by iterating through a source array and calling a function
+					// for each element and using the result to determine if it should add the element to the new array	
+					var a = [];
+					this.forEach(array, function (ele) {
+						if (func(ele)) {
+							a.push(ele);
+						};
+					});
+					return a;
+				};	
+			
+				this.sortObjects = function (array, property, desc) {
+					// Sorts an array of objects based on a specific object property     
+					var returnArray = array.slice(0);
+	
+					returnArray.sort(function (p1, p2) {
+						var returnValue,
+						first = p1[property],
+						second = p2[property];
+	
+						if (first === second) {
+							returnValue = 0;
+						} else if (first < second) {
+							returnValue = -1;
+						} else {
+							returnValue = 1;
+						};
+						return desc ? (returnValue * -1) : returnValue;
+					});
+	
+					return returnArray;
+				};
+			}
+			
+			function FileManager() {
+				importClass(java.io.File);
+				importClass(java.io.FileReader);
+				importClass(java.io.BufferedReader);
+							
+				this.getFiles = function (logDir) {
+					var fs, ds, basedir, files = [];
+			
+					// Create a <fileset dir="" includes=""/>
+					fs = project.createDataType("fileset");
+					fs.setDir(new File(logDir));
+					 			
+					// Get the files (array) of that fileset
+					ds = fs.getDirectoryScanner(project);
+					basedir = fs.getDir(project);
+			
+					arrayHelper.forEach(ds.getIncludedFiles(), function (ele) {
+						var filename = ele,
+				    		file = new File(basedir, filename),
+							absolutePath = file.getAbsolutePath(),
+				    	   	size = file.length();
+			
+						files.push({
+							filename: filename,
+							file: file,
+							absolutePath: absolutePath,
+							size: size,
+							getContents: function() {
+								var returnValue = "",
+							        line = "",
+							  		fileReader = null,
+							        bufferedReader = null;
+							  
+							  try {
+							    fileReader = new FileReader(this.absolutePath);
+							    bufferedReader = new BufferedReader(fileReader);			    
+							    while ((line = bufferedReader.readLine()) != null) {
+							      returnValue += line + "\n";
+							    }
+							  } finally {
+							    if (fileReader) {
+							      try {
+							        fileReader.close();
+							      } catch(e) {}
+							    }
+							  }
+							  return returnValue;
+							}
+						});
+					});
+			
+					return files
+				};			
+			}
+			
+		    ]]></script>		
+	</target>	
+</project>

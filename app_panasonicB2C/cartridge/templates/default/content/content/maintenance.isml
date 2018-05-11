@@ -1,0 +1,3 @@
+<isinclude template="util/modules"/>
+<iscache type="relative" hour="24"/>
+<iscontentasset aid="maintenance" />

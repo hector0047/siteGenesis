@@ -1,0 +1,21 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" minute="30" varyby="price_promotion"/>
+
+<isinclude template="util/modules"/>
+<isif condition="${slotcontent.calloutMsg != null}">
+	<span class="pnsb2c-prod-cont-head">${slotcontent.calloutMsg}</span>
+</isif>
+
+<div class="product-listing product-listing-1x4">
+	
+	<ul class="home-newproducts search-result-items tiles-container">
+		<isloop items="${slotcontent.content}" var="product" begin="0" end="3" status="status">
+			<div class="grid-tile newproducttile <isif condition="${status.first}">first</isif> <isif condition="${status.last}">last</isif>">
+				<isobject object="${product}" view="recommendation">
+				<isproducttile product="${product}" showswatches="${true}" showpricing="${true}" showpromotion="${true}" showrating="${true}" transformationtemplate="$HP-New-Products$"/>
+				</isobject>
+			</div>
+		</isloop>
+	</ul>
+	
+</div><!-- END: product 1x4 -->

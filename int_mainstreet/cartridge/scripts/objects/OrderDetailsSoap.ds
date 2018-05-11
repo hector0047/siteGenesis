@@ -1,0 +1,14 @@
+function OrderDetailsSoap() {}
+
+OrderDetailsSoap.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};		
+	},	
+	
+	dummy: function() {
+		
+	}
+}
+module.exports = OrderDetailsSoap;

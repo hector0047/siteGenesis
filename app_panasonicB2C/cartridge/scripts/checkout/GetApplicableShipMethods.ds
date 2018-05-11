@@ -1,0 +1,103 @@
+/**
+ * GetApplicableShippingMethods.ds
+ *
+ * This script retrieves the list of applicable shipping methods
+ * for a given shipment and a full or partial shipping address.
+ * A shipping method is applicable if it does not exclude any of 
+ * the products in the shipment, and does not exclude the specified 
+ * address.
+ * 
+ * @input Basket: dw.order.Basket
+ * @input address1 : String
+ * @input stateCode : String
+ * @input postalCode : String
+ * @input city : String
+ * @output ShippingMethodsForEachShipmentMap : dw.util.HashMap
+ * @output hideshipmethods : Boolean
+ * @output ErrorMessage : String
+ *
+ */
+
+importPackage( dw.customer );
+importPackage( dw.order );
+importPackage( dw.catalog );
+importPackage( dw.campaign );
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+
+//This function will identify the applicable shipping methods based on shipment. We will through error message if we can't get shipping method for the shipment.
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var basket : Basket = pdict.Basket;
+	var shipment : Shipment;
+	var orderAddress : OrderAddress ;
+	var applicableShipMethods : ArrayList = new ArrayList();
+	var shippingMethodsForEachShipmentMap : HashMap = new HashMap();  
+	var inApplicableShippingMethods : Iterator;
+	var invalidShipping : boolean = false;
+	var shipmethod1 = false;
+	var shipmethod2 = false;
+	var hideshipmethods = false;
+	
+	//Iterating through all the shipments in the basket	 	
+	for each(var shipment : Shipment in basket.shipments) {
+		//Checking for empty shipment
+		if (!empty(shipment))
+		{
+			var addressObj : Object ;			
+			//If shipment doesn't have shipping address prefaring shipping address object to get the shipping method from the getApplicableShippingMethods()
+			addressObj = new Object();				
+			if(!empty(pdict.address1)){
+				addressObj.address1 = pdict.address1;
+			}
+			if(!empty(pdict.postalCode)){
+				addressObj.postalCode = pdict.postalCode;
+			}
+			if(!empty(pdict.city)){
+				addressObj.city = pdict.city;
+			}
+			if(!empty(pdict.stateCode)){
+				addressObj.stateCode = pdict.stateCode;
+			}
+		 
+			addressObj.countryCode = "US";							
+			
+			var shippingModel : ShipmentShippingModel = ShippingMgr.getShipmentShippingModel(shipment);
+			//If empty shippin address passing generated shipping address else it will take shipment's shipping address
+				applicableShipMethods = ArrayList(shippingModel.getApplicableShippingMethods(addressObj));
+				shippingMethodsForEachShipmentMap.put(shipment.UUID,applicableShipMethods);
+			
+			//If get applicable shipping methods means we have valid shipping method for shippment else throughing error message
+			if (!empty(applicableShipMethods) && applicableShipMethods.size() > 0) {
+				invalidShipping = false;
+			} else {
+				Logger.error(Resource.msgf("shipping.mehtod.invalid", "checkout", null, shipment.shippingMethod.displayName, pdict.stateCode));			
+				pdict.ErrorMessage = Resource.msgf("shipping.mehtod.invalid", "checkout", null, shipment.shippingMethod.displayName, pdict.stateCode);				
+				invalidShipping = true;
+				break;
+			}
+			/*for each(var shippingmethod in applicableShipMethods) {
+				if(shippingmethod.ID == 'FD4S' || shippingmethod.ID == 'PAA7'){
+					shipmethod1 = true;
+					break;
+				}else if(shippingmethod.ID == 'FDX4' || shippingmethod.ID == 'PAA5'){
+					shipmethod2 = true;
+					break;
+				}
+			}*/
+		}
+	}
+	/*if(shipmethod1  && shipmethod2){
+		pdict.hideshipmethods = true;
+	}*/
+	if(invalidShipping) {
+		return PIPELET_ERROR;
+	} else { 
+		pdict.ShippingMethodsForEachShipmentMap = shippingMethodsForEachShipmentMap;
+		//pdict.ShippingMethods= applicableShipMethods;
+		return PIPELET_NEXT;
+	}
+	// Retrieve the list of applicabnle shipping methods for the given shipment and address.
+    return PIPELET_NEXT;
+}

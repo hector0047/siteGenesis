@@ -1,0 +1,28 @@
+<!--- TEMPLATENAME: serviceoverview.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true">
+<isdecorate template="application/ExtJS4ApplicationFrame">
+<div id="credentialsUrl" data-credentialsurl="${URLUtils.url('Services-Credentials','SelectedMenuItem','operations')}"></div>
+<style type="text/css">
+tr.STATE_GREEN td.x-grid-td {background-color: #CCF4CC; !important;}
+tr.STATE_YELLOW td.x-grid-td {background-color: #FFFFC3; !important;}
+tr.STATE_LOCKED td.x-grid-td {background-color: #FDAFAF; !important;}
+tr.STATE_DISABLED td.x-grid-td {background-color: #AAAAAA; !important;}
+</style>
+
+<!-- Include required JS files for syntax highlighter -->
+<script src="${URLUtils.absStatic('highlighter/js/shCore.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('highlighter/js/shBrushJScript.js')}" type="text/javascript"></script>
+<link href="${URLUtils.absStatic('highlighter/css/shCore.css')}" rel="stylesheet" type="text/css" />
+<link href="${URLUtils.absStatic('highlighter/css/shThemeDefault.css')}" rel="stylesheet" type="text/css" />
+
+<script src="${URLUtils.absStatic('/ext-store4/ObjectStore.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/ext-store4/CustomObjectServerConfig.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/ext-ui/ServiceCharts.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/ext-ui/SOAPExplorer.js')}" type="text/javascript"></script>
+<script src="${URLUtils.absStatic('/ext-ui/ServicesDashBoardGrid.js')}" type="text/javascript"></script>
+
+<div id="customobject-ui"></div>
+
+
+<!--- Service list --->
+</isdecorate>

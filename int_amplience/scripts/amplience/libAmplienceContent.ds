@@ -1,0 +1,319 @@
+
+importPackage( dw.system );
+importPackage( dw.content );
+importPackage( dw.util );
+importPackage( dw.web );
+
+var AMP_IM_CDN_HOSTNAME = Site.getCurrent().getCustomPreferenceValue('ampImCdnHostname');
+var AMP_IM_CUSTOMER_PATH = Site.getCurrent().getCustomPreferenceValue('ampImCustomerPath');
+var AMP_IM_URL = Site.getCurrent().getCustomPreferenceValue('ampIMAPI');
+
+var DI_CUSTOMER_PATH = Site.getCurrent().getCustomPreferenceValue('ampDiCustomerPath');
+var DI_HOSTNAME = Site.getCurrent().getCustomPreferenceValue('ampDiCdnHostname');
+var CONTENT_SERVICE_CDN_HOSTNAME = Site.getCurrent().getCustomPreferenceValue('ampContentServiceCdnHostname');
+
+function AmplienceContent ( content : Content ) {
+	
+	/**
+	 * Get Custom Preferences
+	 */
+	var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+		ampTimeout : Number = customPreferences['ampHTTPClientTimeout'];
+	
+	var contextUrls : Object = {
+		hostname : AMP_IM_CDN_HOSTNAME,
+		customerPath : AMP_IM_CUSTOMER_PATH,
+		diCustomerPath : DI_CUSTOMER_PATH,
+		diCdnHostname : DI_HOSTNAME,
+		contentServiceCdnHostname : CONTENT_SERVICE_CDN_HOSTNAME
+	};
+	
+	/**
+	 * Get IM Object
+	 *
+	 * @param {Content} asset - IM module
+	 * @param {Object} currContextObj - Current context object
+	 *
+	 * @return {Object} imObj - IM module object
+	 *
+	 */
+	var getImObject = function ( asset : Content, currContextObj : Object ) : Object {
+		
+		var imObj : Object = currContextObj || {};
+		
+		if( 'amplienceId' in asset.custom && !empty(asset.custom['amplienceId']) ) {
+			imObj['id'] = asset.custom['amplienceId'];
+			
+			imObj['width'] = '';
+			if ('amplienceWidth' in asset.custom && !empty(asset.custom['amplienceWidth'])) {
+				imObj['width'] = asset.custom['amplienceWidth'];
+			};
+			
+			imObj['height'] = '';
+			if ('amplienceHeight' in asset.custom && !empty(asset.custom['amplienceHeight'])) {
+				imObj['height'] = asset.custom['amplienceHeight'];
+			};
+			
+			imObj['color'] = '';
+			if ('amplienceColor' in asset.custom && !empty(asset.custom['amplienceColor'])) {
+				imObj['color'] = asset.custom['amplienceColor'];
+			};
+			
+			imObj['locale'] = '';
+			if (request && !empty(request.getLocale())) {
+				
+				var locale : String = request.getLocale().toString();
+	
+				var localeValue : String = (locale.toLowerCase() == 'default') ? 'en-US' : locale.replace('_', '-');
+				
+				imObj['locale'] = localeValue;
+			};
+		};
+		
+		return imObj;
+	};
+	
+	/**
+	 * Get SEO Content for IM module
+	 *
+	 * @param {Content} asset - IM module
+	 *
+	 * @return {String} seoContent - SEO content returned by Amplience
+	 *
+	 */
+	var getSEOContent = function ( asset : Content ) : String {
+		
+		var ampId : String = '',
+			seoContent = '',
+			url : String = AMP_IM_CDN_HOSTNAME + '/' + AMP_IM_CUSTOMER_PATH + '/';
+		
+		if( 'amplienceId' in asset.custom && !empty(asset.custom['amplienceId']) ) {
+			
+			ampId = asset.custom['amplienceId'];
+			url = url + ampId + '.html';
+			
+			var httpClient : dw.net.HTTPClient = new dw.net.HTTPClient();
+			httpClient.setTimeout(ampTimeout);
+			httpClient.open('GET', url);
+			httpClient.send();
+			
+			if (httpClient.statusCode == 200) {
+				seoContent = httpClient.text;
+			}
+			
+		};
+		
+		return seoContent;
+	};
+	
+	/**
+	 * Get IM Context Object
+	 *
+	 * @return {Object} contextObj - Context object with im module
+	 *
+	 */
+	var getImContext = function () : Object {
+		
+		var contextObj : Object = getImObject(content, contextUrls);
+		
+		contextObj['name'] = !empty(content.name) ? content.name : '';
+		contextObj['seoContent'] = getSEOContent(content);
+		contextObj['modules'] = [];
+		contextObj['modules'][0] = getImObject(content);
+		contextObj['modules'][0].index = 0;
+		
+		return contextObj;
+	};
+	
+	/**
+	 * Get IM Group Context Object
+	 *
+	 * @return {Object} contextObj - Context object with all grouped modules
+	 *
+	 */
+	var getImGroupContext = function () : Object {
+		
+		var ampConfig : String = content.custom.ampConfig;
+		if (empty(ampConfig)) return {};
+		
+		var imGroupArr : Array = JSON.parse(ampConfig);
+		
+		var contextObj : Object, index : Number = 0, imModules : Array = [];
+		
+		for (var i = 0; i < imGroupArr.length; i++) {
+			
+			var imAsset : Content = ContentMgr.getContent(imGroupArr[i]);
+			if (!empty(imAsset)) {
+				
+				if ( empty(contextObj) ) {
+					contextObj = getImObject(imAsset, contextUrls);
+					contextObj['name'] = !empty(imAsset.name) ? imAsset.name : '';
+					contextObj['seoContent'] = getSEOContent(imAsset);
+				}
+				
+				var imModule : Object = getImObject(imAsset);
+				imModule['index'] = index;
+				
+				imModules.push( imModule );
+				index++;
+			}
+		
+		}
+		
+		contextObj['modules'] = imModules;
+		
+		return contextObj;
+	};
+	
+	/**
+	 * Get UGC Context Object
+	 *
+	 * @return {Object} contextObj - Context object with ugc stream variables
+	 *
+	 */
+	var getUgcContext = function () : Object {
+		
+		var ampConfigString : String = content.custom.ampConfig;
+		if (empty(ampConfigString)) return {};
+		
+		var ampConfig : Object = JSON.parse(ampConfigString);
+		
+		var contextObj : Object = {
+			streamName : content.name,
+			streamId : ampConfig['stream'],
+			diCustomerPath : DI_CUSTOMER_PATH,
+			diCdnHostname : DI_HOSTNAME,
+			contentServiceCdnHostname : CONTENT_SERVICE_CDN_HOSTNAME,
+			instagramFileLocation : URLUtils.abs('Page-Show', 'cid', 'instagram-authentication-token-page')
+		};
+		
+		return contextObj;
+	};
+	
+	/**
+	 * Parse content 
+	 *
+	 * @param {String} text - base text
+	 * @param {String} context - Object with variables to be replaced in the text
+	 *
+	 * @return {String} text - html string with replaced loops and variables
+	 *
+	 */
+	var parseContent = function ( text : String, context : Object ) : String {
+		
+		text = parseLoops(text, context);
+		text = parseVars(text, context);
+		
+		return text;
+	};
+	
+	/**
+	 * Parse loops
+	 *
+	 * @param {String} text - base text
+	 * @param {String} context - Object with variables to be replaced in the text
+	 *
+	 * @return {String} text - html string with replaced loops
+	 *
+	 */
+	var parseLoops = function ( text : String, context : Object ) : String {
+		// {loop(array)} html... {/loop}
+		var loopsRegExp = /({loop[^]+?\/loop})/g,
+			paramsRegExp = /^{loop\(([^\)]*)\)}/;
+		
+		var loop : String, loops = text.match(loopsRegExp);
+		
+		for each (loop in loops) {
+			
+			var paramsString = loop.match(paramsRegExp),
+				loopBody : String = loop.replace(paramsString[0], '').replace(/{\/loop}/, ''),
+				loopResult : String = '';
+			
+			var arr : Array = context[paramsString[1]];
+			
+			if (arr && arr.length && arr.length > 0) {
+				for (var i = 0; i < arr.length; i++) {	
+					loopResult += parseVars(loopBody, arr[i]);
+				}
+			}
+			
+			loopResult = loopResult.replace(/,\s*$/, '');
+			
+			text = text.replace(loop, loopResult);
+		}
+		
+		return text;
+	};
+	
+	/**
+	 * Parse text variables
+	 *
+	 * @param {String} text - base text
+	 * @param {String} context - Object with variables to be replaced in the text
+	 *
+	 * @return {String} text - html string with replaced variables
+	 *
+	 */
+	var parseVars = function ( text : String, context : Object ) : String {
+		var attrsRegExp = /%{([^}]+)}/g,
+			attrRegExp = /%{([^}]+)}/;
+		
+		var attrString : String, attrs = text.match(attrsRegExp);
+		
+		for each (attrString in attrs) {
+			var attr = attrString.match(attrRegExp);
+			text = text.replace(attr[0], context[attr[1]]);
+		}
+		
+		return text;
+	};
+	
+	/**
+	 * Loads content in corresponding viewer
+	 *
+	 * @param {Object} contextObj - Optional param
+	 *
+	 * @return {String} contentString - html string which will be printed on the page
+	 *
+	 */
+	this.getContent = function ( contextObj : Object ) : String {
+		
+		var viewerId : String = '',
+			contextObj : Object = contextObj || contextUrls;
+		
+		var folderId : String = '',
+			folder : Folder = content.getClassificationFolder();
+			
+		if ( folder ) folderId = folder.ID;
+		
+		switch ( folderId ) {			
+			case 'amp_modules_im':
+				viewerId = Site.getCurrent().getCustomPreferenceValue('ampImViewer');
+				contextObj = getImContext();
+				break;
+			case 'amp_modules_imgroup':
+				viewerId = Site.getCurrent().getCustomPreferenceValue('ampImViewer');
+				contextObj = getImGroupContext();
+				break;
+			case 'amp_modules_ugc':
+				var ampConfig = JSON.parse(content.custom.ampConfig);
+				viewerId = ampConfig['viewer'];
+				contextObj = getUgcContext();
+				break;
+			default:
+				viewerId = content.ID;
+		}
+		
+		var viewerContent : String = '';
+		var viewer : Content = ContentMgr.getContent(viewerId);
+		
+		if (!empty(viewer)) {
+			viewerContent = viewer.custom.body.toString();
+		}
+	
+		var contentString : String = parseContent(viewerContent, contextObj);
+		
+		return contentString;
+	};
+
+};

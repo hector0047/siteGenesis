@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="Start">
+    <segment>
+      <node>
+        <start-node name="Start" secure="false"/>
+        <node-display x="8" y="0"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('piersMailFrom')" key="MailFrom"/>
+          <key-binding alias="&quot;piersfeedemail/testmail&quot;" key="MailTemplate"/>
+          <key-binding alias="&quot;test subject&quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('piersMailTo')" key="MailTo"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="PiersFeedParser">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="PiersFeedParser" secure="false"/>
+        <node-display x="9" y="0"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="piersfeed/CreatePiersFeedTempXML.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="CurrentWorkflowComponentInstance" key="CurrentWorkflowComponentInstance"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b4.1"/>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="piersfeed/CreateCatalogFromPiersFeedXML.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="successfullUMNs" key="successfullUMNs"/>
+          <key-binding alias="successfullProductIds" key="successfullProductIds"/>
+          <key-binding alias="CurrentWorkflowComponentInstance" key="CurrentWorkflowComponentInstance"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in2" target-path="./b4.1"/>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="piersfeed/CreateNotificationEmailReport.ds"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="successfullUMNs" key="successfullUMNs"/>
+          <key-binding alias="notificationFileName" key="notificationFileName"/>
+          <key-binding alias="CurrentWorkflowComponentInstance" key="CurrentWorkflowComponentInstance"/>
+          <key-binding alias="mailSub" key="mailSub"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in1">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="-2"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <end-node name="ERROR"/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('piersMailFrom')" key="MailFrom"/>
+          <key-binding alias="&quot;piersfeedemail/piersfeedemail&quot;" key="MailTemplate"/>
+          <key-binding alias="mailSub" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue('piersMailTo')" key="MailTo"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="3" y="8"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

@@ -1,0 +1,168 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+	<isset name="DecoratorTemplate" value="checkout/pt_sbcheckout" scope="page"/>
+
+	<isdecorate template="${DecoratorTemplate}">
+	<isinclude template="util/modules"/>
+	
+	<iscomment>
+		This template visualizes the billing step of both checkout scenarios.
+		It provides selecting a payment method, entering gift certificates and
+		specifying a separate billing address.
+		Depending on the checkout scenario (single or multi shipping) it is
+		either the second or third checkout step.
+	</iscomment>
+	
+	<isset name="PageName" value="sb_BillingPage" scope="page"/>
+	
+	<iscomment>Report this checkout step</iscomment>
+	<isreportcheckout checkoutstep="4" checkoutname="${'Billing'}"/>
+
+	<h1>${dw.web.Resource.msg('checkout.billingsub','sb_forms',null)}</h1>
+
+
+	<iscomment> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		checkout progress indicator
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</iscomment>
+    
+    <ischeckoutprogressindicatorsb step="2" rendershipping="true"/>
+	
+	<iscomment>Added for Authorize.Net integration</iscomment>
+	<isif condition="${!empty(pdict.ErrorMessage)}">
+		<div class="error-form"><isprint value="${pdict.ErrorMessage}"></div>
+	</isif>
+	<isif condition="${!empty(pdict.responseStatus)}">
+		<div class="error-form serversideerror">Some information below is either incomplete or needs to be corrected <isprint value="${pdict.WSResponseErrorMsg}"></div>
+	</isif>
+	
+	<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.billingsb.htmlName}" class="checkout-billing address sb-billing-form Billing-Page">
+	<iscomment> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		payment methods
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</iscomment>
+	 
+
+	<iscomment>payment method area</iscomment>
+	<isinclude template="checkout/sbpaymentmethods.isml"/>
+	<input type="hidden" name="${pdict.CurrentForms.billingsb.paymentMethods.selectedPaymentMethodID.htmlName}" />
+	<isbonusdiscountlineitem p_alert_text="${Resource.msg('billing.bonusproductalert','checkout',null)}" p_discount_line_item="${pdict.BonusDiscountLineItem}"/>
+	<div class="success-fail-msg hide creditcard-empty-msg"><span class="error-msg">Please Enter above required Fileds</span></div>	
+	
+	<iscomment> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		coupon / discount codes
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</iscomment>
+	 
+
+		
+	<iscomment> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		billing address
+	 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</iscomment>
+	 
+	<fieldset>
+		
+		<iscomment>billing address area</iscomment>
+		<iscomment>EDIT LINK : PANC-528 SHOW HIDE</iscomment>
+		<isif condition="${(pdict.CurrentForms.singleshippingsb.shippingAddress.useAsBillingAddress.value == true && !empty(pdict.CurrentForms.billingsb.billingAddress) && !empty(pdict.CurrentForms.billingsb.billingAddress.addressFields))}" >
+			<isset name="hideShipping" value="${true}" scope="page"/>
+		<iselse>
+			<isset name="hideShipping" value="${false}" scope="page"/>
+		</isif>
+		<iscomment>EDIT LINK : PANC-528 SHOW HIDE BASED ON CONDITION</iscomment>
+		<div class="displayBillingAddressFields <isif condition="${hideShipping}">hide<iselse> </isif>">
+			
+	
+	        <isif condition="${!pdict.CurrentCustomer.authenticated}">
+				<legend>${Resource.msg('billing.addressheaderforguestuser','checkout',null)}
+						<div class="dialog-required"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+				</legend>
+			<iselse/>
+				<legend>${Resource.msg('billing.addressheader','checkout',null)}
+						<div class="dialog-required"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+				</legend>
+			</isif>
+	        <iscomment>display select box with stored addresses if customer is authenticated and there are saved addresses</iscomment>
+			<isif condition="${pdict.CurrentCustomer.authenticated && pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">			
+				<div class="select-address">		
+					<div class="form-row">				
+						<label for="${pdict.CurrentForms.billingsb.addressList.htmlName}">
+							${Resource.msg('global.selectaddressmessage','locale',null)}
+						</label>
+						<isaddressselectlistsb p_listaddresses="${pdict.CurrentCustomer.profile.addressBook.addresses}" p_form="${pdict.CurrentForms.billingsb.billingAddress.addressFields.ID}"/>	
+					</div>
+		
+					<div class="form-row form-row-button hide">
+						<button id="address-select-go-button" name="${pdict.CurrentForms.billingsb.selectAddress.htmlName}" type="submit" value="Go" class="simple-submit">Select</button>
+					</div>
+	
+				</div>
+			
+			</isif>
+		
+			<div class="form-section two-row">
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.firstName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="10"/>
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.lastName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}"  rowclass="last" attribute1="tabindex" value1="11"/>
+	    	</div>	
+	    	
+	    	<div class="form-section two-row">
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.address1}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipaddress1.error','forms',null)}"  rowclass="first" attribute1="tabindex" value1="12"/>
+		    	<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.address2}" type="input"  rowclass="last" attribute1="tabindex" value1="13"/>
+	    	</div>
+	    	
+	    	<div class="form-section three-row">	
+	    		<div class ="hide">
+	    			<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.country}" type="select" requiredtext="${Resource.msg('forms.customeraddress.country.missing-error','forms',null)}" attribute1="tabindex" value1="14"/>
+	    		</div>
+	    		<iscomment>Start JIRA PANC-524 </iscomment>
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.city}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipcity.missing-error','forms',null)}"  rowclass=" first" attribute1="tabindex" value1="15"/>
+	    		
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.states.state}" type="select" requiredtext="${Resource.msg('forms.customeraddress.state.missing-error','forms',null)}"  rowclass="middle" attribute1="tabindex" value1="16"/>
+	    	 	<iscomment>End JIRA PANC-524 </iscomment>
+				
+				<iscomment>Start JIRA PREV-77 : Zip code validation is not happening with respect to the State/Country.Added xhtmlclass="zip" for validation.</iscomment>
+	    	
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.postal}" type="input" xhtmlclass="zip" requiredtext="${Resource.msg('forms.errorpostal','forms',null)}"  rowclass="last" attribute1="tabindex" value1="17"/>
+	    	</div>
+	    	<div class="form-section three-row">
+	    		<iscomment>End JIRA PREV-77</iscomment>
+	    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.phone}" type="input" requiredtext="${Resource.msg('forms.customeraddress.phone.missing-error','forms',null)}" attribute1="tabindex" value1="18"/>
+	    		<div class="form-field-tooltip with-helper-text">
+					<a href="${URLUtils.url('Page-Show', 'cid', 'help-telephone')}" class="tooltip">
+						${Resource.msg('singleshipping.phonerequired','checkout',null)}
+						<div class="tooltip-content"  data-layout="small">
+							<iscontentasset aid="help-telephone"/>
+						</div>
+					</a>
+				</div>
+	    	</div>
+	    	
+		</div>
+		<iscomment>EDIT LINK : PANC-528</iscomment>
+		<div class="details displayBillingAddressFieldsWithEditLink <isif condition="${hideShipping}"><iselse>hide</isif>">
+			<h3 class="pnsb2c-edit-biladdress">
+				${Resource.msg('billing.address.heading','checkout',null)}
+				<a href="javascript:void(0);" id="edit-Bill-Address" class="editBillingAddress">
+					${Resource.msg('global.edit','locale',null)}
+				</a>
+			</h3>
+			<div class="billing-add-details-txt">
+				<div><isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.firstName.value}"/> <isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.lastName.value}"/></div>
+				<div><isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.address1.value}"/></div>
+				<isif condition="${!empty(pdict.CurrentForms.billingsb.billingAddress.addressFields.address2.value)}">
+					<div><isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.address2.value}"/></div>
+				</isif>
+				<div><isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.city.value}"/>, <isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.states.state.value}"/> <isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.postal.value}"/></div>
+				<div><isprint value="${pdict.CurrentForms.billingsb.billingAddress.addressFields.phone.value}"/></div>
+			</div>
+		</div>
+    	<div class="form-section two-row getlattestnews">
+    		<h2>${Resource.msg('billing.emailaddress','checkout',null)}</h2> 
+    		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addressFields.emailAddress}" xhtmlclass="email" type="input" requiredtext="${Resource.msg('login.usernamelogin.missing-error','forms',null)}" rowclass="getlatest-form-row" attribute1="tabindex" value1="20"/>
+  		</div>
+	    
+   		<isinputfield formfield="${pdict.CurrentForms.billingsb.billingAddress.addToEmailList}" type="checkbox" rowclass="form-indent label-inline tickmark billing-emailsubscribe"  attribute2="checked" value2="checked" attribute1="tabindex" value1="21"/>
+    	<div class="form-row form-row-button">
+			<button class="button-blue hiddenSaveBilling-sb hide" id="continueOnBilling" type="submit" name="${pdict.CurrentForms.billingsb.save.htmlName}" value="${Resource.msg('global.continuecheckoutbrief','locale',null)}" tabindex="30"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>
+		</div>
+		
+		<input type="hidden" name="${pdict.CurrentForms.billingsb.secureKeyHtmlName}" value="${pdict.CurrentForms.billingsb.secureKeyValue}"/>
+    </fieldset>
+</form>
+</isdecorate>

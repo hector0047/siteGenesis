@@ -1,0 +1,82 @@
+<!--- TEMPLATENAME: pagingbar.isml --->
+
+<isscript>
+	importPackage( dw.web );
+</isscript>
+
+<isscript>
+	var url = pdict.pageurl,
+		currentPage = pdict.pagingmodel.getCurrentPage(),
+		maxPage = pdict.pagingmodel.getMaxPage(),
+		currentStartIndex = pdict.pagingmodel.getStart(),
+		pageSize = pdict.pagingmodel.getPageSize(),
+		count = pdict.pagingmodel.getCount();
+	
+	var lr = 2; // number of explicit page links to the left and right
+	
+	var pagingStart = 0,
+		pagingEnd = maxPage;
+	
+	if ( maxPage >= 2 * lr - 1) {
+		pagingStart = Math.max( currentPage - lr, 0 );
+		pagingEnd = Math.min( currentPage + lr, maxPage );
+	}
+</isscript>
+
+<isif condition="${!empty(pdict.pageurl) && !empty(pdict.pagingmodel) && !pdict.pagingmodel.isEmpty()}">
+
+<div class="items-pagination">
+	<p>
+	
+		<isif condition="${(currentPage > 0) && (maxPage > 2)}">
+				
+			<span>&lt;&lt;</span>
+			<a href="${pdict.pagingmodel.appendPaging( url, currentStartIndex - pageSize)}" class="pagination-item" title="go to page">Previous</a>
+			
+			<isif condition="${currentPage > 2}">
+				<a href="${pdict.pagingmodel.appendPaging( url, 0 )}" class="pagination-item" title="go to page">1</a>
+				
+				<isif condition="${currentPage > 3}">
+					<span>...</span>
+				</isif>
+			</isif>
+			
+		</isif>
+		
+		<isif condition="${maxPage >= 1}">
+			
+			<isloop begin="${pagingStart}" end="${pagingEnd}" status="loopState">
+				<isif condition="${loopState.index != currentPage}">
+					<a href="${pdict.pagingmodel.appendPaging( url, currentStartIndex + (loopState.index - currentPage) * pageSize)}" class="pagination-item" title="go to page">
+						<isprint value="${(loopState.index + 1).toFixed()}"/>
+					</a>
+				<iselse>
+					<a class="pagination-item selected" title="go to page">
+						[<isprint value="${(loopState.index + 1).toFixed()}"/>]
+					</a>
+				</isif>
+			</isloop>
+		
+		</isif>
+		
+		<isif condition="${(currentPage < maxPage) && (maxPage > 2)}">
+			
+			<isif condition="${currentPage < maxPage - 2}">
+				<isif condition="${currentPage < maxPage - 3}">
+					<span>...</span>
+				</isif>
+				
+				<a href="${pdict.pagingmodel.appendPaging( url, maxPage *  pageSize)}" class="pagination-item" title="go to page">
+					<isprint value="${(maxPage + 1).toFixed()}"/>
+				</a>
+			</isif>
+			
+			<a href="${pdict.pagingmodel.appendPaging( url, currentStartIndex + pageSize)}" class="pagination-item" title="go to page">Next</a>
+			<span>&gt;&gt;</span>
+			
+		</isif>
+	
+	</p>	
+</div>
+
+</isif>

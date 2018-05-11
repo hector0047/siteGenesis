@@ -1,0 +1,17 @@
+function PayPalSetExpressCheckout() {}
+
+PayPalSetExpressCheckout.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};
+	},	
+	
+	getDummyResponse: function(text) {
+		
+	},
+	
+	dummy: function() {
+	}
+}
+module.exports = PayPalSetExpressCheckout;

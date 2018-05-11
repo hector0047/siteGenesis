@@ -1,0 +1,109 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<ul class="menu-utility-user">
+ 	
+ 	<iscomment>
+ 		User has sessoin, but not currently active (welcome back)
+		--------------------------------------------------------
+ 	</iscomment>
+ 	
+	<iscomment> Multi currency </iscomment>
+	<isinclude template="components/header/multicurrency"/>
+		
+	
+     
+	
+	 <isif condition="${ (pdict.CurrentCustomer.registered) && (!pdict.CurrentCustomer.authenticated)}">	 	 
+	     <li class="last unregister">
+			     <a title="${Resource.msg('global.orderstatus','locale',null)}" href="${URLUtils.https('Account-Show', 'ordertrack', 'true')}" class="user-register">
+			     	${Resource.msg('global.orderstatus','locale',null)}
+			     </a>
+	 		</li>	
+	    
+	 		<li class="headerlogin">
+	 			<iscomment>${Resource.msg('headercustomerinfo.welcome','components',null)}</iscomment>
+			     <a title="${Resource.msg('global.login','locale',null)}" href="${URLUtils.https('Account-Show')}" class="user-login">
+			     	${Resource.msg('global.login','locale',null)}
+			     </a>
+	 		</li>
+	 		
+	 		
+	     <li>
+	     	<a href="${URLUtils.http('Account-Support')}" title="${Resource.msg('headercustomerinfo.support','components',null)}" class="user-support">
+	     		${Resource.msg('headercustomerinfo.support','components',null)}
+		     </a>
+	     </li>
+	     
+	     
+ 	<iscomment>
+ 		User has sessoin and is validated
+		--------------------------------------------------------
+ 	</iscomment>
+ 	
+	 <iselseif condition="${pdict.CurrentCustomer.registered}">
+	 	     <li class="last">
+			     <a title="${Resource.msg('global.orderstatus','locale',null)}" href="${URLUtils.https('Order-History')}" class="user-register">
+			     	${Resource.msg('global.orderstatus','locale',null)}
+			     </a>
+	 		</li>
+	 	<li>
+	     	<a href="${URLUtils.http('Account-Support')}" title="${Resource.msg('headercustomerinfo.support','components',null)}" class="user-support">
+	     		${Resource.msg('headercustomerinfo.support','components',null)}
+		     </a>
+	     </li>
+	 	<li <isif condition=" ${ (pdict.CurrentCustomer.registered) && (pdict.CurrentCustomer.authenticated)}"> class="LoginMyAccount loggedin-nav-block"<iselse/>class="LoginMyAccount"</isif> >
+	     	<a href="${URLUtils.https('Account-Show')}" title="${Resource.msg('global.accountlink','locale',null)} " class="user-account">
+	     		${Resource.msg('headercustomerinfo.myaccount','components',null)}
+		     </a>
+		     <div class="secondary-navigation pnsb2c-sec-nav mobileBlock">  
+				<isinclude url="${URLUtils.url('Account-IncludeNavigation')}"/>
+			</div>
+	     </li>
+
+	 		<iscomment>
+	     <li class="hide">
+	     	<a title="${Resource.msg('headercustomerinfo.not','components',null)} ${pdict.CurrentCustomer.profile.firstName} ${pdict.CurrentCustomer.profile.lastName}" href="${URLUtils.https('Login-Logout')}">
+	     		(
+	     			${Resource.msg('headercustomerinfo.not','components',null)}
+	     			<isprint value="${pdict.CurrentCustomer.profile.firstName}"/>?
+	     		)
+	     	 </a>
+	     
+	     </li>	
+	     </iscomment>
+	     
+ 	<iscomment>
+ 		User has no session
+		--------------------------------------------------------
+ 	</iscomment>
+ 	
+	 <iselse/>
+	 	<li class="last unregister">
+			<a title="${Resource.msg('global.orderstatus','locale',null)}" href="${URLUtils.https('Account-Show', 'ordertrack', 'true')}" class="user-register">
+			     ${Resource.msg('global.orderstatus','locale',null)}
+			</a>
+	 	</li>
+		<li>
+	     	<a href="${URLUtils.http('Account-Support')}" title="${Resource.msg('headercustomerinfo.support','components',null)}" class="user-support">
+	     		${Resource.msg('headercustomerinfo.support','components',null)}
+		     </a>
+	     </li>
+	    
+	 	<li class="headerlogin">
+	 		<iscomment>${Resource.msg('headercustomerinfo.welcome','components',null)}</iscomment>
+		     <a title="${Resource.msg('global.login','locale',null)}" href="${URLUtils.https('Account-Show')}" class="user-login">
+		     	${Resource.msg('global.login','locale',null)}
+		     </a>
+		</li>
+	 		
+
+	
+	 </isif>
+	  <li>
+      
+         <a href="${URLUtils.url('Search-Show', 'cgid','bulk-orders')}" title="${Resource.msg('headercustomerinfo.bulkorders','components',null)}" class="bulk-orders">
+             ${Resource.msg('headercustomerinfo.bulkorders','components',null)}
+         </a>
+     </li>
+ 
+</ul>

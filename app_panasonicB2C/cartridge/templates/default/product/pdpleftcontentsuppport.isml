@@ -1,0 +1,88 @@
+<isinclude template="util/modules"/>
+<div class="pnsb2c-pdp-left">
+			<div class="pdp-left-holder">
+				<ul class="prod-info-ul">
+					<li class="info-block support-li">
+						<a href="${'#'}pnsb2c-pdp-overview">${Resource.msg('product.lefttab1','product',null)}</a>
+					</li>
+					<isif condition="${('enableDWRecommendations' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.enableDWRecommendations && !empty(pdict.productset) && pdict.productset != 'null') || ('StrandsEnabled' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.StrandsEnabled && !empty(pdict.Response) && pdict.Response != 'null')}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-accessesories">${Resource.msg('product.lefttab4','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${((!empty(pdict.FirmwareSupport) && pdict.FirmwareSupport != 'null') && pdict.FirmwareSupport.size() > 0) || ((!empty(pdict.Driver) && pdict.Driver != 'null') && pdict.Driver.size() > 0) || ((!empty(pdict.software) && pdict.software != 'null') && pdict.software.size() > 0)}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-firmdriver-holder">${Resource.msg('product.firmdriversupport','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${(!empty(pdict.HowToGuide) && pdict.HowToGuide != 'null') && pdict.HowToGuide.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-tutorial-holder">${Resource.msg('product.tutorialssupport','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${!empty(pdict.Product.custom.technicalSpecAttributes) && pdict.Product.custom.technicalSpecAttributes != 'null'}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-specifications">${Resource.msg('product.lefttab3','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${'energyRating' in pdict.Product.custom  && !empty(pdict.Product.custom.energyRating)}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-energyrating">${Resource.msg('product.lefttab10','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${(!empty(pdict.OwnerShipUrls) && pdict.OwnerShipUrls != 'null') && pdict.OwnerShipUrls.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-ownership">${Resource.msg('product.ownermanualsupport','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${(!empty(pdict.WarrentyUrls) && pdict.WarrentyUrls != 'null') && pdict.WarrentyUrls.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-warrantyrepair">${Resource.msg('product.warrrepairsupport','product',null)}</a>
+						</li>
+					</isif>
+					<iscomment>PANC-1738</iscomment>
+					<isif condition="${(!empty(pdict.AdvancedFeaturesManuals) && pdict.AdvancedFeaturesManuals != 'null') && pdict.AdvancedFeaturesManuals.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-advancedfeaturesmanualssupport">${Resource.msg('product.advancedfeaturesmanualssupport','product',null)}</a>
+						</li>
+					</isif>
+					<isif condition="${(!empty(pdict.AdditionalDocuments) && pdict.AdditionalDocuments != 'null') && pdict.AdditionalDocuments.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-additionalsupport">${Resource.msg('product.additionalsupport','product',null)}</a>
+						</li>
+					</isif>					
+					<isif condition="${(!empty(pdict.EHelpManual) && pdict.EHelpManual != 'null') && pdict.EHelpManual.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-ehelpsupport">${Resource.msg('product.eHelp','product',null)}</a>
+						</li>								
+					</isif>
+					<isif condition="${(!empty(pdict.DimensionSheet) && pdict.DimensionSheet != 'null') && pdict.DimensionSheet.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-dimensionsheetsupport">${Resource.msg('product.dimension','product',null)}</a>
+						</li>	
+					</isif>
+						<isif condition="${(!empty(pdict.wifiConnectionGuides) && pdict.wifiConnectionGuides != 'null') && pdict.wifiConnectionGuides.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-wifisupport">${Resource.msg('product.wifi','product',null)}</a>
+						</li>	
+					</isif>
+					<isif condition="${(!empty(pdict.Others) && pdict.Others != 'null') && pdict.Others.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-othersupport">${Resource.msg('product.others','product',null)}</a>
+						</li>	
+					</isif>
+					<isif condition="${(!empty(pdict.Faqs) && pdict.Faqs != 'null') && pdict.Faqs.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-faqs-holder">${Resource.msg('product.faqupport','product',null)}</a>
+						</li>
+					</isif>
+					<iscomment>Farhan's dev team PANC-1593 18/12/2015 12:45pm </iscomment>
+					<isif condition="${(!empty(pdict.supportVideoUrls) && pdict.supportVideoUrls != 'null') && pdict.supportVideoUrls.size() > 0}">
+						<li class="info-block support-li">
+							<a href="${'#'}pnsb2c-pdp-video-holder">${Resource.msg('product.videosupport','product',null)}</a>
+						</li>
+					</isif> 
+					<iscomment> PANC-1593 END</iscomment>
+				</ul>
+			</div>					
+		</div>

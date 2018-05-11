@@ -1,0 +1,26 @@
+/**
+ * Retrieve data related to the current user
+ * @input user : Object The product object
+ * @output ens_user : Object An object containing current user information
+ *
+ */
+ 
+importPackage( dw.system );
+
+function execute( pdict : PipelineDictionary ) 
+{
+	var user = pdict.user;
+	var data = new Object();
+	if (user != null) {
+		data.authencicated = ""+(!user.anonymous && user.authenticated)
+		data.registered = "" + user.registered;
+		data.id = "" + user.ID;
+		if (user.profile != null && user.profile.email != null) {
+			data.email = user.profile.email;
+		}
+	}
+	
+	pdict.ens_user = data;
+	
+    return PIPELET_NEXT;
+}

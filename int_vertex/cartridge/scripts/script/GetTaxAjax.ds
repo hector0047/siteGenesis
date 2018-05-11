@@ -1,0 +1,44 @@
+/**
+*	GetTaxAjax.ds
+*
+* 	This script will attempt to update the tax to the basket based on the shipping address selections
+*
+*	@input Basket	: dw.order.Basket
+*	@input Country	: String
+*	@input State	: String
+*	@input Zip		: String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.util );
+importPackage( dw.net );
+importScript('lib/libVertexRPCQuotation.ds');
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try{
+		Logger.info("GetTaxAjax Started**************************************************************************************.");
+		var basket 	: Basket		=	args.Basket;
+		var country : String		=	args.Country;
+		var state 	: String		=	args.State;
+		var zip 	: String		=	args.Zip;
+		var vertexHelper:VertexRPCQuotationHelper = getVertexRPCQuotationHelper();
+		if(vertexHelper == null) {
+			Logger.info("Unable to get VertexHelper." );
+			return  PIPELET_NEXT;
+		}
+		if(!empty(country) && !empty(state) && !empty(zip)){
+			var strAddress = "Single shipment," + state + "," +  zip +  "," + country;
+			vertexHelper.calculateTax(basket, strAddress,false);
+			Logger.info("GetTaxAjax Completed####################################################################################.");
+		}
+		return PIPELET_NEXT;
+	}catch(e){
+		Logger.error(" GetTaxAjax Exception thrown. Error=" + e );
+	}
+	Logger.info("GetTaxAjax Completed after exception.");
+	return PIPELET_NEXT;
+}

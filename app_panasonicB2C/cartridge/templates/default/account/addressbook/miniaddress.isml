@@ -1,0 +1,75 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Creates a miniaddress display.
+
+	Parameter:
+	p_address	 	: the address object to display
+    p_productlist   : the product list the address represents. can be empty
+</iscomment>
+
+
+<iscomment>
+	There are some addresses without an ID, catch this here and make this include
+    more universal usable therefore.
+</iscomment>
+
+<isif condition="${'ID' in pdict.p_address && !empty(pdict.p_address.ID)}">
+	<div class="mini-address-title">
+		<iscomment><isprint value="${pdict.p_address.ID}"/></iscomment>
+		<isif condition="${!empty(pdict.p_productlist)}">
+			<div class="mini-address-product-list">${Resource.msg('miniaddress.registrywishlist','account',null)}</div>
+		</isif>
+	</div>
+</isif>
+<isscript>
+	var billingPhone = pdict.p_address.phone.replace('(','').replace(')','').replace(' ','').replace(/[-]/g,'');	
+	var phoneval1 = billingPhone.substring(0,3);
+	var phoneval2 = billingPhone.substring(3,6);
+	var phoneval3 = billingPhone.substring(6,10);
+</isscript>
+
+	<div class="mini-address-name">
+		<isprint value="${pdict.p_address.fullName}"/>		
+	</div>
+
+
+<div class="mini-address-location">
+
+	<address>
+	
+		<span class="m_addr1"><isprint value="${pdict.p_address.address1}"/></span>
+		<isif condition="${!empty(pdict.p_address.address2)}">
+			<br/><span class="m_addr2"><isprint value="${pdict.p_address.address2}"/></span>
+		</isif>
+		<isif condition="${pdict.p_address.city != null}">
+			<br/><span class="m_city"><isprint value="${pdict.p_address.city}"/>,
+		</isif>
+	
+		<isprint value="${pdict.p_address.stateCode}"/> 
+		
+		<isprint value="${pdict.p_address.postalCode}"/><br/></span>
+		
+		<iscomment>
+		<isprint value="${pdict.p_address.countryCode}"/>
+		</iscomment>
+		<br>
+		<span class="m_phone">
+			<isif condition="${!empty(pdict.p_address.phone)}">
+				<iscomment>${Resource.msg('miniaddress.phone','account',null)}</iscomment>
+				<isif condition="${pdict.CurrentRequest.httpPath.indexOf('Address-List') != -1 || pdict.CurrentRequest.httpPath.indexOf('Address-EditAddress') != -1 || pdict.CurrentRequest.httpPath.indexOf('Address-AddAddress') != -1 || pdict.CurrentRequest.httpPath.indexOf('Address-SetDefault') != -1}">
+					(<isprint value="${phoneval1}"/>)-<isprint value="${phoneval2}"/>-<isprint value="${phoneval3}"/>
+				<iselseif condition="${pdict.CurrentRequest.httpPath.indexOf('Order-History') != -1}">
+						<isprint value="${phoneval1}"/>-<isprint value="${phoneval2}"/>-<isprint value="${phoneval3}"/>
+				<iselse/>
+					<isscript>  
+			        	var originalNum: String = pdict.p_address.phone;  
+			        	var formattedNum: String = '';  
+			            formattedNum = originalNum.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');        
+			       </isscript> 
+					<isprint value="${formattedNum}"/>
+							
+				</isif>
+			</isif>
+		</span>
+	</address>
+</div>

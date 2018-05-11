@@ -1,0 +1,35 @@
+<!--- TEMPLATENAME: addtocart.isml --->
+
+<isinclude template="utils/launchevents"/>
+
+<script data="pixlee-addtocart">
+	var cartItem = {};
+</script>
+
+<isloop items="${pdict.Basket.productLineItems}" var="CartItem" status="loopstate">
+	<isset name="productObj" value="${dw.catalog.ProductMgr.getProduct(CartItem.productID)}" scope="page" />
+
+	<script data="pixlee-addtocart">
+		function createATCCartItem() {
+
+			var productSku = "${productObj.getID()}";
+			if(${productObj.getManufacturerSKU() != null} && ${skuReference == 'Manufacturer SKU'}){
+				productSku = "${productObj.getManufacturerSKU()}";
+			}
+
+			cartItem = {
+				quantity: parseInt("${CartItem.getQuantityValue()}"),
+				product_id: "${CartItem.productID}",
+				product_sku: productSku,
+				price: "${CartItem.getPrice()}".replace(/[^0-9\.]+/g,"")
+			};
+		};
+		// Guard the creation of cartItem so that if something breaks, we'll get the log
+		guard(createATCCartItem, []);
+	</script>
+</isloop>
+
+<script data="pixlee-addtocart">
+	// The listener on the other side of this function has its own guard
+	launchEvent('add:to:cart', cartItem);
+</script>

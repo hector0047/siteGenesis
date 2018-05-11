@@ -1,0 +1,63 @@
+/**
+*
+* Params:
+*
+* @input CatalogID : String
+* @input ProductImagesToAssign : Object
+* @input ProductGlobalSwatchImagesToAssign : Object
+* @input ViewTypes : String
+* @output GeneratedCatalogFileName : String
+* @output ErrorMsg : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.io );
+
+importScript( "bc_amplience:export/libAmplienceCatalogExporter.ds" );
+
+function execute( args : PipelineDictionary ) : Number {
+	try {
+		var viewTypes : Object = JSON.parse(args.ViewTypes);
+		var catalogID : String = args.CatalogID;
+		if(empty(catalogID)) throw new Error("CatalogID cannot be empty.");
+		
+		var targetPath : String = "IMPEX/src/temp";
+		if(!checkPathExists(targetPath)) throw new Error("Target directory does not exist: " + targetPath);
+
+		var fileName : String = "amplience_images_catalog.xml";
+		
+		var productImages : Object = args.ProductImagesToAssign;
+		var swatchImages : Object = args.ProductGlobalSwatchImagesToAssign;
+		if(!productImages) throw new Error("ProductImagesToAssign missing.");
+		
+		if(productImages.empty) {
+			Logger.info("GenerateCatalogImportXML.ds : No product images to assign.");
+			return PIPELET_NEXT;
+		}
+		
+		var fullFileName : String = targetPath + File.SEPARATOR + fileName;
+		var file : File = new File(fullFileName);
+		
+		var amplienceCatalogExporter = new AmplienceCatalogExporter();
+		
+		amplienceCatalogExporter.exportCatalog(file, productImages, swatchImages, catalogID, viewTypes);
+		
+		args.GeneratedCatalogFileName = fullFileName.replace("IMPEX/src/", "");
+	}
+	catch(e) {
+		var errMsg : String = "GenerateCatalogImportXML.ds : " + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}
+
+function checkPathExists(path : String) : Boolean {
+	var file : File = new File(path);
+	
+	return file.directory && file.exists();
+}
+

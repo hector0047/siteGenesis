@@ -1,0 +1,32 @@
+<pre>
+Here is the decision (ACCEPT, REJECT, or ERROR)
+<isprint value="${pdict.decision}"><br>
+
+Here is the global reason code:
+<isprint value="${pdict.reason}"><br>
+
+Here is the avscode
+<isprint value="${pdict.AVSCode}" /><br />
+
+Here is the raw avscode
+<isprint value="${pdict.AVSCodeRaw}" /><br />
+
+Here is the authcode
+<isprint value="${pdict.authcode}"><br>
+
+Here is the auth reason code:
+<isprint value="${pdict.authreason}"><br>
+
+Here is the auth amount
+<isprint value="${pdict.authamount}"><br>
+
+Here is the requestid
+<isprint value="${pdict.requestid}"><br>
+
+Here is the request token
+<isprint value="${pdict.token}"><br>
+
+
+=================
+<isprint value="${pdict.log}">
+</pre>

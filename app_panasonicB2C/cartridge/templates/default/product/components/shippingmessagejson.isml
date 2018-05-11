@@ -1,0 +1,46 @@
+<iscontent type="application/json" charset="UTF-8" compact="true"/>
+<isscript>
+importScript("product/ProductUtils.ds");
+var data = ProductUtils.getAvailability(pdict.Product, pdict.CurrentHttpParameterMap.Quantity.stringValue);
+</isscript>
+	<div class="default-shippingmethod-msg">
+			<isif condition="${'shipping_message' in pdict.Product.custom}">
+					<isprint value="${pdict.Product.custom.shipping_message}"/>		
+			<iselseif condition="${'customerCareShippingMessage' in pdict.Product.custom}">
+					<isprint value="${pdict.Product.custom.customerCareShippingMessage}"/>	
+			<iselse>
+			
+				${(data.levels.IN_STOCK > 0) && (!data.levels.PREORDER > 0) && (!data.levels.BACKORDER > 0)}
+			
+						<isif condition="${(data.levels.IN_STOCK > 0) && (!data.levels.PREORDER > 0) && (!data.levels.BACKORDER > 0)}">
+								Ships in 1-3 business days		
+						<iselseif condition="${data.levels.PREORDER> 0}">
+							<isscript>importScript("product/ProductUtils.ds");</isscript>
+							<isset name="dynamicMessage1" value="${ProductUtils.getMonthName(new Date(pdict.Product.availabilityModel.inventoryRecord.inStockDate.toString()).getMonth())}" scope="PAGE"/>
+							<isset name="dynamicMessage2" value="${ProductUtils.getMonthName((new Date(pdict.Product.availabilityModel.inventoryRecord.inStockDate.toString()).getMonth())+1)}" scope="PAGE"/>
+								<isprint value="${dynamicMessage1.toString().concat('-').concat(dynamicMessage2.toString())}"/>
+							
+							
+						<iselseif condition="${data.levels.BACKORDER> 0 }">
+							<isscript>
+								var avilDate = (new Date(pdict.Product.availabilityModel.inventoryRecord.inStockDate.toString()).getTime().toFixed());
+								var currDate = (new Date().getTime().toFixed());
+								var Days = (avilDate-currDate)/(1000 * 60 * 60 * 24);
+							</isscript>
+								<isif condition="${((Days.toFixed() > 0) || (Days.toFixed() == 0)) && ((Days.toFixed() < 14)||(Days.toFixed() == 14))}">
+									Estimated Ship date: 5-7 business days
+								<iselseif condition="${((Days.toFixed() > 15) || (Days.toFixed() == 15)) && ((Days.toFixed() < 21)||(Days.toFixed() == 21))}">
+									Estimated Ship date: 7-10 business days 
+								<iselseif condition="${(Days.toFixed() > 21)}">
+									This Item is backordered
+								</isif>
+								
+						<iselse/>
+							<!-- No message while product out of stock -->
+										
+						</isif>
+							
+			</isif>
+			
+		</div>
+	

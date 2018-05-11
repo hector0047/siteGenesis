@@ -1,0 +1,35 @@
+/**
+* Set current active tab
+*
+* @input HttpParameterMap : dw.web.HttpParameterMap
+*
+* @output TabsHelper : Object
+* @output ErrorMsg : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.web );
+
+importScript( 'amplience/AmplienceUGCTabsHelper.ds' );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var parameterMap : HttpParameterMap = args.HttpParameterMap;
+		
+		var amplienceUGCTabsHelper : Object = new AmplienceUGCTabsHelper();
+		amplienceUGCTabsHelper.init( parameterMap );
+		
+		args.TabsHelper = amplienceUGCTabsHelper;
+
+	}
+	catch(e) {
+		var errMsg = 'GetUGCIFrameUrl.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

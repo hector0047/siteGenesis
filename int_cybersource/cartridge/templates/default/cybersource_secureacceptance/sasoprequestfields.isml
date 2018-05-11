@@ -1,0 +1,13 @@
+<!--- TEMPLATENAME: sasoprequestfields.isml --->
+<isif condition="${dw.system.System.getInstanceType() != dw.system.System.PRODUCTION_SYSTEM}">
+	<isset name="SASOPUrl" value="${dw.system.Site.current.preferences.custom.SASOPURL_TEST}" scope="page" />
+<iselse/>
+	<isset name="SASOPUrl" value="${dw.system.Site.current.preferences.custom.SASOPURL}" scope="page" />
+</isif>
+
+<form class="sasop-subscription-form" action="${SASOPUrl}" method="post">
+	<isprint value="${pdict.requestFields}" encoding="off" />		
+	<input style="display:none;" name="sasop-subscribe" type="submit" value="${Resource.msg('summary.placemyorder','checkout',null)}" />
+</form>
+
+

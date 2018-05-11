@@ -1,0 +1,129 @@
+/**
+*
+*   @input Basket : dw.order.Basket The user's basket.
+*
+*/
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.util );
+importScript("checkout/Utils.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+    // read pipeline dictionary input parameter
+	var basket : Basket = args.Basket;	
+	var shippingAddress : OrderAddress;
+	var newShipmentID : String;
+	var pli : dw.order.ProductLineItem;
+	var assignedFirstProduct = false;
+	var removableShipments:List=new ArrayList(); 
+	var shippingMehtod : ShippingMethod;
+	var defaultShipment : Shipment;
+	
+	//set up the default shipment to the first product in the basket - will create others shipment if needed.
+	if (basket.productLineItems.length > 0) {
+		shippingAddress = basket.defaultShipment.shippingAddress;						
+		pli = basket.productLineItems[0];
+		shippingMehtod = getShippingMethod(pli);		
+		
+		//Getting the default shipment
+		defaultShipment = basket.defaultShipment;
+		
+		//If default shipment is null we are creating new shpiment or else we use the default shipment
+		if(defaultShipment == null){
+			var newShipmentID = determineUniqueShipmentID( basket, "Shipment #" );
+			var shipment : Shipment = basket.createShipment(newShipmentID);
+			shipment.setShippingMethod(shippingMehtod);
+			pli.setShipment(shipment);
+		} else {
+			defaultShipment.setShippingMethod(shippingMehtod);
+			pli.setShipment(defaultShipment);
+		}
+		//This flag is used to skip the shipment assignment for the first product.
+		assignedFirstProduct = true;
+	}
+	
+	//now loop through every product, find the right shipment, creating it if it doesn't exist
+	for(var i in basket.productLineItems) {
+		
+		if (i==0 && assignedFirstProduct) {
+			continue;
+		}
+		
+		//from second productLineItem onwords we are getting all the productLineItems
+		pli = basket.productLineItems[i];
+		
+		//Getting the applicable shipping method for the product in the line item if available.
+		shippingMehtod = getShippingMethod(pli);
+		var shipment : Shipment;
+		
+		//If no shipping methods available for that product assigning the default shipping method				
+		if(empty(shippingMehtod)) {
+			shippingMehtod = ShippingMgr.getDefaultShippingMethod();
+		}
+		
+		//Here we are getting the shipment for the shipping method if available					
+		var pliShipment : Shipment = getShipmentForLineItem(basket, shippingMehtod);
+		
+		//If the shipment alreday there in the basket we will use the existing shipmnet or else will create new one
+		if(!empty(pliShipment)) {
+			pliShipment.setShippingMethod(shippingMehtod);
+			pli.setShipment(pliShipment);
+		} else {
+			newShipmentID = determineUniqueShipmentID( basket, "Shipment #" );
+			shipment = basket.createShipment(newShipmentID);
+			shipment.setShippingMethod(shippingMehtod);
+			pli.setShipment(shipment);
+		}
+	}
+	
+	// Identify empty shipments and it will remove from Basket.	
+	for(var j in basket.shipments) {
+		var shipment: Shipment = basket.shipments[j];
+		if (empty(shipment.productLineItems)&& shipment.productLineItems.length == 0 && shipment != basket.defaultShipment ){
+			removableShipments.add(shipment);
+		}
+	}
+	
+	if (!removableShipments.empty) {
+		for(var k in removableShipments){
+			var removeableShipment = removableShipments[k];
+			basket.removeShipment(removeableShipment);
+		}
+	}
+	
+	return PIPELET_NEXT;
+}
+
+function getShipmentForLineItem(basket : Basket, pliShippingMehtod : ShippingMethod) {
+	let shipment : Shipment;
+	//Iterating all the shipments in the basket if any of the shipment matches with  pliShippingMehtod we are returning that particular shipment else we will return null
+	for (var i in basket.shipments) {
+		shipment = basket.shipments[i];
+		if(shipment.getShippingMethodID() == pliShippingMehtod.getID()){
+			return shipment;
+		}
+	}
+	return null;
+}
+
+//This method returns the shipping method based on the productShippingModel
+function getShippingMethod(pli : ProductLineItem) : ShippingMethod {
+	
+	var pliShippingMehtod : ShippingMethod;
+	 
+	var product : Product = pli.getProduct();
+	//Getting the product shipping model
+	var productShippingModel : ProductShippingModel = ShippingMgr.getProductShippingModel(product);
+	
+	//Getting the collections of shipping methods applicable to that particular product in the lineItem
+	var shippingmethodsIterator : Iterator = productShippingModel.getApplicableShippingMethods().iterator();
+		
+	//Returning the first shipping method because first has the priority among others	
+	while(shippingmethodsIterator != null && shippingmethodsIterator.hasNext() ){
+    	pliShippingMehtod = shippingmethodsIterator.next();
+    	break;	   	
+ 	}
+ 	return pliShippingMehtod;
+}

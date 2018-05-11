@@ -1,0 +1,102 @@
+/**
+* Demandware Script File GetTax.ds
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*    @input Basket : dw.order.LineItemCtnr
+*
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.util );
+importPackage( dw.net );
+importScript('lib/libVertexRPCQuotation.ds');
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+	 try{
+	 	
+	 	var disableLog : Boolean =  Site.getCurrent().getCustomPreferenceValue("DisableVertexLog");
+	 	
+	 	if(disableLog == null)
+	 		disableLog = false;
+	 	
+	 	
+	 	 if(!disableLog)
+	 	 	Logger.info("GetTax Started**************************************************************************************.");
+		 var basket : Basket = args.Basket;
+		 var nullShipmentAddr : Boolean = true; 
+		 var   vertexHelper:VertexRPCQuotationHelper = getVertexRPCQuotationHelper();
+		 if(vertexHelper == null) {
+		 	if(!disableLog)
+	 	 		Logger.info("Unable to get VertexHelper." );
+		 	return  PIPELET_NEXT;
+		 }
+		 if(!disableLog)
+	 	 	Logger.debug("GetTax Checking for shipping addresses.");
+		 for each (var shipment : Shipment in basket.shipments) {
+			var shippingAddress : OrderAddress = shipment.getShippingAddress();
+			 
+			if(!vertexHelper.validateAddress(shippingAddress)){
+				if(!disableLog)	{
+	 	 			Logger.info("Shipping address is null.");
+					Logger.debug("Shipping address is null.");
+				}
+				
+				if(!disableLog){
+				Logger.debug("Shipping address/billing address is null. Applying default taxes. ");
+				Logger.info("Shipping address/billing address is null. Applying default taxes. ");
+				}
+				vertexHelper.applyDefaultTaxForShipment(shipment);
+				
+			}// End of if(shippingAddress == null)
+			else {
+				if(!disableLog){
+				Logger.debug("Shipment contains valid address.");
+				Logger.info("Shipment contains valid address.");
+				}
+				nullShipmentAddr = false;
+			}
+		 }// End of for each (var shipment
+		 if(nullShipmentAddr) {
+		 	if(!disableLog){
+		 	Logger.info("All shipments having shipping address null. Default taxes applied. Cannot proceed.");
+		 	Logger.debug("All shipments having shipping address null. Default taxes applied. Cannot proceed.");
+		 	}
+		 	vertexHelper.performPriceAdjustment(basket);
+		 	basket.updateTotals();
+		 	if(!disableLog)
+				Logger.info("GetTax Completed####################################################################################.");
+		 	return PIPELET_NEXT;
+		 }
+		 if(!disableLog){
+			 Logger.debug("Calling VertexTax.");
+			 Logger.info("Calling VertexTax.");
+		 }
+		 vertexHelper.calculateTax(basket,"",false);
+		 basket.updateTotals();
+		 if(!disableLog)
+		 	Logger.info("GetTax Completed####################################################################################.");
+		 return PIPELET_NEXT;
+		}catch(e){
+			// handle exception
+			Logger.error(" GetTax Exception thrown. Error=" + e );
+		}
+		if(!disableLog)
+			Logger.info("GetTax Completed after exception.");
+	 return PIPELET_NEXT;
+}
+
+

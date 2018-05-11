@@ -1,0 +1,14 @@
+function CCAuthRequestWithOrder() {}
+
+CCAuthRequestWithOrder.prototype = {
+	initFromWebservice : function(response) {
+		this.response = {
+			res : response
+		};		
+	},	
+	
+	dummy: function() {
+		
+	}
+}
+module.exports = CCAuthRequestWithOrder;

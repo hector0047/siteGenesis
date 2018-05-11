@@ -1,0 +1,66 @@
+/**
+*	CreateSubscription.ds
+*	Perfroms the pay subscription create service and returns the response.
+*
+* @input billTo : Object
+* @input card : Object
+* @input purchaseTotals : Object
+* @output SubscriptionIDToken :String
+* @output decision :String
+* @output invalidField : Array;
+* @output missingField : Array
+* @output reasonCode : Object
+* @output requestID : Object
+* @output requestToken : Object
+*
+*/
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+
+var sf = require("bc_serviceframework");
+require("../services/CreateSubscriptionService");
+
+function execute(pdict) {
+	
+	try{
+		var CreateSubscriptionService = sf.getService('CybersourceService');
+		var service = new CreateSubscriptionService();
+		
+		// Prepare subscriptioninfo object
+		var subscriptionInfoObj : Object	= new Object();
+		subscriptionInfoObj.billToObject	= pdict.billTo;
+		subscriptionInfoObj.cardObject		= pdict.card;
+		subscriptionInfoObj.purchaseObject	= pdict.purchaseTotals;
+		
+		// Execute service call
+		service.call(subscriptionInfoObj);
+		
+		// Parse reponse
+		var response = service.response;
+		 
+		if(response == null){
+			return PIPELET_ERROR;
+		}
+		else
+		{
+			if ( null != response.paySubscriptionCreateReply)
+			{
+				pdict.SubscriptionIDToken = response.paySubscriptionCreateReply.subscriptionID;
+			}
+			pdict.decision = response.decision;
+			pdict.invalidField = response.invalidField;
+			pdict.missingField = response.missingField;
+			pdict.reasonCode = response.reasonCode;
+			pdict.requestID = response.requestID;
+			pdict.requestToken = response.requestToken;
+		}
+	}catch(e){
+		Logger.error("Error while executing the script CreateSubscription.ds. Error.."+e.message);
+	}
+	
+   	return PIPELET_NEXT;
+}

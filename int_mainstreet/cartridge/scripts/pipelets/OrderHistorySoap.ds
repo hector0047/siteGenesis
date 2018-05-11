@@ -1,0 +1,44 @@
+/**
+* This will add the orders from MainStreet to the Collection that was already generated
+* from the demandware system.
+* @author Demandware
+* @creationdate 2011-07-23
+*
+* @input OrderUnpaged : dw.util.Iterator 
+* @input OrderUnpagedCount : Number
+* @input CustomerNo : String
+* @output Response : Object
+* @output OrderMixedUnpaged : dw.util.Iterator
+* @output OrderMixedCount : Number 
+*/
+
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value );
+
+
+var sf = require("bc_serviceframework");
+require("../services/OrderHistorySoapService");
+
+function execute( pdict : PipelineDictionary ) : Number
+{	
+	var OrderHistorySoapService = sf.getService('OrderHistorySoapService');
+	var service = new OrderHistorySoapService();
+			
+	service.call(pdict.CustomerNo);	
+	var responseOrders = service.response;
+	
+	pdict.Response = responseOrders;
+	
+	pdict.OrderMixedCount =responseOrders.length;
+ 
+    pdict.OrderMixedUnpaged = responseOrders.iterator();
+   
+    Logger.debug("Main street orders response Obtained : " + responseOrders + "\n");
+    Logger.debug("Main street Service Status Code : " + service.status.code + "\n");
+    Logger.debug("Main street Service Status Duration : " + service.status.duration + "\n");
+	Logger.debug("Main street Service Status clarification : " + service.status.clarification.length + "\n");
+    return PIPELET_NEXT;
+}

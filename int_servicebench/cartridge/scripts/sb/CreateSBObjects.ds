@@ -1,0 +1,113 @@
+/**********************************************************************************************************************************************************************************************
+*
+* TITLE:  
+*
+*	Service Bench session Objects
+*
+* 
+*
+*	
+*
+*@output SBObject : Object
+**********************************************************************************************************************************************************************************************/
+importPackage( dw.system );
+
+function execute(pdict) {
+
+	//Prepairing & Initializing submitRepairRequest Object(1)
+	
+	var submitRepairRequest : Object = new Object();
+	submitRepairRequest.mnumber=null;
+	submitRepairRequest.snumber=null;
+	submitRepairRequest.day=null;
+	submitRepairRequest.month=null;
+	submitRepairRequest.year=null;
+	
+	//Prepairing & Initializing submitRepairResponse Object(2)
+	var submitRepairResponse : Object = new Object();
+	
+		//Product information(2.1)
+		var productInformation :Object = new Object();
+		productInformation.mnumber=null;
+		productInformation.snumber=null;
+		productInformation.date=null;
+		productInformation.partsWarrantyStatus=null;
+		productInformation.labourWarrantyStatus=null;
+		productInformation.partsWarrantyExpirationDate=null;
+		productInformation.labourwarrantyExpirationDate=null;
+		productInformation.productExchangeNotice=null;
+		productInformation.serviceInformation=null;
+		
+		//Summary information(2.2)
+		var summaryInformation : Object = new Object();
+		summaryInformation.exchangeFee=null;
+		summaryInformation.shippingFee=null;
+		summaryInformation.taxFee=null;
+		summaryInformation.totalFee=null;
+		
+		//Assigning to ubmitRepairResponse Object
+		submitRepairResponse.productInformation = productInformation;
+		submitRepairResponse.summaryInformation= summaryInformation;
+		
+	//Prepairing & Initializing shippingAddress Object(3)
+	var shippingAddress: Object = new Object();
+	shippingAddress.ID=null;
+	shippingAddress.firstName=null;
+	shippingAddress.lastName=null;
+	shippingAddress.address1=null;
+	shippingAddress.address2=null;
+	shippingAddress.city=null;
+	shippingAddress.state=null;
+	shippingAddress.postal=null;
+	shippingAddress.phone=null;
+	shippingAddress.problemDescription=null;
+	
+	//Prepairing & Initializing creditCard Object(4)
+	var creditCard: Object = new Object();
+	creditCard.ID=null;
+	creditCard.owner=null;
+	creditCard.number=null;
+	creditCard.month=null;
+	creditCard.year=null;
+	creditCard.cvn=null;
+	
+	//Prepairing & Initializing billingAddress Object(5)
+	var billingAddress: Object = new Object();
+	billingAddress.ID=null;
+	billingAddress.firstName=null;
+	billingAddress.lastName=null;
+	billingAddress.address1=null;
+	billingAddress.address2=null;
+	billingAddress.city=null;
+	billingAddress.state=null;
+	billingAddress.postal=null;
+	billingAddress.phone=null;
+	billingAddress.emailAddress=null;
+	
+	//Prepairing & Initializing scheduleResponse Object(6)
+	var scheduleResponse: Object = new Object();
+	scheduleResponse.referenceNumber = null;
+	scheduleResponse.shippingAddress = shippingAddress;
+	scheduleResponse.billingAddress = billingAddress;
+	scheduleResponse.creditCard = creditCard;
+	scheduleResponse.productInformation = productInformation;
+	scheduleResponse.summaryInformation= summaryInformation;
+	
+	//Finally assisgning all the objects 1,2,3,4,5 & 6 to serviceBench Object
+	
+	var serviceBenchObject : Object = new Object();
+	serviceBenchObject.submitRepairRequest = submitRepairRequest;
+	serviceBenchObject.submitRepairResponse = submitRepairResponse;
+	serviceBenchObject.shippingAddress = shippingAddress;
+	serviceBenchObject.creditCard = creditCard;
+	serviceBenchObject.billingAddress = billingAddress;
+	serviceBenchObject.scheduleResponse = scheduleResponse;
+	
+	
+	
+	//Making availabe of serviceBenchObject object in session privacy
+	session.privacy.serviceBenchObject = serviceBenchObject;
+	pdict.SBObject = session.privacy.serviceBenchObject;
+	return PIPELET_NEXT;
+	
+}

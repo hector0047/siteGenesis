@@ -1,0 +1,44 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isscript>var pageContext={title:'SBCheckout',type:'sbcheckout',ns:'sbcheckout'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="checkout/pt_checkout_UI"/>
+
+	<iscomment>Add template-specific header information here.</iscomment>	
+	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_checkout sb-checkout">
+	
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',false)}"/>
+			
+		<div id="main" role="main" class="primary-focus clearfix">
+			<isbreadcrumbs bctext1="${pdict.bctext1}"/>
+			<div id="primary" class="primary-content">
+				<isreplace/>
+			</div>
+			
+			<div id="secondary" class="nav summary">
+					
+				<div class="request-summary-block block-3">
+					<isinclude template="responses/sb_requestsummary.isml"/> 
+			 	</div>
+			
+			</div>
+		</div>
+		<isinclude template="components/footer/footer"/>
+		<isinclude template="checkout/pt_checkout_VARS"/>
+	</div>
+</body>
+</html>

@@ -1,0 +1,359 @@
+/** @module bc_serviceframework/cartridge/scripts/util/WebserviceUtils */
+
+var Logger = require('dw/system').Logger;
+var Site   = require('dw/system').Site;
+var ArrayList = require('dw/util').ArrayList;
+var StringUtils = require('dw/util').StringUtils;
+
+/**
+ * Class which represents the status of a webservice call
+ * @class
+ */
+function CallStatus (code, error){
+	this.code = code ? code : '';
+	this.ccode = '';
+	this.error = error ? error : '';
+	this.msg = '';
+	this.requestId = '';
+	this.clarification = new Array();
+	this.site = Site.getCurrent().getID();
+	this.duration = 0;
+}
+
+
+/**
+* Helper namespace, that encapsulates common functionality
+* @namepace
+*/
+function WebServiceUtilities () {}
+
+/**
+*	converts a arguments object to a full fledged array
+*/
+WebServiceUtilities.getArgumentsAsArray = function(arguments) {
+	var args : Array = [];
+	for(var i = 0; i < arguments.length; i++) {
+		args.push(arguments[i]);
+	}
+	return args;
+}
+
+/** 
+ * Utilities for webservice logging: converts webservice data into loggable messages  
+ * @namespace 
+ */
+var WebserviceLogger = {
+
+	
+	initLoggers : function(webserviceConfiguration) {
+		if (!empty(webserviceConfiguration.getLogFilePrefix())) {
+			WebserviceLogger.headerLog = Logger.getLogger("sf-" + webserviceConfiguration.getLogFilePrefix() + "-head","ServiceFramework.header");
+			WebserviceLogger.communicationLog = Logger.getLogger("sf-" + webserviceConfiguration.getLogFilePrefix() + "-comm","ServiceFramework.comm");
+		} else {
+			WebserviceLogger.headerLog = Logger.getLogger("sf-header","ServiceFramework.header");
+			WebserviceLogger.communicationLog = Logger.getLogger("sf-communication","ServiceFramework.comm");	
+		}
+	},
+	
+	logInFileWithLogging : function(status, callFrom, webserviceConfiguration) : Object {
+		WebserviceLogger.initLoggers(webserviceConfiguration);
+		var logStatus = webserviceConfiguration.logStatus; 
+		if (logStatus && !empty(callFrom)) {
+			// push all given response attributes in an array //
+			var logEntries : Array = new Array();
+			logEntries.push("service="+callFrom);
+			for (var name in status) {
+				if (typeof(status[name]) != "function") {
+					logEntries.push(new String(name + "=" + status[name]));
+				}
+			}
+			
+			WebserviceLogger.headerLog.info(logEntries.toString());
+		}
+	},
+	 
+	 logFTPCommunication : function (request, response, serviceName, webserviceConfiguration : Object) {
+	 	WebserviceLogger.initLoggers(webserviceConfiguration);
+	 	try {
+	 		if (empty(webserviceConfiguration)
+		 		|| !('isFullCommunicationLogEnabled' in webserviceConfiguration)
+		 		|| !webserviceConfiguration.isFullCommunicationLogEnabled()) {
+		 		return;
+		 	}
+			WebserviceLogger.communicationLog.info("Request:\n"+JSON.stringify(request));
+			WebserviceLogger.communicationLog.info("Response:\n"+JSON.stringify(response));
+	 		
+		} catch (e) {
+			WebserviceLogger.communicationLog.error('WebServiceUtils.ds: Logging the Rest communication failed: ' + e);
+		}
+	 },
+	 
+	 logCommunicationPlain : function (request, response, callfrom : String, webserviceConfiguration : Object)  {
+ 	 	WebserviceLogger.initLoggers(webserviceConfiguration);
+ 	 	try {
+		 	if (empty(webserviceConfiguration)
+		 		|| !('isFullCommunicationLogEnabled' in webserviceConfiguration)
+		 		|| !webserviceConfiguration.isFullCommunicationLogEnabled()) {
+		 		return;
+		 	}
+		 	
+		 	if (webserviceConfiguration.fullCommunicationFormat() == "LOG_NOLINEBREAK") {
+		 		if (!empty(request)) {
+		 			request = request.replace(/(\r\n|\n|\r)/gm,"");
+		 		}
+		 		if (!empty(response)) {
+		 			response = response.replace(/(\r\n|\n|\r)/gm,"");
+		 		}
+		 	}
+		 	
+		 	WebserviceLogger.communicationLog.info('Webservice Communication: ' + webserviceConfiguration.serviceName + " (" + webserviceConfiguration.credentials.url + ")");
+		 	WebserviceLogger.communicationLog.info('Request:\n' + request);
+		 	WebserviceLogger.communicationLog.info('Response:\n' + response);
+		 	
+		 	
+		 	
+	 	} catch (e) {
+			WebserviceLogger.communicationLog.error('WebServiceUtils.ds: Logging the HTTP communication failed: ' + e);
+		}
+	 },
+	 
+	 logSoapXmlWithLogging : function(request, response, callfrom : String, webserviceConfiguration : Object) {
+	 	
+	 	WebserviceLogger.initLoggers(webserviceConfiguration);
+	 	// Check if Logging is enabled //
+	 	try {
+		 	if (empty(webserviceConfiguration)
+		 		|| !('isFullCommunicationLogEnabled' in webserviceConfiguration)
+		 		|| !webserviceConfiguration.isFullCommunicationLogEnabled()) {
+		 		return;
+		 	}
+		 	var xml_obj : XML = null; 
+		 	// request //
+		 	if(isString(request)){
+		 		xml_obj = new XML(request);
+		 	}else if(request instanceof XML){
+		 		xml_obj = request;
+		 	}else{
+		 		xml_obj = object2XmlObject("request", request);
+		 	}
+		 	
+		 	var requestString = "Request:\n";
+		 	if (webserviceConfiguration.fullCommunicationFormat() == "LOG_NOLINEBREAK") {
+		 		requestString += xml_obj.toXMLString().replace(/(\r\n|\n|\r|\t)/gm,"");
+		 	} else {
+		 		requestString += xml_obj.toXMLString();
+		 	}
+		 	
+			WebserviceLogger.communicationLog.info(requestString);
+			
+			// response //	
+		 	if(isString(request)){
+		 		xml_obj = new XML(response);
+		 	}else if(response instanceof XML){
+		 		xml_obj = response;
+		 	}else{
+		 		xml_obj = object2XmlObject("response", response);
+		 	}
+		 	
+		 	var responseString = "Response:\n";
+		 	if (webserviceConfiguration.fullCommunicationFormat() == "LOG_NOLINEBREAK") {
+		 		responseString += xml_obj.toXMLString().replace(/(\r\n|\n|\r)/gm,"");
+		 	} else {
+		 		responseString += xml_obj.toXMLString();
+		 	}
+		 	
+			WebserviceLogger.communicationLog.info(responseString);
+		 	
+		} catch (e) {
+			WebserviceLogger.communicationLog.error('WebServiceUtils.ds: Logging the SOAP communication failed: ' + e);
+		}
+	 }
+};
+
+/*
+* Creates an xml objects of the given object.
+*
+* rootName: The Name of the root node of the created xml object.
+* object: The object which should be converted to an xml object.
+*
+* returns: The created xml object.
+*/
+function object2XmlObject(rootName : String, object : Object, typeSolver) : XML {
+	
+	var xmlObject : XML = new XML('<' + rootName + '></' + rootName + '>');
+	
+	object2XmlObject2(xmlObject, object, typeSolver ? typeSolver : null);
+	
+	return xmlObject;
+}
+
+/*
+* A recursive helper function for object2XmlObject.
+*
+* xmlObject: the current xml object.
+* object: The object which should be converted to an xml object.
+*/
+function object2XmlObject2(xmlObject : XML, object : Object, typeSolver) {
+	for (var property in object) {
+		if (property == null) {
+			continue;
+		}
+		
+		try {
+			// For some reason the access will throw an exception if the property is of a special date type.
+			var value = object[property];
+			var type = typeof value;
+			if(value == null) {
+				continue;
+			}
+		} catch (e) {
+			continue;
+		}
+		
+		// If the values were created via the new operator, then the typof always returns object!
+		// So we recheck what type it really is.
+		if (value instanceof Number) {
+			type = 'number';
+		} else if (value instanceof Boolean) {
+			type = 'boolean';
+		} else if (value instanceof String) {
+			type = 'string';
+		}
+		
+		if (isDate(value)) {
+			var calendar : Calendar = Site.getCalendar();
+			calendar.setTimeZone('GMT+00');
+			calendar.setTime(value);
+			
+			xmlObject[property] = StringUtils.formatCalendar(calendar, "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+			xmlObject[property].@type = 'date';
+		} else if (value instanceof dw.value.Money) {
+			xmlObject[property] = '';
+			object2XmlObject2(xmlObject[property], value, typeSolver ? typeSolver : null);
+			xmlObject[property].@type = 'dw.value.Money';
+		} else if (value instanceof dw.value.Quantity) {
+			xmlObject[property] = '';
+			object2XmlObject2(xmlObject[property], value, typeSolver ? typeSolver : null);
+			xmlObject[property].@type = 'dw.value.Quantity';
+		} else if (type == "object") {
+			var valueIsArray = isArray(value);
+			
+			// This is an absolutely speacial case. These attributes were created with newNativeArray and MUST be
+			// handled as arrays.
+			// Unfortunately it is not possible to identify such arrays.
+			if (property == 'mboBasketDataEntryArray'
+				|| property == 'newsletterCategories') {
+				valueIsArray = true;
+			}
+			
+			xmlObject[property] = '';
+			if (value instanceof ArrayList || valueIsArray) {
+				var i = 0;
+				for each (var arrayObject in value) {
+					var arrayObjectType = typeof arrayObject;
+					xmlObject[property]['entry' + i] = '';
+					if (arrayObjectType == "object") {
+						object2XmlObject2(xmlObject[property]['entry' + i], arrayObject, typeSolver ? typeSolver : null);
+					} else {
+						xmlObject[property]['entry' + i] = arrayObject;
+						xmlObject[property]['entry' + i].@type = arrayObjectType;
+					}
+					
+					i++;
+				}
+				xmlObject[property].@type = (valueIsArray ? 'array' : 'dw.util.ArrayList');
+			} else {
+				object2XmlObject2(xmlObject[property], value, typeSolver ? typeSolver : null);
+			}
+		} else if (type != "function") {
+			xmlObject[property] = value;
+			xmlObject[property].@type = type;
+		} else if (type == 'function' && property == 'get') {
+			// This is hack to log quantity and money interface objects.
+			try {
+				xmlObject[property] = object.get();
+				xmlObject[property].@type = typeof(xmlObject[property]);
+			} catch (e) {
+				// Some objects are not interface objects, but support the get function too! But some of them
+				// need parameters, so the call will fail.
+			}
+		}
+	}
+	if (typeSolver) {
+		xmlObject.@type = typeSolver(object);
+	} else {
+		xmlObject.@type = 'object';
+	}
+}
+
+function isString(string) {
+	var isString = string instanceof String;
+	
+	if (!isString) {
+		// This is an absolutely ugly fallback. For some reason, the instanceof operator does not return
+		// true sometimes. So we test if the substring function is available. If true, then the value is a String.
+		try {
+			string.substring(0, 0);
+			
+			isString = true;
+		} catch (e) {
+			// Nothing.
+		}
+	}
+	
+	return isString;
+}
+
+function isArray(array) {
+	var isArray = array instanceof Array;
+	
+	if (!isArray) {
+		// This is an absolutely ugly fallback. For some reason, the instanceof operator does not return
+		// true sometimes. So we test if the unshift function is available. If true, then the value is an Array.
+		try {
+			array.unshift();
+			
+			isArray = true;
+		} catch (e) {
+			// Nothing.
+		}
+	}
+	
+	return isArray;
+}
+
+function isDate(date) {
+	var isDate = date instanceof Date;
+	
+	if (!isDate) {
+		// This is an absolutely ugly fallback. For some reason, the instanceof operator does not return
+		// true sometimes. So we test if the getUTCFullYear function is available. If true, then the value is a Date.
+		try {
+			date.getUTCFullYear();
+			
+			isDate = true;
+		} catch (e) {
+			// Nothing.
+		}
+	}
+	
+	return isDate;
+}
+
+
+/** 
+ * The call status class constructable by the webservice
+ * @type {CallStatus}
+ */
+exports.CallStatus          = CallStatus;
+/** 
+ * Generic Utitility namespace
+ * @type {WebServiceUtilities}
+ */
+exports.WebServiceUtilities = WebServiceUtilities;
+
+/** 
+ * Generic logging namespace 
+ * @type {WebserviceLogger}
+ */
+exports.WebserviceLogger    = WebserviceLogger;

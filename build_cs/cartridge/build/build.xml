@@ -1,0 +1,1300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Demandware CS build cartridge" basedir="." default="RunProjectBuild">
+
+	<!--
+       set_classpath
+       ===========================================================================
+       This task sets the classpath to the required external libraries.
+    -->
+	<target name="set_classpath">
+		<path id="classpath">
+			<pathelement path="lib/svn/${svn.repository.version}/svnant.jar" />
+			<pathelement path="lib/svn/${svn.repository.version}/svnClientAdapter.jar" />
+			<pathelement path="lib/svn/${svn.repository.version}/svnjavahl.jar" />
+			<pathelement path="lib/svn/${svn.repository.version}/svnkit.jar" />
+			<pathelement path="lib/webdav/commons-httpclient.jar" />
+			<pathelement path="lib/webdav/commons-logging.jar" />
+			<pathelement path="lib/webdav/jakarta-slide-ant-webdav-2.2pre1.jar" />
+			<pathelement path="lib/webdav/jakarta-slide-webdavlib-2.2pre1.jar" />
+			<pathelement path="lib/jdom-1.0.jar" />
+		</path>
+		<!-- fikin ant tools requires separate classpath -->
+		<path id="fikin">
+			<pathelement path="lib/webdav/commons-logging.jar" />
+			<pathelement path="lib/fikin/commons-codec-1.3.jar" />
+			<pathelement path="lib/fikin/commons-httpclient-3.0-rc1.jar" />
+			<pathelement path="lib/fikin/fikin-ant-1.7.3.jar" />
+		</path>
+	</target>
+
+	<!--
+       Static vars
+       ===========================================================================
+       The variables below define the local paths and site file name. The paths are
+       all in the local.build.temp directoy.
+    -->
+	<tstamp>
+		<format property="build.date" pattern="yyyy-MM-dd_HH-mm" locale="en,UK" />
+		<format property="build.date.display" pattern="dd/MM/yyyy HH:mm" locale="en,UK" />
+		<format property="build.date.metadata" pattern="yyyyMMdd" locale="en,UK" />
+	</tstamp>
+
+	<!--
+       Set proxy
+       ===========================================================================
+       This task sets the proxy information for all connections
+    -->
+	<target name="set_proxy" if="proxyhost">
+		<echo message="Setting proxy: ${proxyhost}:${proxyport}" level="info" />
+		<setproxy proxyhost="${proxyhost}" proxyport="${proxyport}" />
+	</target>
+
+	<!--
+       setup_build_environment
+       ===========================================================================
+       Helper task just to invoke the load external tasks and load properties
+       tasks which are required by the other tasks to run the build.
+    -->
+	<target name="setup_build_environment" depends="load_properties,create_build_directory,set_classpath,set_proxy,load_external_tasks" />
+
+	<!--
+       load_external_tasks
+       ===========================================================================
+       The ant script uses a couple of external tasks that are not included in the
+       base ant package(i.e. svn and webdav connectivity). The taskdefs here
+       should reference a correct classpath to its external library file.
+
+    -->
+	<target name="load_external_tasks" >
+		<taskdef resource="org/apache/webdav/ant/taskdefs.properties" classpathref="classpath" />
+		<taskdef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="classpath" />
+		<taskdef name="deploytask" classname="com.demandware.deploy.DeployCartridgesTask" classpath="lib/demandware-upload-1.1.0.2.jar" />
+		<taskdef name="httpget" classname="net.sf.fikin.ant.httpclientanttask.AntGetMethod" classpathref="fikin" />
+		<taskdef name="httppost" classname="net.sf.fikin.ant.httpclientanttask.AntPostMethod" classpathref="fikin" />
+		<taskdef name="encrypt" classname="com.demandware.ant.EncryptTask" classpath="lib/demandware-build.jar" />
+		<taskdef name="decrypt" classname="com.demandware.ant.DecryptTask" classpath="lib/demandware-build.jar" />
+		<taskdef name="cssembed" classname="net.nczonline.web.cssembed.CSSEmbedTask" classpath="lib/demandware-build.jar" />
+	</target>
+
+	<!--
+       load_properties
+       ===========================================================================
+       This task will load the two properties files required to run the build:
+
+	    1. The build.properties (or alternatively supplied properties file) control what variables
+	       are going to get used when loading the env/dependency propreties files. The three properties
+	       are for the project environment and the dependency files which loaded using the following settings:
+
+	       projects/${build.project.name}/environment.${build.target.environment}.properties
+	       projects/${build.project.name}/dependency.${build.project.version}.properties
+
+	       This allows you to control what project you want to deploy, what version of
+	       that project and also where you want to deploy it to.
+
+	       User-specific properties should be stored in the file called "build.properties" in
+	       the same location as this build script. This file can be created by copying
+	       the "build.properties.template" file and editing to suit your needs.
+
+	       NB: this file should remain local-copy only and not be checked into source control
+	       to avoid overriding anyone else's settings with your own.
+
+        2. environment.properties This file contains the details of the webdav
+           deployment environment. You can have configuration for many environents
+           checked into the build system and the required environment is selected
+           by looking for the file:
+
+             projects/${build.project.name}/environment.${build.target.environment}.properties
+
+           where build.project.name and build.target.environment are specified above. The
+           environment file should contain values for the properties webdav.host, webdav.username
+           webdav.password, webdav.server, webdav.cartridge.root, webdav.impex.root.
+           If 2-factor authentication is turned on and you are deploying to staging,
+           you can specify the keystore.file and keystore.password.
+
+        3. dependency.properties This file contains the project dependencies that will
+           need to be checked out and sent up to the demandware server. The file contains
+           a list of comma separated SVN branches with their full http path. There may
+           be many dependency versions for a given project where each file represents
+           a release i.e. dependency.latest.properties may have the paths to all the trunks
+           and dependency.rel_1_0_0.properties may contain the paths to specific tags of
+           repositories that make up the version 1_0_0 release of a project.
+           You can also choose to always use the same dependency.properties file by creating a
+           dependency file named "dependency.DEFAULT.properties", which is the fallback if the
+           dependency.${build.project.version}.properties" file is not found.
+    -->
+	<target name="load_properties">
+		<!-- Import environment so that it can be used in dependencies and environment files -->
+		<property environment="env"/>
+
+		<!-- we need to load antcontrib now for special tasks like <if> -->
+		<path id="classpath">
+			<pathelement path="lib/ant/ant-contrib-1.0b3.jar" />
+		</path>
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="classpath" />
+
+		<if>
+			<available file="${buildfile}" />
+			<then>
+				<echo message="Trying to load ${buildfile}" level="info" />
+				<property file="${buildfile}" />
+			</then>
+			<else>
+				<echo message="Trying to load build.properties (${buildfile} not defined or does not exist)" level="info" />
+				<property file="build.properties" />
+			</else>
+		</if>
+
+		<condition property="test.failed">
+			<not>
+				<isset property="build.project.version" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No build project version specified as build.project.version in build.properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="build.project.name" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No build project specified as build.project.name in build.properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="build.target.environment" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No build target environment specified as build.target.environment in build.properties" />
+
+		<property name="environment.properties" location="projects/${build.project.name}/environment.${build.target.environment}.properties" />
+		<echo message="Trying to load environment properties: ${environment.properties}" level="info" />
+		<property file="${environment.properties}" />
+
+		<!--
+			Load dependency file based on build version. If dependency file is not found, use 'default.dependency.properties'
+		-->
+		<property name="dependency.properties" location="projects/${build.project.name}/dependency.${build.project.version}.properties" />
+		<property name="dependency.default.properties" location="projects/${build.project.name}/dependency.DEFAULT.properties" />
+		<echo message="Trying to load dependency properties: ${dependency.properties}" level="info" />
+		<if>
+			<available file="${dependency.properties}" />
+			<then>
+				<loadfile property="dependencies" srcFile="${dependency.properties}">
+					<filterchain>
+                                               <filterreader classname="org.apache.tools.ant.filters.StripLineBreaks" />
+                                               <expandproperties/>
+					</filterchain>
+				</loadfile>
+			</then>
+			<else>
+				<echo message="Dependency properties not found, trying to load default dependency properties: ${dependency.default.properties}" level="info" />
+				<loadfile property="dependencies" srcFile="${dependency.default.properties}">
+					<filterchain>
+                                               <filterreader classname="org.apache.tools.ant.filters.StripLineBreaks" />
+                                               <expandproperties/>
+					</filterchain>
+				</loadfile>
+				<var name="dependencies" value="${dependencies}${workspace.name}" />
+				<var name="dependency.properties" value="${dependency.default.properties}" />
+			</else>
+		</if>
+
+		<!--
+			If the include.test.deployments property has not been set from the build.properties then it will be set to true by the following condition.
+		-->
+		<condition property="include.test.deployments">
+			<not>
+				<isset property="include.test.deployments" />
+			</not>
+		</condition>
+
+		<!-- Properties for locally generated files  -->
+		<property name="local.export.root" location="${local.build.temp}/exports" />
+		<property name="local.output.root" location="${local.build.temp}/output" />
+		<property name="local.cartridge.root" location="${local.output.root}/cartridges" />
+		<property name="local.site.root" location="${local.output.root}/sites" />
+		<property name="local.impex.root" location="${local.output.root}/impex" />
+		<property name="local.tokens.file" location="${local.output.root}/tokens.properties" />
+		<property name="local.info.file" location="${local.output.root}/revision.info.txt" />
+		<property name="local.info.revisions" location="${local.build.temp}/exports/revisions.info.txt" />
+		<property name="local.jsdoc.root" location="${local.build.temp}/jsdoc" />
+		<property name="local.log.file" location="${local.build.temp}/build.log" />
+
+		<!-- Properties for site zip which is based on build properties  -->
+		<property name="site.zip.file" value="${build.project.name}.${build.project.version}" />
+		<property name="local.build.zip" location="${local.build.temp}/${build.project.version}.${build.project.version}.zip" />
+		<property name="local.site.target" location="${local.site.root}/${site.zip.file}" />
+
+		<!-- CUSTOM - jsimon: file size info -->
+		<!-- Properties for file size info -->
+		<property name="local.info.filesizes.js" location="${local.build.temp}/filesizes-js.log"/>
+		<property name="local.info.filesizes.css" location="${local.build.temp}/filesizes-css.log"/>
+
+		<!-- encryption properties -->
+		<property name="encrypted_prefix" value="t8kdrXdL61E_" />
+		
+		<!-- attribute values for deployment -->
+		<if>
+			<equals arg1="${twofactor.enabled}" arg2="true" />
+			<then>
+				<property name="host" value="cert.${webdav.server}" />
+			</then>
+			<else>
+				<property name="host" value="${webdav.server}" />
+			</else>
+		</if>
+		<condition property="password.encryption.enabled">
+			<equals arg1="${password.encryption}" arg2="true" />
+		</condition>
+		<property name="organization" value="Sites" />
+		<property name="codeversion" value="${build.project.version}" />
+		<property name="zipfile" value="${local.cartridge.root}/${build.project.version}.zip" />
+		<property name="keystorefile" value="${keystore.file}" />
+		<property name="keystorepassword" value="${keystore.password}" />
+
+		<!-- proxy properties -->
+		<condition property="proxyhost" value="${proxy.host}">
+			<isset property="proxy.host" />
+		</condition>
+		<condition property="proxyport" value="${proxy.port}">
+			<isset property="proxy.port" />
+		</condition>
+
+		<if>
+			<equals arg1="${cartridges.root.relative}" arg2="$${cartridges.root.relative}" />
+			<then>
+				<property name="cartridges.root.relative" value="/cartridges" />
+			</then>
+		</if>
+		
+	</target>
+
+		
+	
+	<!--
+       create build directory
+       ===============================================================================
+	   This task creates the build directory where all generated files are written to
+	-->
+	<target name="create_build_directory">
+		<mkdir dir="${local.build.temp}" />
+	</target>
+
+	<!--
+		encrypt passwords in properties files
+		==========================================================================================
+	   	This task encrypts all passwords in property files.
+	-->
+	<target name="encrypt_passwords" if="password.encryption.enabled">
+		<!-- encrypt passwords in dependency file -->
+		<for list="${dependencies}" param="vcs.branch" delimiter=",">
+			<sequential>
+				<if>
+					<matches pattern="^https?://.*:.*@" string="@{vcs.branch}" />
+					<then>
+						<propertyregex property="vcs.password" input="@{vcs.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\2" casesensitive="false" override="true" />
+						<propertyregex property="vcs.user" input="@{vcs.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\1" casesensitive="false" />
+						<encrypt input="${vcs.password}" property="encrypted_password" />
+
+						<!-- if encrypted_password property exists then we will write the encrypted password to the file -->
+						<if>
+							<not>
+								<equals arg1="${encrypted_password}" arg2="$${encrypted_password}" />
+							</not>
+							<then>
+								<echo message="setting encrypted password for user '${vcs.user}' in dependency file" level="info" />
+								<replaceregexp file="${dependency.properties}" match=":${vcs.password}@" replace=":${encrypted_prefix}${encrypted_password}@" flags="g" />
+							</then>
+						</if>
+					</then>
+				</if>
+			</sequential>
+		</for>
+		
+		<!-- encrypt passwords in environment file -->
+		<encrypt input="${webdav.password}" property="encrypted_password" />
+		<if>
+			<not>
+				<equals arg1="${encrypted_password}" arg2="$${encrypted_password}" />
+			</not>
+			<then>
+				<echo message="setting encrypted password for user '${webdav.username}' in environment file" level="info" />
+				<replaceregexp file="${environment.properties}" match="webdav.password=${webdav.password}" replace="webdav.password=${encrypted_prefix}${encrypted_password}" flags="g" />
+			</then>
+		</if>
+	</target>
+
+	<!--
+		decrypt passwords in properties files
+		==========================================================================================
+	   	This task decrypts all passwords in property files.
+	-->
+	<target name="decrypt_passwords" if="password.encryption.enabled">
+		<if>
+			<and>
+				<equals arg1="${password.encryption.enabled}" arg2="true" />
+				<matches pattern="^${encrypted_prefix}.*" string="${webdav.password}" />
+			</and>
+			<then>
+				<echo message="decrypting password for user ${webdav.username}" level="info" />
+				<decrypt input="${webdav.password}" property="webdav.password" />
+			</then>
+		</if>
+	</target>
+
+	<!--
+	   list_config_items
+	   ===========================================================================
+	   This task simply drops the configuration out to the screen for debug.
+	-->
+	<target name="list_config_items">
+		<echo message="Build properties as follows:" level="info" />
+		<echo message="=======================================================" level="info" />
+		<echo message="build.project.version - ${build.project.version}" level="info" />
+		<echo message="dependencies -" level="info" />
+		<echo message="${dependencies}" level="info" />
+		<echo message="local.build.temp - ${local.build.temp}" level="info" />
+		<echo message="webdav.username - ${webdav.username}" level="info" />
+		<echo message="webdav.cartridge.root - ${webdav.cartridge.root}" level="info" />
+		<echo message="webdav.impex.root - ${webdav.impex.root}" level="info" />
+		<echo message="include.test.deployments - ${include.test.deployments}" level="info" />
+	</target>
+
+	<!--
+       check_config_items
+       ===========================================================================
+       This task checks to see if all of the attributes we require are available.
+    -->
+	<target name="check_config_items">
+		<echo message="Testing all our properties are available" level="info" />
+
+		<condition property="test.failed">
+			<not>
+				<isset property="dependencies" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No project dependencies found in dependency.${build.project.name}/dependency.${build.project.version}.properties. Cannot export project" />
+		<condition property="test.failed">
+			<not>
+				<isset property="local.build.temp" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No build temp location specified as local.build.temp in build properties. Nowhere to work!" />
+		<condition property="test.failed">
+			<not>
+				<isset property="webdav.username" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No webDav username specified as webdav.username in build properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="webdav.password" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No webDav password  specified as webdav.password in build properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="webdav.server" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No webDav server specified as webdav.server in build properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="webdav.cartridge.root" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No webDav catridge root location specified as webdav.cartridge.root in build properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="webdav.impex.root" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No webDav Impex location specified as webdav.impex.root in build properties" />
+		<condition property="test.failed">
+			<not>
+				<isset property="include.test.deployments" />
+			</not>
+		</condition>
+		<fail if="test.failed" message="No test deployment flag specified as include.test.deployments in build properties" />
+	</target>
+
+	<!--
+       test_vcs
+       ===========================================================================
+       Test access to version control system URIs in dependency files.
+    -->
+	<target name="test_vcs" depends="setup_build_environment">
+		<if>
+			<matches pattern="\.git\s.*" string="${vcs.branch}" />
+			<then>
+				<antcall target="test_git">
+					<param name="git.branch" value="${vcs.branch}" />
+				</antcall>
+			</then>
+			<else>
+				<antcall target="test_svn">
+					<param name="svn.branch" value="${vcs.branch}" />
+				</antcall>
+			</else>
+		</if>
+	</target>
+
+	<!--
+       test_svn
+       ===========================================================================
+       SvnAnt is used to make connection. <svn> task uses JavaHL (a native JNI interface to the subversion api)
+       and if JavaHL library is not found it falls back to using svn in the commandline.
+    -->
+	<target name="test_svn">
+
+		<propertyregex property="export.dir" input="${svn.branch}" regexp="^.*https?://(.*@)?[^/]*/(.*)\s*$" replace="\2" casesensitive="false" />
+		<!-- Parse User  -->
+		<propertyregex property="svn.user" input="${svn.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\1" casesensitive="false" />
+		<!-- Parse PW  -->
+		<propertyregex property="svn.password" input="${svn.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\2" casesensitive="false" />
+		<if>
+			<equals arg1="${password.encryption.enabled}" arg2="true" />
+			<then>
+				<echo message="decrypting password for user ${svn.user}" level="info" />
+				<decrypt input="${svn.password}" property="svn.password" />
+			</then>
+		</if>
+		<!-- Parse Userless URL  -->
+		<propertyregex property="svn.url" input="${svn.branch}" regexp="(https?://)(.*):(.*)@(.*)\s*$" select="\1\4" casesensitive="false" />
+		<!-- Trick to Overwrite an already existing property  -->
+		<propertyregex property="svn.branch" override="true" input="${svn.url}" regexp="(.*)" select="\1" casesensitive="false" />
+		<!-- Trimm Branch  -->
+		<propertyregex property="trimmed.svn.branch" input="${svn.branch}" regexp="^.*(https?:.*)\s*$" replace="\1" casesensitive="false" />
+		<echo message="Trying to access: ${svn.url}" level="info" />
+		<svn failonerror="true" username="${svn.user}" password="${svn.password}">
+			<info target="${svn.url}" verbose="true" />
+		</svn>
+
+	</target>
+
+	<!--
+       test_git
+       ===========================================================================
+       Git command line exec is used to make connection. You must have git installed and the path to the executable configured.
+    -->
+	<target name="test_git">
+		<propertyregex property="git.uri" input="${git.branch}" regexp="(.*\.git)(\s)(.*)" select="\1" casesensitive="false" override="true" />
+		<propertyregex property="git.rev" input="${git.branch}" regexp="(.*\.git)(\s)(.*)" select="\3" casesensitive="false" override="true" />
+		<if>
+			<and>
+				<equals arg1="${password.encryption.enabled}" arg2="true" />
+				<matches pattern="^https?://.*:${encrypted_prefix}.*@" string="${git.uri}" />
+			</and>
+			<then>
+				<propertyregex property="git.password" input="${git.uri}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\2" casesensitive="false" />
+				<decrypt input="${git.password}" property="git.password" />
+				<propertyregex property="git.uri.decrypted" input="${git.uri}" regexp=":${encrypted_prefix}.*@" replace=":${git.password}@" casesensitive="true" />
+				<var name="git.uri" value="${git.uri.decrypted}" />
+			</then>
+		</if>
+
+		<exec dir="${local.build.temp}/exports" executable="${git.executable.path}" failonerror="true">
+			<arg value="ls-remote" />
+			<arg value="${git.uri}" />
+			<arg value="${git.rev}" />
+		</exec>
+	</target>
+
+	<!--
+       test_web_dav
+       ===========================================================================
+       Will upload the file test.dav from build dir into the Impex directory to
+       ensure the setup is OK. If failing with javax.net.ssl.SSLHandshakeException
+       then check the VM parameters below are set and the build_cs path on your
+       local machine is correct:
+
+       -Djavax.net.ssl.trustStore=<build_cs path>\keystore\keystore -Djavax.net.ssl.keyStorePassword=testing
+    -->
+	<target name="test_web_dav">
+		<echo message="Going to connect to : https://${host}${webdav.root}" level="info" />
+		<davput url="https://${host}${webdav.root}" userid="${webdav.username}" password="${webdav.password}" lock="false">
+			<fileset dir=".">
+				<include name="test.webdav" />
+			</fileset>
+		</davput>
+	</target>
+
+	<target name="local_clean">
+		<echo message="Cleaning local folders for build" level="info" />
+
+		<delete dir="${local.export.root}" quiet="true" />
+		<delete dir="${local.cartridge.root}" quiet="true" />
+		<delete dir="${local.site.root}" quiet="true" />
+		<delete dir="${local.impex.root}" quiet="false" />
+		<delete dir="${local.jsdoc.root}" quiet="true" />
+
+		<!-- CUSTOM - jsimon: file size info -->
+		<delete file="${local.info.filesizes.js}" quiet="true" />
+		<delete file="${local.info.filesizes.css}" quiet="true" />
+
+		<mkdir dir="${local.export.root}" />
+		<mkdir dir="${local.cartridge.root}/${build.project.version}" />
+		<mkdir dir="${local.site.target}" />
+		<mkdir dir="${local.impex.root}/src/instance" />
+		<mkdir dir="${local.jsdoc.root}" />
+
+	</target>
+
+	<!--
+       build_project
+       ===========================================================================
+        This task will take all the pieces from the exports and arrange them
+        in the output directories ready for upload.
+	       1. Put all the cartridges in the cartride dir
+	       2. Put all the site structures in the site dir
+	       3. Put all the impex structures in the impex dir
+	       4. Zip up the site dir.
+	-->
+	<target name="build_project">
+
+		<echo message="Going to build up the project structures" level="info" />
+
+		<echo message="Copying cartridges..." level="info" />
+		<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="copy_from_export" trim="true" inheritall="true">
+			<param name="copy.all.dir" value="${cartridges.root.relative}" />
+			<param name="copy.all.target" value="${local.cartridge.root}/${build.project.version}" />
+		</foreach>
+
+		<echo message="Copying impex structure..." level="info" />
+		<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="copy_from_export" trim="true" inheritall="true">
+			<param name="copy.all.dir" value="sites/impex_structure" />
+			<param name="copy.all.target" value="${local.impex.root}" />
+		</foreach>
+
+		<echo message="Copying site template..." level="info" />
+		<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="copy_from_export" trim="true" inheritall="true">
+			<param name="copy.all.dir" value="sites/site_template" />
+			<param name="copy.all.target" value="${local.site.target}" />
+		</foreach>
+
+		<if>
+			<equals arg1="${include.test.deployments}" arg2="true" />
+			<then>
+				<echo message="Including test site details into site template" />
+				<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="copy_from_export" trim="true" inheritall="true">
+					<param name="copy.all.dir" value="sites/test_site_template" />
+					<param name="copy.all.target" value="${local.site.target}" />
+				</foreach>
+			</then>
+			<else>
+				<echo message="Excluding test site details from site templates" />
+			</else>
+		</if>
+
+		<zip destfile="${local.impex.root}/src/instance/${site.zip.file}.zip" basedir="${local.site.root}" />
+
+		<foreach list="${buildinfo.cartridge}" param="build.info.cartridge" delimiter="," target="build_release_file" inheritall="true" />
+
+		<antcall target="insert_resource_tagging" />
+		
+		<!-- <antcall target="code_checklist" inheritall="true"/> -->
+		
+		<antcall target="check_cartridge_dependencies" inheritall="true"/>
+		
+		<if>
+			<not>
+				<equals arg1="${static.files.cartridges}" arg2="$${static.files.cartridges}" />
+			</not>
+			<then>
+				<!--<foreach list="${static.files.cartridges}" param="static.files.cartridge" delimiter="," target="remove_console_from_js_files" inheritall="true" />-->
+				<foreach list="${static.files.cartridges}" param="static.files.cartridge" delimiter="," target="compile_less" inheritall="true" />
+				<foreach list="${static.files.cartridges}" param="static.files.cartridge" delimiter="," target="concatenate_static_files" inheritall="true" />
+				<foreach list="${static.files.cartridges}" param="static.files.cartridge" delimiter="," target="embed_images_in_css_cartridge" inheritall="true" />
+				<foreach list="${static.files.cartridges}" param="static.files.cartridge" delimiter="," target="compress_resources" inheritall="true" />
+
+				<!-- CUSTOM - jsimon: file sizes info -->
+				<if>
+					<available file="${local.info.filesizes.js}" />
+					<then>
+						<loadfile property="filesizes.js" srcFile="${local.info.filesizes.js}"/>
+						<echo message="Concatenated JS file sizes"/>
+						<echo message="${filesizes.js}"/>
+					</then>
+				</if>
+				<if>
+					<available file="${local.info.filesizes.css}" />
+					<then>
+						<loadfile property="filesizes.css" srcFile="${local.info.filesizes.css}"/>
+						<echo message="Concatenated CSS file sizes"/>
+						<echo message="${filesizes.css}"/>
+					</then>
+				</if>
+
+			</then>
+		</if>
+
+		<zip destfile="${local.cartridge.root}/${build.project.version}.zip" basedir="${local.cartridge.root}/${build.project.version}" />
+
+	</target>
+	<import file="build_code_checklist.xml"/>
+	<import file="build_remote.xml"/>
+	<import file="build_optimization.xml"/>
+	<import file="build_dependency.xml"/>
+
+	<!--
+       build_release_file
+       ===========================================================================
+       The build info file is checked into the specified (${buildinfo.cartridge}) cartridge
+       and contains replacement tokens which are picked up by this task.
+       It allows build information to be placed up on the web site so they may view
+       when the build occurred and what parameters were used for versioning.
+	-->
+	<target name="build_release_file">
+		<available file="${local.cartridge.root}/${build.project.version}/${build.info.cartridge}" property="include.build.release" />
+		<if>
+			<equals arg1="${include.build.release}" arg2="true" />
+			<then>
+				<property name="local.build.info.target" location="${local.cartridge.root}/${build.project.version}/${build.info.cartridge}/cartridge/templates/default/build/build_info.isml" />
+				<property name="local.build.info.template" location="${local.build.info.target}.template" />
+
+				<echo message="BUILD_DATE=${build.date.display}${line.separator}" file="${local.tokens.file}" append="false" />
+				<echo message="BUILT_BY=${build.project.user}${line.separator}" file="${local.tokens.file}" append="true" />
+				<echo message="DEPLOYMENT_PROJECT=${build.project.name}${line.separator}" file="${local.tokens.file}" append="true" />
+				<echo message="DEPLOYMENT_VERSION=${build.project.version}${line.separator}" file="${local.tokens.file}" append="true" />
+				<if>
+					<available file="${local.info.revisions}" />
+                <then>
+					<loadfile property="info.revisiontext" srcFile="${local.info.revisions}" />
+						<echo message="REVISION=${info.revisiontext}${line.separator}" file="${local.tokens.file}" append="true" />
+				</then>
+					<else>
+						<echo message="REVISION=N/A" file="${local.tokens.file}" append="true" />
+					</else>
+				</if>
+
+				<filter filtersfile="${local.tokens.file}" />
+				<copy file="${local.build.info.template}" tofile="${local.build.info.target}" filtering="true" overwrite="true" />
+			</then>
+		</if>
+	</target>
+
+	<!--
+       copy_from_export
+       ===========================================================================
+       Since the export function needs a unique dir all files are exported to
+       a directory with the full path of the svn repository. This makes it a bit
+       tricky to get the catridge and sites into the output dir without the preceeding
+       path so we need to convert the svn branch into a directory path and strip off
+       the http:// plus any pre or post white spaces. Once we have the path we do a
+       copy to the copy all target which is passed in by the caller. The copy from export
+       assumes that it is copying from a SVN http path. e.g:
+
+       Supplied with : svn.branch = "http://svnrepurl/repos/sample/project/trunk "
+                       local.export.dir = c:\temp\build_cs
+                       copy.all.dir = cartridges
+                       copy.all.target = c:\temp\build_cs\output\cartridges
+       Converts svn.branch to : trunk.dir  = "svnrepurl/repos/sample/project/trunk"
+       Copies from   : c:\temp\build_cs/output/export/svnrepurl/repos/sample/project/trunk/cartridges/*
+       Copy to       : c:\temp\build_cs\output\cartridges
+
+       param: svn.branch The SVN branch/tag/trunk to copy from in the export dir
+       param: local.export.root The target base directory for the export
+       param: copy.all.dir The directory off the tag branch base to copy from
+       param: copy.all.target The location to copy the files to
+
+       If the include.test.deployments attribute has been set to false in the build.properties
+       or in this file then the copy will exclude all directories that start with test_
+
+       Task is run from foreach loop so need to re-load the properties as the call is made
+       with a new context.
+	-->
+	<target name="copy_from_export">
+
+		<echo message="Going to copy from exports to output" level="info" />
+
+		<if>
+			<matches pattern="\.git\s.*" string="${vcs.branch}" />
+			<then>
+				<propertyregex property="trunk.dir.base" input="${vcs.branch}" regexp="^.*.*@((.*:\/?)|([^/]*/))([^ ]*)\s.*$" replace="\4" casesensitive="false" />
+				<propertyregex property="git.branch" input="${vcs.branch}" regexp="(.*\.git)(\s)([^ ]*)" select="\3" casesensitive="false" override="true" />
+				<property name="trunk.dir" value="${trunk.dir.base}/${git.branch}" />
+			</then>
+			<elseif>
+				<matches pattern="file://.*" string="${vcs.branch}" />
+                           <then>
+                           	<propertyregex property="trunk.dir" input="${vcs.branch}" regexp="file://(/?)(?:[^\\\/]+[\\\/])*([^\\\/]+)[\\\/]?\s*$" replace="\2" casesensitive="false" />
+     			</then>
+			</elseif>
+			<else>
+				<propertyregex property="trunk.dir" input="${vcs.branch}" regexp="^.*https?://(.*@)?[^/]*/([^ ]+)" select="\2" casesensitive="false" />
+			</else>
+		</if>
+
+		<if>
+			<equals arg1="${include.test.deployments}" arg2="true" />
+			<then>
+				<echo message="Deploying all project artifacts including test from ${copy.all.target} to ${local.export.root}/${trunk.dir}/${copy.all.dir}" />
+				<copy todir="${copy.all.target}" failonerror="false">
+					<fileset dir="${local.export.root}/${trunk.dir}/${copy.all.dir}" casesensitive="no">
+						<include name="**" />
+					</fileset>
+				</copy>
+			</then>
+			<else>
+				<echo message="Production deployment without test deployment artifacts from ${copy.all.target} to ${local.export.root}/${trunk.dir}/${copy.all.dir}" />
+				<copy todir="${copy.all.target}" failonerror="false">
+					<fileset dir="${local.export.root}/${trunk.dir}/${copy.all.dir}" casesensitive="no">
+						<include name="**" />
+						<exclude name="test_*/**" />
+					</fileset>
+				</copy>
+			</else>
+		</if>
+
+	</target>
+
+	<!--
+       export_version
+       ===========================================================================
+       Export revision from version control system or local file system.
+    -->
+	<target name="export_version">
+		<if>
+			<matches pattern="\.git\s.*" string="${vcs.branch}" />
+			<then>
+				<antcall target="export_version_git">
+					<param name="git.branch" value="${vcs.branch}" />
+				</antcall>
+			</then>
+			<elseif>
+				<matches pattern="file://.*" string="${vcs.branch}" />
+				<then>
+					<antcall target="export_version_fs">
+						<param name="fs.directory" value="${vcs.branch}" />
+					</antcall>
+				</then>
+			</elseif>
+			<else>
+				<antcall target="export_version_svn">
+					<param name="svn.branch" value="${vcs.branch}" />
+				</antcall>
+			</else>
+		</if>
+	</target>
+
+	<!--
+       export_version_fs
+       ===========================================================================
+       This task will copy the supplied source directory to the export directory.
+       (e.g. file://c:/myproject/implementation)
+	-->
+	<target name="export_version_fs">
+		<propertyregex property="export.dir" input="${fs.directory}" regexp="file://(/?)(?:[^\\\/]+[\\\/])*([^\\\/]+)[\\\/]?\s*$" replace="\2" casesensitive="false" />
+		<propertyregex property="source.dir" input="${fs.directory}" regexp="^.*file://(/?.*)\s*$" replace="\1" casesensitive="false" />
+
+		<echo message="Source Dir: ${source.dir}" level="info" />
+		<echo message="Export Dir: ${export.dir}" level="info" />
+		<mkdir dir="${local.export.root}/${export.dir}"/>
+		<if>
+			<equals arg1="${build.project.codeonly}" arg2="true" />
+			<then>
+				<echo message="Starting code only export" level="info" />
+
+				<copy todir="${local.export.root}/${export.dir}" failonerror="true">
+					<fileset dir="${source.dir}">
+						<include name="**" />
+						<exclude name="**/_*/**" /> <!-- ignore files/folders starting with underscore -->
+						<exclude name="**/.svn" />
+						<exclude name="**/.git" />
+						<exclude name="**/.hg" />
+						<exclude name="**/.DS_Store" />
+						<exclude name="**/.tmp*" />
+						<exclude name="**/.livereload" />
+						<exclude name="**/.jshintrc" />
+						<exclude name="**/.settings/**" />
+						<exclude name="build.xml" />
+					</fileset>
+				</copy>
+			</then>
+			<else>
+				<copy todir="${local.export.root}/${export.dir}" failonerror="true">
+					<fileset dir="${source.dir}">
+						<include name="**" />
+						<exclude name="**/_*/**" /> <!-- ignore files/folders starting with underscore -->
+						<exclude name="**/.svn" />
+						<exclude name="**/.git" />
+						<exclude name="**/.hg" />
+						<exclude name="**/.DS_Store" />
+						<exclude name="**/.tmp*" />
+						<exclude name="**/.livereload" />
+						<exclude name="**/.jshintrc" />
+						<exclude name="**/.settings/**" />
+						<exclude name="build.xml" />
+					</fileset>
+				</copy>
+			</else>
+		</if>
+	</target>
+
+
+	<!--
+       export_version_svn
+       ===========================================================================
+       This task will export the supplied SVN branch to the export directory.
+       Since an export requires a unique dir the SVN branch is used to create the
+       target dir. The target dir is created by taking the SVN branch and removing
+       the http://. The svn branch and the path get a white space trimming. So for example:
+
+       Supplied with : svn.branch = "http://svnrepurl/repos/sample/project/trunk"
+                       local.export.root = c:\temp\build_cs\export
+
+       Converts svn.branch to : export.dir  = "svnrepurl/repos/sample/project/trunk"
+       Exports to : c:\temp\build_cs\export/svnrepurl/repos/sample/project/trunk/cartridges/*
+
+       param: svn.branch The SVN branch/tag/trunk to export
+       param: local.export.root The target base directory for the export
+
+	-->
+	<target name="export_version_svn">
+		<propertyregex property="export.dir" input="${svn.branch}" regexp="^.*https?://(.*@)?[^/]*/([^ ]+)" select="\2" casesensitive="false" />
+		<!-- Parse User  -->
+		<propertyregex property="svn.user" input="${svn.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\1" casesensitive="false" />
+		<!-- Parse PW  -->
+		<propertyregex property="svn.password" input="${svn.branch}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\2" casesensitive="false" />
+		<if>
+			<equals arg1="${password.encryption.enabled}" arg2="true" />
+			<then>
+				<echo message="decrypting password for user ${svn.user}" level="info" />
+				<decrypt input="${svn.password}" property="svn.password" />
+			</then>
+		</if>
+
+        <propertyregex property="svn.includecartridges" input="${svn.branch}" regexp="^.*-include-cartridges=([^ ]*).*$" replace="\1" casesensitive="false" defaultValue="" />
+        <propertyregex property="svn.excludecartridges" input="${svn.branch}" regexp="^.*-exclude-cartridges=([^ ]*).*$" replace="\1" casesensitive="false" defaultValue="" />
+        <!-- Parse Userless URL  -->
+        <propertyregex property="svn.url" input="${svn.branch}" regexp="(https?://)(.*):(.*)@([^ ]*)" select="\1\4" casesensitive="false" />
+		<propertyregex property="svn.url" input="${svn.branch}" regexp="(https?://)(.*):(.*)@(.*)\s*$" select="\1\4" casesensitive="false" />
+		<!-- Trick to Overwrite an already existing property  -->
+		<propertyregex property="svn.branch" override="true" input="${svn.url}" regexp="(.*)" select="\1" casesensitive="false" />
+		<!-- Trimm Branch  -->
+		<propertyregex property="trimmed.svn.branch" input="${svn.branch}" regexp="^.*(https?:.*)\s*$" replace="\1" casesensitive="false" />
+
+		<antcall target="get_revision">
+			<param name="svn.revision.url" value="${svn.url}" />
+			<param name="svn.revision.username" value="${svn.user}" />
+			<param name="svn.revision.password" value="${svn.password}" />
+		</antcall>
+
+		<echo message="Trying to export repository" level="info" />
+		<echo message="Export Dir: ${export.dir}" level="info" />
+		<echo message="SVN Folder: ${trimmed.svn.branch}" level="info" />
+		
+		<if>
+			<equals arg1="${build.project.codeonly}" arg2="true" />
+			<then>
+				<echo message="Starting code only export" level="info" />
+				<svn failonerror="true" username="${svn.user}" password="${svn.password}">
+					<export srcUrl="${svn.url}${cartridges.root.relative}" destPath="${local.export.root}/${export.dir}${cartridges.root.relative}" />
+				</svn>
+			</then>
+			<else>
+				<svn failonerror="true" username="${svn.user}" password="${svn.password}">
+					<export srcUrl="${svn.url}" destPath="${local.export.root}/${export.dir}" />
+				</svn>
+			</else>
+		</if>
+                <if>
+                        <length string="${svn.includecartridges}" trim="true" when="greater" length="0" />
+                        <then>
+                                <echo message="Removing cartridges not to include from the export: all except ${svn.includecartridges}" level="info" />
+                                <propertyregex property="svn.includepattern" input="${svn.includecartridges}" regexp="(\||$)" replace="/**," casesensitive="false" override="true" global="true" />
+                                <delete includeEmptyDirs="true">
+                                        <fileset dir="${local.export.root}/${export.dir}${cartridges.root.relative}" includes="**" excludes="${svn.includepattern}" />
+                                </delete>
+                        </then>
+                </if>
+                <if>
+                        <length string="${svn.excludecartridges}" trim="true" when="greater" length="0" />
+                        <then>
+                                <echo message="Removing cartridges not to include from the export: ${svn.excludecartridges}" level="info" />
+                                <propertyregex property="svn.excludepattern" input="${svn.excludecartridges}" regexp="(\||$)" replace="/**," casesensitive="false" override="true" global="true" />
+                                <delete includeEmptyDirs="true">
+                                        <fileset dir="${local.export.root}/${export.dir}${cartridges.root.relative}" includes="${svn.excludepattern}" />
+                                </delete>
+                        </then>
+                </if>
+	</target>
+
+	<!--
+       export_version_git
+       ===========================================================================
+       This task will export the supplied Git branch to the export directory.
+       Since an export requires a unique dir the Git URI path and revision number
+       is used to create the export dir. The export dir is created by taking the
+       Git URI and removing the ssh:// or http(s)://.
+
+       For ssh URIs, the archive is downloaded as a zip and is then extracted into a
+       directory named after the revision underneath the target dir (faster).
+
+       For http(s) URIs, a clone is made of the repository (slower).
+
+       So for example:
+
+       Supplied with : git.branch = "ssh://gitrepurl:/sample/project.git v1.0 [-include-cartridges=<pipe separated list>]"
+                       local.export.root = c:\temp\build_cs\exports
+
+       Converts git.branch to : export.dir  = "sample/project.git"
+       Exports to : c:\temp\build_cs\exports/sample/project.git/v1.0.zip
+
+       param: git.branch The Git branch/tag to export
+       param: local.export.root The target base directory for the export
+
+	-->
+	<target name="export_version_git">
+		<propertyregex property="export.dir" input="${git.branch}" regexp="^.*@((.*:\/?)|([^/]*/))([^ ]*)\s.*$" replace="\4" casesensitive="false" />
+		<propertyregex property="git.uri" input="${git.branch}" regexp="(.*\.git)(\s)([^ ]*)" select="\1" casesensitive="false" override="true" />
+        <propertyregex property="git.rev" input="${git.branch}" regexp="(.*\.git)(\s)([^ ]*).*" select="\3" casesensitive="false" override="true" />
+        <propertyregex property="git.includecartridges" input="${git.branch}" regexp="^.*\.git\s.*\s.*-include-cartridges=([^ ]*).*$" replace="\1" casesensitive="false" override="true" defaultValue="" />
+        <propertyregex property="git.excludecartridges" input="${git.branch}" regexp="^.*\.git\s.*\s.*-exclude-cartridges=([^ ]*).*$" replace="\1" casesensitive="false" override="true" defaultValue="" />
+        <mkdir dir="${local.export.root}/${export.dir}/${git.rev}" />
+
+		<echo message="Trying to export repository via git" level="warn" />
+		<echo message="Git URI: ${git.uri}" level="info" />
+		<echo message="Revision: ${git.rev}" level="info" />
+		<echo message="Export Dir: ${export.dir}" level="info" />
+		<echo message="Cartridges to include: ${git.includecartridges}" level="info" />
+		<mkdir dir="${local.export.root}/${export.dir}/${git.rev}" />
+
+		<!-- Unencrypt password in http(s) urls -->
+		<if>
+			<matches pattern="^https?://.*:${encrypted_prefix}.*@" string="${git.uri}" />
+			<then>
+				<!-- Parse User  -->
+				<propertyregex property="git.user" input="${git.uri}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\1" casesensitive="false" />
+				<!-- Parse PW  -->
+				<propertyregex property="git.password" input="${git.uri}" regexp="https?://(.*):(.*)@(.*)\s*$" select="\2" casesensitive="false" />
+
+				<decrypt input="${git.password}" property="git.password" />
+				<propertyregex property="git.uri.decrypted" input="${git.uri}" regexp=":${encrypted_prefix}.*@" replace=":${git.password}@" casesensitive="true" />
+				<var name="git.uri" value="${git.uri.decrypted}" />
+			</then>
+		</if>
+
+		<if>
+			<equals arg1="${git.archive.enabled}" arg2="true" />
+			<then>
+				<echo message="Calling git archive to export the revision ..." level="info" />
+				<exec dir="${local.export.root}" executable="${git.executable.path}" failonerror="true">
+					<arg value="archive" />
+					<arg value="--format=zip" />
+					<arg value='--output="${export.dir}/${git.rev}.zip"' />
+					<arg value="--remote=${git.uri}" />
+					<arg value="${git.rev}" />
+				</exec>
+				<unzip src="${local.export.root}/${export.dir}/${git.rev}.zip" dest="${local.export.root}/${export.dir}/${git.rev}" />
+			</then>
+			<else>
+				<echo message="Calling git clone to export the revision" level="info" />
+				<exec dir="${local.export.root}" executable="${git.executable.path}" failonerror="true">
+					<arg value="clone" />
+					<arg value="${git.uri}" />
+					<arg value="-b" />
+					<arg value="${git.rev}" />
+					<arg value="--depth=1" />
+					<arg value="${export.dir}/${git.rev}" />
+				</exec>
+
+				<echo message="Removing git artifacts from the export." level="info" />
+				<delete dir="${local.export.root}/${export.dir}/${git.rev}/.git" />
+				<delete file="${local.export.root}/${export.dir}/${git.rev}/.gitignore" />
+				<delete file="${local.export.root}/${export.dir}/${git.rev}/.gitattributes" />
+			</else>
+		</if>
+		<if>
+			<length string="${git.includecartridges}" trim="true" when="greater" length="0" />
+			<then>
+				<echo message="Removing cartridges not to include from the export: all but ${git.includecartridges}" level="info" />
+				<propertyregex property="git.includepattern" input="${git.includecartridges}" regexp="(\||$)" replace="/**," casesensitive="false" override="true" global="true" />
+				<delete includeEmptyDirs="true">
+					<fileset dir="${local.export.root}/${export.dir}/${git.rev}${cartridges.root.relative}" includes="**" excludes="${git.includepattern}" />
+				</delete>
+			</then>
+		</if>
+                <if>
+                        <length string="${git.excludecartridges}" trim="true" when="greater" length="0" />
+                        <then>
+                                <echo message="Removing cartridges not to include from the export: ${git.excludecartridges}" level="info" />
+                                 <propertyregex property="git.excludepattern" input="${git.excludecartridges}" regexp="(\||$)" replace="/**," casesensitive="false" override="true" global="true" />
+                                <delete includeEmptyDirs="true">
+                                        <fileset dir="${local.export.root}/${export.dir}/${git.rev}${cartridges.root.relative}" includes="${git.excludepattern}" />
+                                </delete>
+                        </then>
+                </if>
+		<echo file="${local.info.revisions}" level="info" append="true">${git.uri}@${git.rev}&lt;br/&gt;</echo>
+	</target>
+
+	<!--
+       get_revision
+       ===========================================================================
+	   this tasks calls the svn info function and writes the information to a textfile
+	-->
+	<target name="get_revision">
+		
+		<echo message="username ${svn.revision.username}" level="info" />		
+		<echo message="svn.revision.password ${svn.revision.password}" level="info" />
+		<echo message="svn.revision.url ${svn.revision.url}" level="info" />
+
+		<svn username="${svn.revision.username}" password="${svn.revision.password}" failonerror="true">
+			<info target="${svn.revision.url}" verbose="true" />
+		</svn>
+		<echo file="${local.info.file}" level="info">svn.info.path: ${svn.info.path}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.url: ${svn.info.url}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.repouuid: ${svn.info.repouuid}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.rev: ${svn.info.rev}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.nodekind: ${svn.info.nodekind}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.schedule: ${svn.info.schedule}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.author: ${svn.info.author}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.lastRev: ${svn.info.lastRev}${line.separator}</echo>
+		<echo file="${local.info.file}" level="info" append="true">svn.info.lastDate: ${svn.info.lastDate}${line.separator}</echo>
+		<echo file="${local.info.revisions}" level="info" append="true">${svn.revision.url}@${svn.info.lastRev}&lt;br/&gt;</echo>
+	</target>
+
+	<!--
+	   logging
+	   ===========================================================================
+	   Can be called from other tasks to log important information
+	-->
+	<target name="logging">
+		<if>
+			<equals arg1="${logging.enabled}" arg2="true" />
+			<then>
+				<tstamp>
+					<format property="timestamp" pattern="yyyy-MM-dd_HH-mm-ss" locale="en,UK" />
+				</tstamp>
+				<echo message="${line.separator}${timestamp} ${log.message}" file="${local.log.file}" append="true" />
+			</then>
+		</if>
+	</target>
+
+	<!--
+       RunTestSetup.
+       ===========================================================================
+       This task is used to confirm that the rquired files can be loaded into
+       properties and that we can connect to SVN and to the webdav servers. Used
+       just to verify that your ant setup is correct.
+    -->
+	<target name="RunTestSetup" depends="setup_build_environment" description="Run this first to check if everything is setup correctly.">
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<!--
+			OK we seem to have everything we need. Lets run a few little tests to see if we can access the repository and we can upload something to the
+			demandware server.
+		-->
+		<echo message="Testing our access to the version control systems" />
+
+		<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="test_vcs" trim="true"/>
+
+		<echo message="Testing web dav access to cartridge root" />
+		<antcall target="test_web_dav">
+			<param name="webdav.root" value="${webdav.cartridge.root}" />
+		</antcall>
+
+		<echo message="Testing web dav access to impex root" />
+		<antcall target="test_web_dav">
+			<param name="webdav.root" value="${webdav.impex.root}" />
+		</antcall>
+
+	</target>
+
+	<!--
+       RunProjectBuild.
+       ===========================================================================
+       This is the main task that will build the project. The task will execute
+       the following actions:
+        1. Will clean all local and remote directories
+        2. Will check out all branches listed in the dependency file
+        3. Will build the project structures for impex, site and cartridges
+    -->
+	<target name="RunProjectBuild" depends="setup_build_environment" description="Run the project build process">
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunProjectBuild' for ${build.project.version}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+		<antcall target="local_clean" />
+
+		<!-- For each branch in the dependency list then execute an export -->
+		<foreach list="${dependencies}" param="vcs.branch" delimiter="," target="export_version" trim="true" inheritall="true"/>
+
+		<antcall target="build_project" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunProjectBuild' for ${build.project.version}" />
+		</antcall>
+	</target>
+
+	<!--
+       RunUploadImpex
+       ===========================================================================
+    -->
+	<target name="RunUploadImpex" depends="setup_build_environment" description="Upload the site only upload components of the build">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunUploadImpex' for ${build.project.version} to ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="upload_impex" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunUploadImpex' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+       RunUploadCartridges
+       ===========================================================================
+    -->
+	<target name="RunUploadCartridges" depends="setup_build_environment" description="Upload the cartridges of the build">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunUploadCartridges' for ${build.project.version} to ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="deploy_cartridges" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunUploadCartridges' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+		RunUploadMetadata
+	    ===========================================================================
+	-->
+	<target name="RunUploadMetadata" depends="setup_build_environment" description="Upload the meta data xml for easier use">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunUploadMetadata' for ${build.project.version} to ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="upload_metadata" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunUploadMetadata' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+       RunImportMetadata
+       ===========================================================================
+    -->
+	<target name="RunImportMetadata" depends="setup_build_environment" description="Import the uplaoded metadata">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunImportMetadata' for ${build.project.version} on ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="import_metadata" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunImportMetadata' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+       RunImportSites
+       ===========================================================================
+    -->
+	<target name="RunImportSites" depends="setup_build_environment" description="Imports the uplaoded site import file">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunImportSites' for ${build.project.version} on ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="import_site" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunImportSites' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+       RunActivateBuild
+       ===========================================================================
+    -->
+	<target name="RunActivateBuild" depends="setup_build_environment" description="Activate the build">
+
+		<antcall target="logging">
+			<param name="log.message" value="Starting 'RunActivateBuild' for ${build.project.version} to ${build.target.environment}" />
+		</antcall>
+
+		<antcall target="list_config_items" />
+		<antcall target="check_config_items" />
+
+		<antcall target="activate_build" />
+		<!-- if you don't want this called, just don't set the project.cartridge.path property -->
+		<antcall target="set_cartridge_path" />
+
+		<antcall target="logging">
+			<param name="log.message" value="Finished 'RunActivateBuild' for ${build.project.version}" />
+		</antcall>
+
+	</target>
+
+	<!--
+		GenerateJSDoc
+	    ===========================================================================
+	-->
+	<target name="GenerateJSDoc" depends="setup_build_environment" description="Generate DW script API documentation">
+
+		<echo message="Generating JSDoc to ${local.jsdoc.root}" level="info" />
+		<!-- The simple way -->
+		<!--exec dir="./lib/jsdoc3" executable="${basedir}/lib/jsdoc3/jsdoc.cmd" failonerror="true">
+			<arg value="${local.cartridge.root}/${build.project.version}/" />
+			<arg value="- -verbose" />
+			<arg value="-c" />
+			<arg value="dw-conf.json" />
+			<arg value="-d" />
+			<arg value="${local.jsdoc.root}" />
+		</exec-->
+		<!-- ...but who likes simple, huh? -->
+		<propertyregex property="bc.base" input="${basedir}" regexp="\\" replace="/" casesensitive="false" override="true" global="true" />
+		<java classname="org.mozilla.javascript.tools.shell.Main" dir="lib/jsdoc3" fork="true">
+			<classpath>
+				<pathelement path="lib/jsdoc3/rhino/js.jar" />
+			</classpath>
+			<arg value="-modules" />
+			<arg value="&quot;file:///${bc.base}/lib/jsdoc3/node_modules&quot;" />
+			<arg value="-modules" />
+			<arg value="&quot;file:///${bc.base}/lib/jsdoc3/rhino&quot;" />
+			<arg value="-modules" />
+			<arg value="&quot;file:///${bc.base}/lib/jsdoc3/lib&quot;" />
+			<arg value="-modules" />
+			<arg value="&quot;file:///${bc.base}/lib/jsdoc3&quot;" />
+			<arg value="jsdoc.js" />
+			<arg value="${local.cartridge.root}/${build.project.version}/" />
+			<arg value="-c" />
+			<arg value="dw-conf.json" />
+			<arg value="-d" />
+			<arg value="${local.jsdoc.root}" />
+			<arg value="--dirname" />
+			<arg value="${bc.base}/lib/jsdoc3" />
+		</java>
+	</target>
+</project>

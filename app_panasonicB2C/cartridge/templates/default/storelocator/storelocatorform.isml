@@ -1,0 +1,99 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isinclude template="util/modules"/>
+<div class="store-locator-main pnsb2c-storelocator-wrapper">
+		  <div class="map-container">
+		  	<div id="map_canvas" style="width:1046px;height:644px;"></div>
+		  </div> 
+		  <div class="stores-container pnsb2c-store-info-wrapper">
+			  <div class="store-form-holder">
+				<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.storelocator.htmlName}" class="store-form">
+								<fieldset>
+									<input type="hidden" name="${pdict.CurrentForms.storelocator.countryCode.htmlName}" value="US" />
+									<input type="hidden" name="${pdict.CurrentForms.storelocator.distanceUnit.htmlName}" value="mi" />
+									<input type="hidden" name="${pdict.CurrentForms.storelocator.maxdistance.htmlName}" value="300.0"/>
+									<div class ="hide">
+							    		<isinputfield formfield="${pdict.CurrentForms.storelocator.country}" type="select" requiredtext="${Resource.msg('forms.customeraddress.country.missing-error','forms',null)}"/>
+							    	</div>
+							    	<isinputfield formfield="${pdict.CurrentForms.storelocator.modelnumber}" type="input" xhtmlclass="model" requiredtext="${Resource.msg('storelocator.modelerror','forms',null)}" rowclass="last" attribute1="tabindex" value1="16"/>
+									<isinputfield formfield="${pdict.CurrentForms.storelocator.postalCode}" type="input" xhtmlclass="zip" requiredtext="${Resource.msg('forms.errorpostal','forms',null)}" rowclass="last" attribute1="tabindex" value1="16"/>
+									<div class="form-row form-row-button find-store-btn">
+										<button type="submit" name="${pdict.CurrentForms.storelocator.findbyzip.htmlName}" value="${Resource.msg('storelocator.findstore','storelocator',null)}" title="${Resource.msg('storelocator.findstore','storelocator',null)}" target-url="${URLUtils.https('Stores-ShowStores')}">
+											${Resource.msg('storelocator.findstore','storelocator',null)}
+										</button>
+									</div>
+								</fieldset>
+					</form>
+					<div class="store-form-note">
+						<isprint value="${Resource.msg('storelocator.form.note','storelocator',null)}"  encoding="off"/>
+					</div>
+				</div>	
+			<isif condition="${(typeof pdict.Stores != 'undefined') && !empty(pdict.Stores)}"> 
+				 <div class="store-finder pnsb2c-storefinder">
+					<div class="sf-wrapper-inner cards custom-scroll">
+						<isloop items="${pdict.Stores}" var="Store" status="loopstate">
+									 <div>  
+				                       <div class="store-information g-store" latitude='<isprint value="${Store.latitude.toFixed(6)}"/>' longitude='<isprint value="${Store.longitude.toFixed(6)}"/>' store-name='<isprint value="${Store.name}"/>'>
+				                       	<div class="gstore-hidden-infowindow hide">
+					                       	<div class="gstore-infowindow">
+					                       		<h2><isprint value="${Store.name}"/></h2>
+					                       		<div class="storeimage"></div>
+					                       			<p><isprint value="${Store.address1}"/><br/><isprint value="${Store.city}"/>, <isprint value="${Store.stateCode}"/> <isprint value="${Store.postalCode}"/></p>
+					                       			<div class="storephone"><isprint value="${Store.phone}"/><br/><isprint value="${Store.getEmail()}"/></div>
+					                       			<div class="storemap">
+					                       				<a class="googlemap" href="http://maps.google.com/maps?hl=en&f=q&q=${Store.address1},${Store.city},${Store.stateCode},${Store.postalCode},${Store.countryCode}" target="_blank">View on larger map</a>
+					                       			</div>
+					                       	</div>
+				                       	</div> 
+				                       	<a class="store-click store-name" href="" target="_blank">
+				                           
+					                         	<isprint value="${loopstate.index+1+'.'+Store.name}"/>
+					                         <iscomment>   	(<a class="editbutton dialogify" 
+					                           		target="_blank" id="${Store.ID}" 
+					                           		href="${URLUtils.url('Stores-Details','StoreID', Store.ID)}" 
+					                           		title="${Resource.msg('storelocator.storelocatorresults.storedetails','storelocator',null)}"
+					                           		data-dlg-options='{"width":900,"height":600}'>${Resource.msg('storelocator.storelocatorresults.storedetails','storelocator',null)}</a>)</iscomment>
+				                          	
+				                          	</a>
+				
+				                           <isif condition="${Store.storeHours != null}">
+				                               <div class="store-hours">
+				                               		<isprint value="${Store.storeHours}" encoding="off"/>
+				                               </div>
+				                           </isif>
+				
+				                           <isif condition="${Store.storeEvents != null}">
+				                               <div class="store-events">
+				                               		<isprint value="${Store.storeEvents}" encoding="off"/>
+				                               </div>
+				                           </isif>
+						                       <iscomment>Example for a link to a map service</iscomment>
+						                       <isscript>
+						                           var qAttr = "";
+						                           if(Store.address1    != null) qAttr += Store.address1 + ", ";
+						                           if(Store.address2    != null) qAttr += Store.address2 + ", ";
+						                           if(Store.city        != null) qAttr += Store.city + ", ";
+						                           if(Store.postalCode  != null) qAttr += Store.postalCode + ", ";
+						                           if(Store.stateCode   != null) qAttr += Store.stateCode + ", ";
+						                           if(Store.countryCode != null) qAttr += Store.countryCode;
+						
+						                           var glink = "http://maps.google.com/maps?hl=en&f=q&q=" + encodeURI(qAttr);
+						                       </isscript>
+						                       <div class="store-address">
+						                       	   
+							                       <div class="click-area"> 		
+						                           <isprint value="${Store.address1}"/><br/>
+						                           <isprint value="${Store.city}"/><isif condition="${Store.city != null && Store.stateCode != null}">,</isif> <isprint value="${Store.stateCode}"/> <isprint value="${Store.postalCode}"/><br/>
+						                           <isprint value="${Store.countryCode}"/>
+						                           </div>  
+						                           <a class="stores result-map-addres" href="${glink}" target="_blank">Get Directions</a>
+						                       </div>
+				                       </div>
+				                   </div>
+					
+					   </isloop>
+					
+					</div>
+				</div>	
+			</isif>
+	   </div>
+</div>

@@ -1,0 +1,21 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/pt_account"/>
+<isinclude template="util/modules"/>
+
+     <div class="desktopBlock"><isslot id="account-banner" description="Banner for My Account pages" context="global" /></div>
+
+     <h1 id="pnsb2c-myaccount-overview">
+           ${Resource.msg('account.header','account',null)}
+      	   <iscomment> <isprint value="${pdict.CurrentCustomer.profile.firstName}"/>&nbsp;<isprint value="${pdict.CurrentCustomer.profile.lastName}"/>  </iscomment>    
+           <span class="account-logout"><a class="logout" user="${pdict.CurrentCustomer.profile.email}" title="Logout" href="${URLUtils.https('Login-Logout')}">${Resource.msg('global.logout','locale',null)}</a></span>
+    </h1>
+    <div class="pnsb2c-myaccnt-landing-page"> 
+    	<isif condition="${dw.system.Site.current.preferences.custom.EnableServiceBenchLinks}">
+     		<iscontentasset aid="account-landing-stage"/>
+		<iselse/>
+			<iscontentasset aid="account-landing"/>
+		</isif>
+
+    </div>     
+             
+</isdecorate>

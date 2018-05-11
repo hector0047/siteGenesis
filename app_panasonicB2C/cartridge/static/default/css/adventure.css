@@ -1,0 +1,682 @@
+.adventure-page-wrapper.passport-error {
+  display: none; }
+.adventure-page-wrapper h2 {
+  margin: 0;
+  padding: 1em 0;
+  font-weight: 800;
+  font-size: 2.4em; }
+.adventure-page-wrapper h3 {
+  text-transform: uppercase;
+  letter-spacing: 1px; }
+.adventure-page-wrapper p {
+  font-size: 1.4em; }
+.adventure-page-wrapper a {
+  outline: none; }
+.adventure-page-wrapper .row {
+  margin: 0;
+  padding: 0;
+  max-width: 100%; }
+  .adventure-page-wrapper .row [class*="column-"] {
+    max-width: auto;
+    margin-left: 0; }
+.adventure-page-wrapper .slick-slider .slick-prev {
+  left: -10%; }
+  .adventure-page-wrapper .slick-slider .slick-prev:before {
+    background: url("../images/adventure/arrow-left.png") no-repeat; }
+.adventure-page-wrapper .slick-slider .slick-next {
+  right: -23.8%; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .slick-slider .slick-next {
+      right: -32%; } }
+  .adventure-page-wrapper .slick-slider .slick-next:before {
+    background: url("../images/adventure/arrow-right.png") no-repeat; }
+.adventure-page-wrapper .slick-slider .slick-prev, .adventure-page-wrapper .slick-slider .slick-next {
+  height: 40px;
+  top: 30%; }
+  .adventure-page-wrapper .slick-slider .slick-prev:before, .adventure-page-wrapper .slick-slider .slick-next:before {
+    display: block;
+    height: 100%;
+    content: ' ';
+    opacity: 1;
+    background-size: contain; }
+.adventure-page-wrapper .social {
+  display: inline-block;
+  padding: 0; }
+  .adventure-page-wrapper .social li {
+    float: left;
+    width: 25%;
+    width: 65px; }
+    .adventure-page-wrapper .social li a {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      height: 54px;
+      width: 54px;
+      text-indent: 9999px; }
+      .adventure-page-wrapper .social li a.ico-facebook {
+        background: url("../images/adventure/ico-facebook.png") no-repeat; }
+      .adventure-page-wrapper .social li a.ico-twitter {
+        background: url("../images/adventure/ico-twitter.png") no-repeat; }
+      .adventure-page-wrapper .social li a.ico-instagram {
+        background: url("../images/adventure/ico-instagram.png") no-repeat; }
+      .adventure-page-wrapper .social li a.ico-youtube {
+        background: url("../images/adventure/ico-youtube.png") no-repeat; }
+.adventure-page-wrapper .button-blue {
+  width: auto;
+  padding: 0 10px 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px; }
+.adventure-page-wrapper .adventure-video {
+  overflow: hidden;
+  width: 100%; }
+  .adventure-page-wrapper .adventure-video .player-overlay-wrapper {
+    position: absolute;
+    width: 97%;
+    max-width: 1302px;
+    height: inherit; }
+    .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay {
+      position: relative;
+      height: 100%;
+      width: 100%; }
+      .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content {
+        display: table;
+        position: absolute;
+        z-index: 1;
+        height: inherit;
+        width: inherit;
+        color: #fff;
+        text-align: center; }
+        .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-flag {
+          position: absolute;
+          height: 88px;
+          width: 147px;
+          right: 35px;
+          background: url("../images/adventure/blue-flag.png") no-repeat;
+          background-size: cover; }
+          .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-flag h3 {
+            margin: 12px 0 0 0;
+            line-height: 1.2em; }
+        .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-text {
+          display: table-cell;
+          vertical-align: middle;
+          cursor: default; }
+          .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-text h1 {
+            font-size: 4.7em;
+            font-weight: 800;
+            line-height: 1em;
+            margin: 0;
+            text-shadow: 1px 2px 6px #000; }
+          .adventure-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-text .play-button {
+            margin-top: 26px; }
+  .adventure-page-wrapper .adventure-video .video-player {
+    width: 100%;
+    height: inherit; }
+    .adventure-page-wrapper .adventure-video .video-player .video-wrapper {
+      min-height: 60vh; }
+      .adventure-page-wrapper .adventure-video .video-player .video-wrapper .overlay {
+        position: absolute;
+        width: 150%;
+        height: inherit; }
+      .adventure-page-wrapper .adventure-video .video-player .video-wrapper .video {
+        width: 100%; }
+    .adventure-page-wrapper .adventure-video .video-player.slick-slider {
+      margin-bottom: 0; }
+      .adventure-page-wrapper .adventure-video .video-player.slick-slider .slick-list {
+        width: 100%;
+        height: 100% !important; }
+    .adventure-page-wrapper .adventure-video .video-player .slick-dots {
+      position: absolute;
+      top: 600px;
+      z-index: 2; }
+      .adventure-page-wrapper .adventure-video .video-player .slick-dots li {
+        width: 100px;
+        height: 100px; }
+  .adventure-page-wrapper .adventure-video .video-carousel {
+    display: none;
+    background: url("../images/adventure/background-white-cement.png"); }
+    .adventure-page-wrapper .adventure-video .video-carousel .video-selector {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 40px; }
+      .adventure-page-wrapper .adventure-video .video-carousel .video-selector img {
+        display: block;
+        margin: 0 auto 20px auto; }
+.adventure-page-wrapper .adventure-summary {
+  text-align: center;
+  background: url("../images/adventure/background-black-splats.png");
+  color: #fff;
+  padding: 0 3% 0 3%; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .adventure-summary {
+      padding: 20px 0 35px 0; } }
+  @media (min-width: 1219px) {
+    .adventure-page-wrapper .adventure-summary {
+      height: 308px;
+      margin-top: -2px; } }
+  .adventure-page-wrapper .adventure-summary img {
+    max-width: 114%;
+    vertical-align: middle; }
+  .adventure-page-wrapper .adventure-summary .adventure-logo-block, .adventure-page-wrapper .adventure-summary .partner {
+    position: relative; }
+    @media (min-width: 1219px) {
+      .adventure-page-wrapper .adventure-summary .adventure-logo-block, .adventure-page-wrapper .adventure-summary .partner {
+        top: 50%;
+        transform: translateY(-50%);
+        -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%); } }
+  @media (min-width: 1219px) {
+    .adventure-page-wrapper .adventure-summary .adventure-logo-block {
+      margin-top: -9px; } }
+  .adventure-page-wrapper .adventure-summary .adventure-logo-block .social {
+    margin-top: -20px; }
+  @media (min-width: 1219px) {
+    .adventure-page-wrapper .adventure-summary .partner {
+      border-left: 1px solid #fff;
+      padding: 20px 0 20px 40px;
+      margin-left: -20px; } }
+  .adventure-page-wrapper .adventure-summary .partner img {
+    margin-right: 1.5vw; }
+.adventure-page-wrapper .adventure-products {
+  background: url("../images/adventure/background-white-cement.png");
+  padding: 50px 0 50px 0;
+  text-align: center;
+  overflow: hidden;
+  width: 100%; }
+  .adventure-page-wrapper .adventure-products h2 {
+    padding: 0 0 40px 0; }
+  .adventure-page-wrapper .adventure-products .product-carousel {
+    width: 72%;
+    margin-left: auto;
+    margin-right: auto; }
+    .adventure-page-wrapper .adventure-products .product-carousel .product .product-image, .adventure-page-wrapper .adventure-products .product-carousel .product h3 {
+      margin-left: auto;
+      margin-right: auto; }
+    .adventure-page-wrapper .adventure-products .product-carousel .product .product-image {
+      display: inline-block;
+      height: 185px; }
+      @media (min-width: 1219px) {
+        .adventure-page-wrapper .adventure-products .product-carousel .product .product-image img {
+          height: 100%; } }
+    .adventure-page-wrapper .adventure-products .product-carousel .product h3 {
+      color: #000;
+      width: 65%;
+      text-transform: none;
+      letter-spacing: 0; }
+  .adventure-page-wrapper .adventure-products .button-wrapper {
+    text-align: center;
+    margin-top: 30px; }
+.adventure-page-wrapper .adventure-spartan {
+  background: url("../images/adventure/background-black-grain.png");
+  color: #fff;
+  height: 100%;
+  padding: 40px 120px 50px 120px; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .adventure-spartan {
+      padding: 40px 4% 50px 5%; }
+      .adventure-page-wrapper .adventure-spartan .spartan-header, .adventure-page-wrapper .adventure-spartan .spartan-logo {
+        width: 100%;
+        text-align: center; } }
+  .adventure-page-wrapper .adventure-spartan h1, .adventure-page-wrapper .adventure-spartan p {
+    margin: 0; }
+  .adventure-page-wrapper .adventure-spartan h1 {
+    font-size: 3.5em; }
+  .adventure-page-wrapper .adventure-spartan .spartan-header {
+    height: 100px;
+    display: table;
+    margin: 8px 0 8px 0; }
+    @media (min-width: 1219px) {
+      .adventure-page-wrapper .adventure-spartan .spartan-header {
+        border-left: 1px solid #fff; } }
+    .adventure-page-wrapper .adventure-spartan .spartan-header .header-content {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 40px; }
+  .adventure-page-wrapper .adventure-spartan .spartan-passport {
+    background: url("../images/adventure/background-white-cement.png");
+    color: #000;
+    margin-top: 45px;
+    padding: 32px; }
+    .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-video-player {
+      text-align: center; }
+      .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-video-player .spartan-content {
+        width: 482px; }
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-video-player .spartan-content.img {
+          height: auto; }
+        @media (max-width: 1218px) {
+          .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-video-player .spartan-content {
+            width: 100%; } }
+    .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form {
+      padding-left: 40px; }
+      @media (max-width: 1218px) {
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form {
+          padding-left: 20px; } }
+      @media (min-width: 1219px) {
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form h1 {
+          margin-top: -12px; } }
+      .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content {
+        margin-top: 30px;
+        padding-top: 38px;
+        border-top: 1px solid #cccccc; }
+        @media (max-width: 1218px) {
+          .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content {
+            width: 515px; } }
+        @media (max-width: 1218px) {
+          .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content img {
+            float: left;
+            margin-right: 2%; } }
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content .form-description {
+          font-weight: bold; }
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content input[type="text"] {
+          margin: 15px 0;
+          width: 285px; }
+        .adventure-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content input[type="submit"] {
+          display: block; }
+  .adventure-page-wrapper .adventure-spartan .spartan-product img {
+    height: 250px;
+    position: absolute;
+    margin: -215px 0 0 780px; }
+    @media (max-width: 1218px) {
+      .adventure-page-wrapper .adventure-spartan .spartan-product img {
+        height: 170px;
+        margin: -158px 0 0 68%; } }
+.adventure-page-wrapper .adventure-adventurer {
+  display: none; }
+  .adventure-page-wrapper .adventure-adventurer .adventurer .adventurer-content {
+    background-color: #fff;
+    display: inline-block; }
+  .adventure-page-wrapper .adventure-adventurer .adventurer-1 {
+    padding: 7%;
+    background: url("../images/adventure/adventurer-background-water.jpg"); }
+.adventure-page-wrapper .adventure-calendar {
+  padding: 55px 70px 55px 120px;
+  background: url("../images/adventure/background-white-cement.png"); }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .adventure-calendar {
+      padding: 55px 0 55px 4%; } }
+  .adventure-page-wrapper .adventure-calendar .calendar-section {
+    background-color: #fff;
+    display: inline-block;
+    min-height: 120px;
+    margin: 0 24px 24px 0;
+    padding: 20px 20px 20px 0;
+    border-left: 5px solid #ec7400; }
+    .adventure-page-wrapper .adventure-calendar .calendar-section form {
+      width: 100%; }
+    .adventure-page-wrapper .adventure-calendar .calendar-section .calendar-description {
+      min-height: 120px; }
+      .adventure-page-wrapper .adventure-calendar .calendar-section .calendar-description img, .adventure-page-wrapper .adventure-calendar .calendar-section .calendar-description p {
+        padding-left: 20px; }
+        .adventure-page-wrapper .adventure-calendar .calendar-section .calendar-description img { padding-right:8px }
+      .adventure-page-wrapper .adventure-calendar .calendar-section .calendar-description p a {
+        display: block; }
+.adventure-page-wrapper .calendar-section .calendar-date {
+  text-align: center; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .calendar-section .calendar-date {
+      margin-bottom: 20px; } }
+  .adventure-page-wrapper .calendar-section .calendar-date h1, .adventure-page-wrapper .calendar-section .calendar-date h3 {
+    margin: 0; }
+.adventure-page-wrapper .calendar-section .calendar-description {
+  border-left: 2px solid #cccccc;
+  height: 100%; }
+  .adventure-page-wrapper .calendar-section .calendar-description img, .adventure-page-wrapper .calendar-section .calendar-description h2, .adventure-page-wrapper .calendar-section .calendar-description h3, .adventure-page-wrapper .calendar-section .calendar-description p {
+    float: left; }
+  .adventure-page-wrapper .calendar-section .calendar-description h2 {
+    padding: 0;
+    line-height: .8em;
+    margin-left: 8px;
+    font-size: 2.1em; float:none}
+  .adventure-page-wrapper .calendar-section .calendar-description p {
+    font-size: 1.2em;
+    margin: 13px 0 0 0px; }
+.adventure-page-wrapper .calendar-section.email-signup {
+  padding-left: 20px; }
+  .adventure-page-wrapper .calendar-section.email-signup #email-alert-signup {
+    width: 100%; }
+    .adventure-page-wrapper .calendar-section.email-signup #email-alert-signup .success-fail-msg span {
+      font-size: 12px; }
+  .adventure-page-wrapper .calendar-section.email-signup h2 {
+    margin: 0;
+    padding: 0;
+    line-height: 1em;
+    margin-bottom: 20px; }
+  .adventure-page-wrapper .calendar-section.email-signup .marketoemail {
+    width: 65% !important; }
+  .adventure-page-wrapper .calendar-section.email-signup .marketoSubscribe {
+    float: right;
+    width: 32%;
+    min-width: inherit; }
+.adventure-page-wrapper .adventure-campaigns {
+  text-align: center;
+  padding-top: 38px; }
+  @media (min-width: 1219px) {
+    .adventure-page-wrapper .adventure-campaigns .campaign-1 {
+      text-align: right; }
+      .adventure-page-wrapper .adventure-campaigns .campaign-1 img {
+        padding-right: 15px; }
+    .adventure-page-wrapper .adventure-campaigns .campaign-2 {
+      text-align: left; }
+      .adventure-page-wrapper .adventure-campaigns .campaign-2 img {
+        padding-left: 15px; } }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .adventure-campaigns img {
+      width: 100%; } }
+.adventure-page-wrapper .passport-event h3 {
+  font-size: 1.3em; }
+.adventure-page-wrapper .passport-event .event-description {
+  padding-left: 40px; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .passport-event .event-description {
+      padding-top: 40px; } }
+  .adventure-page-wrapper .passport-event .event-description .calendar-description {
+    width: 100%;
+    height: 190px;
+    border: none; }
+    .adventure-page-wrapper .passport-event .event-description .calendar-description img {
+      height: 34px; }
+    .adventure-page-wrapper .passport-event .event-description .calendar-description #spartan-title {
+      font-size: 3.5em;
+      line-height: 1.1;
+      float: right;
+      width: 90%;
+      margin-top: -6px; }
+    .adventure-page-wrapper .passport-event .event-description .calendar-description #spartan-date {
+      width: 100%;
+      margin: 1em 0 0 0; }
+    .adventure-page-wrapper .passport-event .event-description .calendar-description p {
+      font-size: 1.5em;
+      margin: 25px 0 30px 0; }
+  .adventure-page-wrapper .passport-event .event-description .view-all {
+    width: 100%; }
+    .adventure-page-wrapper .passport-event .event-description .view-all .button-blue {
+      width: 116px; }
+  .adventure-page-wrapper .passport-event .event-description .share-description {
+    margin: 35px 0 16px 0; }
+  .adventure-page-wrapper .passport-event .event-description .addthis_toolbox {
+    width: 100%; }
+.adventure-page-wrapper .passport-event .spartan-product img {
+  height: 280px;
+  margin: -256px 0 0 725px; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .passport-event .spartan-product img {
+      display: none; } }
+.adventure-page-wrapper .summary-short {
+  height: 190px;
+  padding: 0 76px 0 80px; }
+  .adventure-page-wrapper .summary-short .adventure-logo-block {
+    margin-top: 0;
+    height: inherit;
+    display: table;
+    float: left; }
+    @media (max-width: 1218px) {
+      .adventure-page-wrapper .summary-short .adventure-logo-block {
+        margin-left: 17%; } }
+    .adventure-page-wrapper .summary-short .adventure-logo-block div {
+      display: table-cell;
+      vertical-align: middle; }
+      .adventure-page-wrapper .summary-short .adventure-logo-block div img {
+        width: 100%; }
+  .adventure-page-wrapper .summary-short .summary-social, .adventure-page-wrapper .summary-short .summary-description {
+    height: 96px;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    display: table; }
+    .adventure-page-wrapper .summary-short .summary-social .social, .adventure-page-wrapper .summary-short .summary-social p, .adventure-page-wrapper .summary-short .summary-description .social, .adventure-page-wrapper .summary-short .summary-description p {
+      margin: 0;
+      display: table-cell;
+      vertical-align: middle; }
+  @media (min-width: 1219px) {
+    .adventure-page-wrapper .summary-short .summary-social {
+      border-left: 1px solid #fff;
+      border-right: 1px solid #fff; } }
+  .adventure-page-wrapper .summary-short .summary-social .social {
+    padding-left: 3.5em; }
+    @media (max-width: 1218px) {
+      .adventure-page-wrapper .summary-short .summary-social .social {
+        padding-left: 1.3em;
+        min-width: 210px; } }
+    .adventure-page-wrapper .summary-short .summary-social .social li a {
+      margin-top: 7px; }
+  @media (max-width: 1218px) {
+    .adventure-page-wrapper .summary-short .summary-description {
+      width: 100%;
+      position: inherit;
+      max-height: 40px; } }
+  .adventure-page-wrapper .summary-short .summary-description p {
+    padding-left: 30px;
+    text-align: left; }
+    @media (max-width: 1218px) {
+      .adventure-page-wrapper .summary-short .summary-description p {
+        text-align: center;
+        padding-left: 0; } }
+.adventure-page-wrapper .adventure-gallery {
+  background: url("../images/adventure/background-black-grain.png");
+  color: #fff;
+  padding: 80px; }
+  .adventure-page-wrapper .adventure-gallery .gallery-header h1 {
+    font-size: 3.5em; }
+  .adventure-page-wrapper .adventure-gallery .gallery {
+    margin-top: 52px;
+    position: relative; }
+    .adventure-page-wrapper .adventure-gallery .gallery .hidden {
+      display: none; }
+    .adventure-page-wrapper .adventure-gallery .gallery .litebox {
+      position: relative; }
+      .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay {
+        height: 252px;
+        width: 252px;
+        display: inline-block;
+        text-align: center;
+        margin: 0;
+        margin: 0 30px 30px 0;
+        box-sizing: border-box; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay:hover {
+          outline: 5px solid #0f58a8; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay:after {
+          content: ' ';
+          color: #fff;
+          position: relative;
+          height: 50px;
+          width: 60px;
+          display: block;
+          margin-left: 96px;
+          margin-top: -156px; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay.gallery-image:after {
+          background: url("../images/adventure/camera-static.png") no-repeat; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay.gallery-image:hover:after {
+          color: #0f58a8;
+          background: url("../images/adventure/camera-hover.png") no-repeat; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay.gallery-video:after {
+          height: 65px;
+          background: url("../images/adventure/play-static.png") no-repeat; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay.gallery-video:hover:after {
+          color: #0f58a8;
+          background: url("../images/adventure/play-hover.png") no-repeat; }
+        .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay .gallery-item {
+          width: 100%; }
+          .adventure-page-wrapper .adventure-gallery .gallery .litebox .gallery-overlay .gallery-item img {
+            width: 80%; }
+
+.experience-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-flag h3 {
+  margin: 12px 0 0 0;
+  line-height: 1.5em; }
+.experience-page-wrapper .adventure-video .player-overlay-wrapper .player-overlay .player-overlay-content .player-text h1 {
+  width: 500px;
+  margin: 0 auto; }
+.experience-page-wrapper .adventure-video .video-carousel {
+  background: url("../images/adventure/background-light.jpg"); }
+.experience-page-wrapper .adventure-summary {
+  background: url("../images/adventure/background-dark-short.jpg");
+  background-size: cover;
+  padding: 0 0 0 3%;
+  overflow: hidden; }
+  @media (max-width: 1218px) {
+    .experience-page-wrapper .adventure-summary {
+      padding: 5%; } }
+  .experience-page-wrapper .adventure-summary .partner {
+    border: none; }
+    .experience-page-wrapper .adventure-summary .partner img {
+      margin-top: 20px;
+      height: 115px;
+      margin-right: 3vw; }
+    .experience-page-wrapper .adventure-summary .partner .long-logo {
+      height: 75px;
+      margin-right: 7vw; }
+    @media (min-width: 1219px) {
+      .experience-page-wrapper .adventure-summary .partner {
+        padding: 0 0 20px 72px;
+        margin-right: -50px; } }
+    @media (max-width: 1218px) {
+      .experience-page-wrapper .adventure-summary .partner {
+        width: 100%;
+        margin-left: 20px; } }
+  .experience-page-wrapper .adventure-summary .adventure-logo-block {
+    border-right: 1px solid #fff;
+    margin-top: 0;
+    padding-top: 20px; }
+    .experience-page-wrapper .adventure-summary .adventure-logo-block img {
+      width: 250px;
+      margin-bottom: 40px; }
+    .experience-page-wrapper .adventure-summary .adventure-logo-block .social {
+      margin-top: -20px; }
+    @media (max-width: 1218px) {
+      .experience-page-wrapper .adventure-summary .adventure-logo-block {
+        display: block;
+        width: 100%;
+        border: none; } }
+.experience-page-wrapper .adventure-products {
+  background: url("../images/adventure/background-light.jpg");
+  background-size: cover; }
+.experience-page-wrapper .adventure-spartan {
+  background: url("../images/adventure/background-dark-2.jpg");
+  background-size: cover; }
+  .experience-page-wrapper .adventure-spartan .spartan-logo img {
+    height: 110px;
+    margin-top: 5px; }
+  .experience-page-wrapper .adventure-spartan .spartan-passport {
+    background: url("../images/adventure/background-light-short.jpg");
+    background-size: cover; }
+    .experience-page-wrapper .adventure-spartan .spartan-passport .spartan-form h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      margin-top: 0; }
+    .experience-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content {
+      padding-top: 30px; }
+      .experience-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content img {
+        max-width: 86px; }
+        @media (max-width: 1218px) {
+          .experience-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content img {
+            float: left;
+            margin-right: 2%; } }
+      .experience-page-wrapper .adventure-spartan .spartan-passport .spartan-form .form-content input[type="text"] {
+        width: 356px; }
+.experience-page-wrapper .adventure-calendar {
+  background: url("../images/adventure/background-light.jpg");
+  background-size: cover; }
+.experience-page-wrapper .calendar-section .calendar-description h2 {
+  line-height: 1em;
+  margin-left: 20px; }
+.experience-page-wrapper .calendar-section .calendar-description .column-10 {
+  margin-left: 5px; }
+.experience-page-wrapper .passport-event .calendar-section .calendar-description #spartan-title {
+  width: 100%; }
+@media (max-width: 1218px) {
+  .experience-page-wrapper .summary-short {
+    padding: 0 4% 55px 4%; } }
+.experience-page-wrapper .summary-short .adventure-logo-block {
+  border: none;
+  padding-top: 0; }
+  @media (max-width: 1218px) {
+    .experience-page-wrapper .summary-short .adventure-logo-block {
+      width: auto; } }
+  .experience-page-wrapper .summary-short .adventure-logo-block div img {
+    margin-bottom: 0px;
+    width: 275px; }
+    @media (max-width: 1218px) {
+      .experience-page-wrapper .summary-short .adventure-logo-block div img {
+        width: 300px;
+        margin-top: 68px;
+        margin-right: 4vw; } }
+.experience-page-wrapper .adventure-gallery {
+  background: url("../images/adventure/background-dark.jpg");
+  background-size: cover; }
+.experience-page-wrapper .passport-event .event-description .view-all {
+  display: inline-block; }
+
+.litebox-overlay {
+  padding: 0; }
+  .litebox-overlay .litebox-close, .litebox-overlay .litebox-prev, .litebox-overlay .litebox-next {
+    opacity: 1; }
+  .litebox-overlay .litebox-close {
+    top: 13%;
+    right: 25%;
+    background: url("../images/adventure/close.png") no-repeat; }
+    @media (max-width: 1218px) {
+      .litebox-overlay .litebox-close {
+        top: 10%;
+        right: 5%; } }
+  .litebox-overlay .litebox-prev {
+    left: 22%;
+    background: url("../images/adventure/arrow-left-white.png") no-repeat; }
+    @media (max-width: 1218px) {
+      .litebox-overlay .litebox-prev {
+        left: 4%; } }
+  .litebox-overlay .litebox-next {
+    right: 20%;
+    background: url("../images/adventure/arrow-right-white.png") no-repeat; }
+    @media (max-width: 1218px) {
+      .litebox-overlay .litebox-next {
+        right: 0; } }
+  .litebox-overlay .litebox-container {
+    width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: hidden !important; }
+    .litebox-overlay .litebox-container .litebox-content {
+      padding: 0; }
+      .litebox-overlay .litebox-container .litebox-content .lightbox-item {
+        height: 500px;
+        width: 500px;
+        padding: 30px 30px 0 30px; }
+      .litebox-overlay .litebox-container .litebox-content .lightbox-footer {
+        padding: 12px 30px 45px 30px; }
+        .litebox-overlay .litebox-container .litebox-content .lightbox-footer .download {
+          font-size: 1.2em;
+          float: left;
+          text-transform: uppercase;
+          font-weight: bold;
+          margin-top: 2px; }
+          .litebox-overlay .litebox-container .litebox-content .lightbox-footer .download .ico-download {
+            height: 19px;
+            width: 18px;
+            float: left;
+            margin-right: 8px;
+            background: url("../images/adventure/ico-download.png"); }
+        .litebox-overlay .litebox-container .litebox-content .lightbox-footer .addthis_toolbox {
+          float: right; }
+
+.addthis_toolbox {
+  position: relative;
+  z-index: 2; }
+  .addthis_toolbox .custom_images .addthis_button_facebook div {
+    background: url("../images/adventure/ico-facebook-blue.png");
+    background-size: contain; }
+  .addthis_toolbox .custom_images .addthis_button_twitter div {
+    background: url("../images/adventure/ico-twitter-blue.png");
+    background-size: contain; }
+  .addthis_toolbox .custom_images .addthis_button_email div {
+    background: url("../images/adventure/ico-email-blue.png");
+    background-size: contain; }
+  .addthis_toolbox .custom_images div {
+    height: 46px;
+    width: 46px;
+    margin-right: 15px;
+    float: left; }
+  .addthis_toolbox.addthis_toolbox_modal .custom_images div {
+    height: 24px;
+    width: 24px;
+    margin-right: 7px; }

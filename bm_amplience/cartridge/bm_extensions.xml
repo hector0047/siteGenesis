@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<extensions xmlns="http://www.demandware.com/xml/bmmodules/2007-12-11" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.demandware.com/xml/bmmodules/2007-12-11 bmext.xsd">
+	<!-- =============================================================== -->
+	<!-- ==                                                           == -->
+	<!-- ==  SITE   MENU   EXTENSIONS                                 == -->
+	<!-- ==                                                           == -->
+	<!-- =============================================================== -->
+
+    <menuitem id="site_amplience" position="20001" site="true">
+		<name xml:lang="x-default">Amplience</name>
+		<short_description xml:lang="x-default">Amplience Integration Modules</short_description>
+		<description xml:lang="x-default">Amplience Integration Modules</description>
+		<icon>icons/grid_ico.gif</icon>
+	</menuitem>
+	
+	<menuaction id="amplience_im" menupath="site_amplience" position="500" site="true">
+		<name xml:lang="x-default">Interactive Merchandising</name>
+		<short_description xml:lang="x-default">
+			Interactive Merchandising module
+		</short_description>
+		<description xml:lang="x-default">
+			Interactive Merchandising module
+		</description>
+		<exec pipeline="InteractiveMerchandising" node="Start" />
+		<sub-pipelines>
+			<pipeline name="InteractiveMerchandising-Start" />
+			<pipeline name="InteractiveMerchandising-GetImportedAreas" />
+			<pipeline name="InteractiveMerchandising-GetAvailableAreas" />
+			<pipeline name="InteractiveMerchandising-ImportAreas" />
+			<pipeline name="InteractiveMerchandising-DeleteImportedIMAreas" />
+			<pipeline name="InteractiveMerchandising-GroupImportedAreas" />
+			<pipeline name="InteractiveMerchandising-DeleteGroupedIMAreas" />
+			<pipeline name="InteractiveMerchandising-GetGroupedAreas" />
+		</sub-pipelines>
+		<parameters>
+			<parameter name="active_tab" value="available_streams" />
+		</parameters>
+		<permissions>
+		</permissions>
+		<icon>icons/grid_ico.gif</icon>
+	</menuaction>
+	
+	<menuaction id="amplience_ugc" menupath="site_amplience" position="501" site="true">
+		<name xml:lang="x-default">User Generated Content</name>
+		<short_description xml:lang="x-default">
+			User Generated Content module
+		</short_description>
+		<description xml:lang="x-default">
+			User Generated Content module
+		</description>
+		<exec pipeline="UserGeneratedContent" node="Start" />
+		<sub-pipelines>
+			<pipeline name="UserGeneratedContent-Start" />
+			<pipeline name="UserGeneratedContent-GetImportedStreams" />
+			<pipeline name="UserGeneratedContent-GetAvailableStreams" />
+			<pipeline name="UserGeneratedContent-GetViewers" />
+			<pipeline name="UserGeneratedContent-ImportStream" />
+			<pipeline name="UserGeneratedContent-DeleteImportedStream" />
+			<pipeline name="UserGeneratedContent-EditStream" />
+		</sub-pipelines>
+		<parameters>
+			<parameter name="active_tab" value="available_streams" />
+		</parameters>
+		<permissions>
+		</permissions>
+		<icon>icons/grid_ico.gif</icon>
+	</menuaction>
+	
+</extensions>

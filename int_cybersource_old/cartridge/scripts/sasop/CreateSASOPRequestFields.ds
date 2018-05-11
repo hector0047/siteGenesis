@@ -1,0 +1,69 @@
+/**
+* CreateSASOPRequestFields.ds
+* This File Will create SASOP request fields
+*
+* @input receiptPage : String
+* @output requestFields : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.web );
+importScript("int_cybersource:library/libCybersource_secureacceptance.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	var SASOPHelper = getCybersource_SecureAcceptanceHelper();
+   	var map = new dw.util.HashMap();
+	var recipientURL = decodeURI(args.receiptPage);
+	// Updating receipt page url from site preferences if it is available
+	if(SASOPHelper.getReceiptPageURL()!=null){
+		recipientURL = SASOPHelper.getReceiptPageURL();
+	}
+	
+	//Below fields will be updated from user billing section input through app.js
+	//These are sending as unsigned fields
+	map.put("bill_to_company_name","");
+	map.put("bill_to_forename","");
+	map.put("bill_to_surname","");
+	map.put("bill_to_address_line1","");
+	map.put("bill_to_address_line2","");
+	map.put("bill_to_address_city","");
+	map.put("bill_to_address_state","");
+	map.put("bill_to_address_country","");
+	map.put("bill_to_address_postal_code","");
+	map.put("bill_to_email","");
+	map.put("bill_to_phone","");
+	map.put("card_type","");
+	map.put("card_number","");
+    map.put("card_expiry_date","");
+	map.put("card_cvn","");
+	
+	map.put("merchant_defined_data1","");
+	
+	//Below fields will be updated Dynamically based on library functions 
+	//(int_cybersourceSASOP:cybersource_secureacceptance/libCybersource_secureacceptance.ds)
+	//These are sending as Signed fields
+    map.put("transaction_type",SASOPHelper.subscription);
+    map.put("access_key",SASOPHelper.getAceessKey());
+	map.put("profile_id",SASOPHelper.getProfileId());
+	map.put("transaction_uuid",SASOPHelper.getUUID());
+	map.put("currency",SASOPHelper.getCurrencyCode());
+	map.put("signed_date_time",SASOPHelper.getSignedDateTime());
+	map.put("reference_number",SASOPHelper.getReferenceNumber());
+	map.put("override_custom_receipt_page",recipientURL);
+	
+	//Below fields are having fixed values for every request
+	//These are sending as Signed fields
+	map.put("amount","0");
+	map.put("payment_method","card");
+	map.put("locale","en");
+	map.put("signed_field_names","override_custom_receipt_page,access_key,profile_id,transaction_uuid,signed_field_names,unsigned_field_names,signed_date_time,locale,transaction_type,reference_number,amount,currency,payment_method");
+	map.put("unsigned_field_names","merchant_defined_data1,bill_to_company_name,bill_to_forename,bill_to_surname,bill_to_address_line1,bill_to_address_line2,bill_to_address_city,bill_to_address_state,bill_to_address_country,bill_to_address_postal_code,bill_to_phone,bill_to_email,card_type,card_number,card_expiry_date,card_cvn");
+	
+	var requestFields	= SASOPHelper.insertSASOPRequestFields(map);
+	args.requestFields	= requestFields;
+
+    return PIPELET_NEXT;
+}

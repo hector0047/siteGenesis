@@ -1,0 +1,91 @@
+/**
+ *  Copy new address into session.
+ *
+ * This script add the new address to session address list.
+ *
+ * @input SavedShippingAddress : dw.customer.CustomerAddress
+ * @input NoSavedAddress : dw.web.FormGroup
+ * @input ShippingAddress : Object
+ * @input ShipmentNumber : Number
+ * @input Basket : dw.order.Basket
+ * @input addressUUID : String
+ * @output RefernceShippingAddress : Object
+ */
+importScript( "checkout/Utils.ds" );
+
+importPackage( dw.customer );
+importPackage( dw.util );
+importPackage( dw.object );
+importPackage( dw.order );
+importPackage( dw.system );
+importPackage( dw.web );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var basket : Basket = pdict.Basket;
+	var profileAddress : CustomerAddress = pdict.SavedShippingAddress;
+	// storing all the addresses from Basket custom attribute instead of session
+	var addressList : Collection = getSessionAddresses(basket);;
+	var shippingaddress: Object = pdict.ShippingAddress;
+	var noSavedAddress : FormGroup = pdict.NoSavedAddress;
+	var shipmentNumber : Number = pdict.ShipmentNumber;
+	var shipmentCount : Number = pdict.Basket.shipments.size();
+	var referenceShippingAddress : Object = new Object();
+	var uuid :String = pdict.addressUUID;
+	
+	if(uuid != null){
+		var refobj :Object = findShippingAddressFromBasket(basket, uuid );
+		if(refobj != null){
+			referenceShippingAddress.firstName =refobj.firstName;
+			referenceShippingAddress.lastName =refobj.lastName;
+			referenceShippingAddress.address1 =refobj.address1;
+			referenceShippingAddress.address2 =refobj.address2;
+			referenceShippingAddress.city =refobj.city;
+			referenceShippingAddress.stateCode =refobj.stateCode;
+			referenceShippingAddress.postalCode =refobj.postalCode;
+			referenceShippingAddress.phone="";
+			referenceShippingAddress.companyName =refobj.companyName;
+			referenceShippingAddress.type =refobj.type;
+		}
+		pdict.RefernceShippingAddress = referenceShippingAddress;
+	}
+	
+	if(addressList != null && addressList.size() >0) {
+		for(var i=0; i<addressList.size(); i++) {
+			addressList[i].preferedAddress = false;
+			addressList[i].editaddress = false;
+			addressList[i].shipmentnumber = null;
+		}
+	}
+	
+	if(shippingaddress != null && !empty(shippingaddress)){
+		shippingaddress.firstName = noSavedAddress.firstName.value;
+		shippingaddress.lastName = noSavedAddress.lastName.value;
+		shippingaddress.address1 = noSavedAddress.address1.value;
+		shippingaddress.address2 = noSavedAddress.address2.value;
+		shippingaddress.countryCode = noSavedAddress.country.value;
+		shippingaddress.stateCode = noSavedAddress.states.state.value;
+		//shippingaddress.postalCode = noSavedAddress.postal.value;
+		shippingaddress.city = noSavedAddress.city.value;
+		//This updated shipping address will be stored into Basket custom attribute
+		pdict.RefernceShippingAddress = shippingaddress;
+	} else {
+		if(addressList != null && addressList.size() >0) {			
+			var newAddress : Object = new Object();
+			newAddress.firstName = profileAddress.getFirstName();
+			newAddress.lastName = profileAddress.getLastName();
+			newAddress.address1 = profileAddress.getAddress1();
+			newAddress.address2 = profileAddress.getAddress2();
+			newAddress.countryCode = profileAddress.getCountryCode().value;
+			newAddress.stateCode = profileAddress.getStateCode();
+			newAddress.postalCode = profileAddress.getPostalCode();
+			newAddress.city = profileAddress.getCity();
+			addressList.add(newAddress);				
+			//storing newly added address to Basket custom attribute
+			basket.custom.sessionAddressBook = storeAddressListToJsonString(addressList);
+		}
+	}
+	
+	
+	return PIPELET_NEXT;
+}

@@ -1,0 +1,178 @@
+/**
+ * Exports amplience swatch and product images to DW catalog xml file
+ */
+
+importPackage( dw.system );
+importPackage( dw.io );
+
+function AmplienceCatalogExporter() {
+
+	/**
+	 * Export Swatch and product images into a DW catalog
+	 *
+	 * @param {File} file - catalog file 
+	 * @param {Object} productImages - object with product images info
+	 * @param {Object} swatchImages - object with swatch images info
+	 * @param {String} catalogID - identifier of a catalog
+	 * @param {Object} viewTypes - a list with view types
+	 */
+	this.exportCatalog = function(file : File, productImages : Object, swatchImages : Object, catalogID : String, viewTypes : Object) {
+	
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		var xsw : XMLStreamWriter = new XMLIndentingStreamWriter(fileWriter);
+		
+		xsw.writeStartDocument("UTF-8", "1.0");
+		
+		xsw.writeStartElement("catalog");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/catalog/2006-10-31");
+		xsw.writeAttribute("catalog-id", catalogID);
+		
+		for (var product : Object in productImages) {
+			xsw.writeStartElement("product");
+			xsw.writeAttribute("product-id", product);
+		
+			xsw.writeStartElement("images");
+			
+			for (var i : Object in productImages[product]) {
+				
+				// iterate through all view types and export them as image groups
+				for (var viewType : String in viewTypes) {
+
+					switch (viewType) {
+					
+						case 'swatch':
+								exportSwatchViewType(xsw, product, i, swatchImages, productImages[product][i], viewTypes[viewType]);
+								break;
+								
+						case 'video':
+								exportViewType(xsw, productImages[product][i], viewType, viewTypes[viewType], productImages[product][i].videos);				
+								break;
+								
+						case 'spin':
+								exportViewType(xsw, productImages[product][i], viewType, viewTypes[viewType], productImages[product][i].spin_images);
+								break;
+								
+						case 'set':
+								exportViewType(xsw, productImages[product][i], viewType, viewTypes[viewType], productImages[product][i].sets);
+								break;
+								
+						default: // 'small', 'medium', 'large' 
+								exportViewType(xsw, productImages[product][i], viewType, viewTypes[viewType], productImages[product][i].images);
+								break;
+					}
+				}
+				
+			}
+			xsw.writeEndElement(); // </images>
+			xsw.writeEndElement(); // </product>
+		}
+		xsw.writeEndElement(); // </catalog>
+		xsw.writeEndDocument();
+		
+		xsw.close();
+		fileWriter.close();	
+	};
+
+	/**
+	 * Exports an image-group with type swatch
+	 *
+	 * @param {XMLStreamWriter} xsw - stream to export info
+	 * @param {Object} product - current product for export
+	 * @param {Object} index - current product image index for export
+	 * @param {Object} swatchImages - a swatch image that neeed to be exported
+	 * @param {Object} productImage - a product image that neeed to be exported
+	 * @param {String} exportViewTypeImgPath - image path value for a view type
+	 */
+	var exportSwatchViewType = function(xsw : XMLStreamWriter, product : Object, index : Object, swatchImages : Object, productImage : Object, exportViewTypeImgPath : String) {
+		
+		var imagePath : String = '';
+		var hasSwatch = false;
+		
+		if (productImage.params.hasSwatch) {
+			
+			var name = product + "_" + index;
+			imagePath = name + "_PSWATCH";
+			hasSwatch = true;
+			
+		} else if (index in swatchImages) {
+			imagePath = swatchImages[index].images.path;
+			hasSwatch = true;
+		}
+		
+		// skip exporting if no swatch image is added
+		if (!hasSwatch) {
+			
+			return;	
+		}
+		
+		xsw.writeStartElement("image-group");
+		
+		xsw.writeAttribute("view-type", 'swatch');
+		
+		for ( var variationAttribute in productImage.vars ) {
+			
+			if ( productImage.params.length == 1 ) {
+				
+				xsw.writeAttribute("variation-value", productImage.vars[variationAttribute]);
+								
+			} else if ( productImage.params.length > 1 ) {
+				
+				xsw.writeEmptyElement("variation");
+				xsw.writeAttribute("attribute-id", variationAttribute);
+				xsw.writeAttribute("value", productImage.vars[variationAttribute]);
+			}
+		}
+		
+		xsw.writeEmptyElement("image");
+		xsw.writeAttribute("path", imagePath + exportViewTypeImgPath);
+		
+		xsw.writeEndElement(); // </image-group>
+	};
+	
+	/**
+	 * Exports an view type as an image-group
+	 *
+	 * @param {XMLStreamWriter} xsw - stream to export info
+	 * @param {Object} productImage - a product image that neeed to be exported
+	 * @param {String} viewType - current view type for export
+	 * @param {String} exportViewTypeImgPath - image path value for a view type
+	 * @param {Object} exportObjArr - array of objects for export
+	 */
+	var exportViewType = function(xsw : XMLStreamWriter, productImage : Object, viewType : String, exportViewTypeImgPath : String, exportObjArr : Object) {
+	
+		// skip exporting if no export objects are added
+		if ( empty(exportObjArr) ) {
+		
+			return;	
+		}
+	
+		xsw.writeStartElement("image-group");
+		xsw.writeAttribute("view-type", viewType);
+	
+		for ( var variationAttribute in productImage.vars ) {
+			
+			if ( productImage.params.length == 1) {
+					
+					xsw.writeAttribute("variation-value", productImage.vars[variationAttribute]);
+			
+			} else if ( productImage.params.length > 1 ) {
+				
+					xsw.writeEmptyElement("variation");
+					xsw.writeAttribute("attribute-id", variationAttribute);
+					xsw.writeAttribute("value", productImage.vars[variationAttribute]);
+			}
+		}
+		
+		/**
+		 * iterate through all export objects and export them as image elements
+		 */
+		for each ( var image in exportObjArr ) {
+			
+			xsw.writeEmptyElement("image");
+			var imageTemplate : String = image.path + exportViewTypeImgPath;
+			xsw.writeAttribute("path", imageTemplate);
+		}
+	
+		xsw.writeEndElement(); // </image-group>
+	};
+}

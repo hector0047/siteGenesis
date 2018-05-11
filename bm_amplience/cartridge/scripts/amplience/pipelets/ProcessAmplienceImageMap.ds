@@ -1,0 +1,57 @@
+/**
+*
+* Params:
+*
+* @input CatalogID : String
+* @input AmplienceProductImages : Object
+* @input ViewTypes : String
+* @input PathPattern : String
+* @output ProcessingLog : dw.util.Map
+* @output ProductImages : Object
+* @output ManifestReport : Object
+* @output ErrorMsg : String
+* 
+*/
+
+importScript( "amplience/AmplienceImageMapProcessor.ds" );
+
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number {
+	
+	try {
+		
+		var catalogID : String = args.CatalogID;
+		if ( empty(catalogID) ) {
+			
+			throw new Error('CatalogID cannot be empty');
+		}
+		
+		var amplienceImages : Object = args.AmplienceProductImages;
+		if ( empty(amplienceImages) ) {
+				
+			throw new Error('AmplienceProductImagesMap is missing or is empty');
+		}
+		
+		var viewTypes : Object = JSON.parse(args.ViewTypes);
+		
+		var pathPattern : String = args.PathPattern;
+		
+		var ampImgProcessor = new AmplienceImageMapProcessor();
+		
+		ampImgProcessor.processAmplienceImages(catalogID, amplienceImages, pathPattern, viewTypes);
+		
+		args.ProductImages = ampImgProcessor.getProductImages();
+		args.ProcessingLog = ampImgProcessor.getMessagesMap();
+		args.ManifestReport = ampImgProcessor.getManifestImportReportLogger();
+		
+	} catch(e) {
+		
+		var errMsg : String = 'ProcessAmplienceImageMap.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

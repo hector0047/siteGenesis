@@ -1,0 +1,135 @@
+/*
+* 
+*
+*
+*
+*	@input  httpParameterMap : dw.web.HttpParameterMap
+*	
+*   
+*   
+*	
+*	@output errorStatus : Boolean
+*   @output categorySatck : dw.util.LinkedHashSet 
+*
+*/ 
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.catalog );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	
+   //Default Initialization	
+	var status : Boolean = false;
+	var cgid : String = null;
+	if('cgid' in pdict.httpParameterMap && !empty(pdict.httpParameterMap.cgid.value)){
+		cgid = pdict.httpParameterMap.cgid.value;
+    }
+	var categoryStack : LinkedHashSet = new LinkedHashSet();
+	/*var l1  : String = null;
+	var l2	: String = null;
+	var l3	: String = null;
+  //Dynamic assignment
+  	if('l1' in pdict.httpParameterMap && !empty(pdict.httpParameterMap.l1.value)){
+  		l1 = pdict.httpParameterMap.l1.value;
+  	}	
+	if('l2' in pdict.httpParameterMap && !empty(pdict.httpParameterMap.l2.value)){
+  		l2 = pdict.httpParameterMap.l2.value;
+  	}
+  	if('l3' in pdict.httpParameterMap && !empty(pdict.httpParameterMap.l3.value)){
+  		l3 = pdict.httpParameterMap.l3.value;
+  	}*/
+	
+/** Logic strats **/
+	/*if(!empty(l1) || !empty(l2) || !empty(l3)){
+	
+		if(!empty(l1)){
+			
+			 if(dw.catalog.CatalogMgr.getSiteCatalog().getRoot().getOnlineSubCategories().contains(dw.catalog.CatalogMgr.getCategory(l1)) && (dw.catalog.CatalogMgr.getCategory(l1).getOnlineSubCategories().size() > 0 || dw.catalog.CatalogMgr.getCategory(l1).getOnlineProducts().size() > 0)){
+				
+				status = false;
+				
+			 }else{
+			 
+			 	status = true;
+			 }
+		}
+		if(!empty(l1) && !empty(l2)){
+			
+			if(dw.catalog.CatalogMgr.getCategory(l1).getOnlineSubCategories().contains(dw.catalog.CatalogMgr.getCategory(l2)) && (dw.catalog.CatalogMgr.getCategory(l2).getOnlineSubCategories().size() > 0 || dw.catalog.CatalogMgr.getCategory(l2).getOnlineProducts().size() > 0)){
+		
+				status = false;
+				
+			}else{
+				
+				status = true;
+			
+			}
+			
+		}
+		if(!empty(l1) && !empty(l2) && !empty(l3)){
+			
+			if(dw.catalog.CatalogMgr.getCategory(l1).getOnlineSubCategories().contains(dw.catalog.CatalogMgr.getCategory(l2)) && dw.catalog.CatalogMgr.getCategory(l2).getOnlineSubCategories().contains(dw.catalog.CatalogMgr.getCategory(l3)) && (dw.catalog.CatalogMgr.getCategory(l3).getOnlineSubCategories().size() > 0 || dw.catalog.CatalogMgr.getCategory(l3).getOnlineProducts().size() > 0)){
+		
+				status = false;
+				
+			}else{
+				
+				status = true;
+			}
+		}
+	
+	}
+		pdict.errorStatus = status;
+		return PIPELET_NEXT;
+	*/	
+	
+	if(!empty(cgid)){
+	
+		categoryStack = getCategoryStack(cgid);
+		if(!(dw.catalog.CatalogMgr.getCategory(cgid).getOnlineSubCategories().size() > 0 || dw.catalog.CatalogMgr.getCategory(cgid).getOnlineProducts().size() > 0)){
+			
+		 	status = true;
+		}
+		
+	}else{
+	
+		if('ajax' in pdict.httpParameterMap && pdict.httpParameterMap.ajax.booleanValue){
+			status = true;
+    	}else{
+    		status = false;
+    	}
+
+	}
+	
+	pdict.errorStatus = status;
+	pdict.categorySatck = categoryStack;
+	return PIPELET_NEXT;
+	
+}
+
+function getCategoryStack(cgid : String) : LinkedHashSet {
+	
+	var catTempStack : LinkedHashSet = new LinkedHashSet();
+	//Adding first category
+	var currCat : Category = dw.catalog.CatalogMgr.getCategory(cgid);
+	catTempStack.add(currCat);
+	while(currCat.ID != 'root'){
+		currCat = currCat.getParent();
+		catTempStack.add(currCat);  
+	}
+	return reverseCategoryStack(catTempStack);
+}
+
+function reverseCategoryStack(categoryStack : LinkedHashSet) : LinkedHashSet {
+	
+	var catTempStack : LinkedHashSet = new LinkedHashSet();
+	for(var i = categoryStack.size()-1 ; i >= 0 ;i--){
+		catTempStack.add(categoryStack[i]);
+	}
+	return catTempStack;
+}
+

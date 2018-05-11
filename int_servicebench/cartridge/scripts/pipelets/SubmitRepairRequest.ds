@@ -1,0 +1,144 @@
+/**
+*
+* TITLE:  
+*
+*	Service Bench status request
+*
+* 
+*
+*	
+*
+* INPUT PARAMETERS:
+*
+*	
+* 	
+* 	
+*
+* 	
+*
+* OUPUT PARAMETERS:
+*
+* 	
+* 	@output WSResponse : Object
+* 	@output error : Object
+* 	@output warrantyStatusPart : String
+* 	@output warrantyEndDatePart : String
+* 	@output warrantyTypeNamePart : String
+* 	@output warrantyStatusLabor : String
+* 	@output warrantyEndDateLabor : String
+* 	@output warrantyTypeNameLabor : String
+* 	@output shipAmount : dw.value.Money
+*	@output exchangeAmount : dw.value.Money
+*	@output onlineRepairQualification : String
+*	@output errorComment : String
+* 	@output exchangeable : String
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.value );
+
+importScript("int_servicebench:sb/Credentials.ds");
+
+var sf = require("bc_serviceframework");
+require("../services/SubmitRepairRequestService");
+
+
+function execute(pdict) {
+	
+	try{
+		var SubmitRepairRequestService = sf.getService("ServiceBenchSR");
+		var service = new SubmitRepairRequestService();
+		
+		var sbObject : Object =	new Object();
+		
+		var repairRequestForm : dw.web.FormElement = pdict.CurrentForms.repairsubmit;
+		
+		var dateOfPurchase =  repairRequestForm.year.value + repairRequestForm.month.value + repairRequestForm.day.value;
+		
+		sbObject.sourceSystemName 		= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemName");
+		sbObject.sourceSystemVersion 	= dw.system.Site.getCurrent().getCustomPreferenceValue("SB_sourceSystemVersion");
+		sbObject.modelNumber			= repairRequestForm.mnumber.value;
+		sbObject.serialNumber			= repairRequestForm.snumber.value;
+		sbObject.pDate				    = dateOfPurchase;
+		
+		service.call(sbObject);
+		
+		//response handling
+		var response = service.response;
+		//Part related warranty details
+		var warrantyStatusPart;
+		var warrantyEndDatePart;
+		var warrantyTypeNamePart;
+		//Labor related warranty details
+		var warrantyStatusLabor;
+		var warrantyEndDateLabor;
+		var warrantyTypeNameLabor;
+		var shipAmount : Money = new Money(0.0, 'USD');
+		var exchangeAmount : Money = new Money(0.0, 'USD');
+		var errorComment;
+		var exchangeable   = response.exchangeQualification;
+		
+		if(response.warrantyInfo != null){
+			for each(var warranty in response.warrantyInfo.warrantyType){
+				if(warranty.warrantyTypeName == "Standard Labor"){
+					warrantyStatusLabor = warranty.warrantyStatus;
+					warrantyEndDateLabor = warranty.warrantyEndDate;
+					warrantyTypeNameLabor = warranty.warrantyTypeName;
+				}else if(warranty.warrantyTypeName == "Standard Part"){
+					warrantyStatusPart = warranty.warrantyStatus;
+					warrantyEndDatePart = warranty.warrantyEndDate;
+					warrantyTypeNamePart = warranty.warrantyTypeName;
+				}
+				
+			}
+		}
+		
+		if(!empty(response.amountInfo)){
+			for each(var amt : Object in response.amountInfo){
+				var charges : Money = new Money(amt.amount, 'USD');
+				if(amt.amountType == 'SHIP'){
+					shipAmount = charges;
+				}else{
+					if(exchangeAmount == 0){
+						exchangeAmount = charges;
+					}else{
+						exchangeAmount = exchangeAmount.add(charges);
+					}
+				}
+				
+			}
+			
+		}
+		
+		if(response.msgStatus == 'ERROR'){
+			for each(var statusDetail in response.statusDetails.statusDetail ){
+				errorComment = statusDetail.comments;
+			}
+		}
+	}
+	catch(e){
+		var error = e;
+		pdict.error = error;
+		return PIPELET_ERROR;
+	}
+	
+	//assigning the response from SB to the pdict level attributes
+	pdict.WSResponse = response;	
+	pdict.warrantyStatusPart = warrantyStatusPart;
+	pdict.warrantyEndDatePart = warrantyEndDatePart;
+	pdict.warrantyTypeNamePart = warrantyTypeNamePart;
+	pdict.warrantyStatusLabor = warrantyStatusLabor;
+	pdict.warrantyEndDateLabor = warrantyEndDateLabor;
+	pdict.warrantyTypeNameLabor = warrantyTypeNameLabor;
+	pdict.shipAmount = shipAmount;
+	pdict.exchangeAmount = exchangeAmount;
+	pdict.onlineRepairQualification = response.onlineRepairQualification;
+	pdict.errorComment = errorComment;
+	pdict.exchangeable = exchangeable;
+	
+	
+   	return PIPELET_NEXT;
+}

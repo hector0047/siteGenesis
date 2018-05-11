@@ -1,0 +1,4 @@
+<isinclude template="util/modules"/>
+<iscache type="daily" hour="1" />
+<iscomment> Same page shoud be configrued as a rendring template in below Conent Asset Ref Ticket [PANC-260]</iscomment>
+<iscontentasset aid="inqChat"/>

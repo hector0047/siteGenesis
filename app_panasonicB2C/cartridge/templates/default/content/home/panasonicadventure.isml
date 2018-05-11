@@ -1,0 +1,303 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+<isset name="pageTitle" value="Panasonic Adventure" scope="page" />
+<isset name="metaDescription" value="Panasonic Adventure, the gear you need for the adventures you love" scope="page" />
+<isdecorate template="content/home/pt_panasonicadventure">
+
+<iscomment>this is the template rendering the adventure page</iscomment>
+
+<div class="adventure-page-wrapper pillar-page">
+
+	<section class="adventure-video">
+		<div class="player-overlay-wrapper">
+			<div class="player-overlay">
+				<div class="player-overlay-content">
+					<div class="player-flag">
+						<h3>Spartan Adventure Gallery</h3>
+					</div>
+					<div class="player-text">
+						<h1>Push Record.</h1>
+						<h1>Push Yourself.</h1>
+						<h1>Push Play.</h1>
+						<div class="play-button">
+							<img src="${URLUtils.absStatic('../images/adventure/play-static.png')}"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	    <div class="video-player">
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="0">
+					<img src="${URLUtils.absStatic('../images/adventure/AdventureVideoScreenshot.jpg')}"/>
+				</div>
+				<div id="video1" class="video" data-youtubeid="EdyDbey5xJk" data-videoid="0"></div>
+			</div>
+			<iscomment>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="1">
+					<img src="http://img.youtube.com/vi/Js4fP9BpsUc/0.jpg"/>
+				</div>
+				<div id="video2" class="video" data-youtubeid="Js4fP9BpsUc" data-videoid="1"></div>
+				<!-- <iframe width="1250" height="500" data-to="trail-running" id="trail-running" src="https://www.youtube.com/embed/tntOCGkgt98?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> -->
+			</div>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="2">
+					<img src="http://img.youtube.com/vi/EUHcNeg_e9g/0.jpg"/>
+				</div>
+				<div id="video3" class="video" data-youtubeid="EUHcNeg_e9g" data-videoid="2"></div>
+				<!-- <iframe width="1250" height="500" data-to="spartan-race" src="https://www.youtube.com/embed/vsBbE7c2P28?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe> -->
+			</div>
+			<div class="video-wrapper">
+				<div class="overlay" data-overlayid="3">
+					<img src="http://img.youtube.com/vi/Js4fP9BpsUc/0.jpg"/>
+				</div>
+				<div id="video4" class="video" data-youtubeid="Js4fP9BpsUc" data-videoid="3"></div>
+			</div>
+			</iscomment>
+	    </div>
+	    <div class="video-carousel row">
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="everyday-adventure" href="#everyday-adventure">
+					<img src="${URLUtils.absStatic('../images/adventure/button-1.png')}"/>
+					<h3>Water</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="trail-running" href="#trail-running">
+					<img src="${URLUtils.absStatic('../images/adventure/button-2.png')}"/>
+					<h3>Spartan</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="spartan-race">
+					<img src="${URLUtils.absStatic('../images/adventure/button-3.png')}"/>
+					<h3>Snow</h3>
+				</a>
+			</div>
+			<div class="column-3">
+				<a class="video-selector column-3" data-id="bike-races">
+					<img src="${URLUtils.absStatic('../images/adventure/button-4.png')}"/>
+					<h3>Family</h3>
+				</a>
+			</div>
+	    </div>
+	</section>
+	<section class="adventure-summary row">
+	    <div class="column-4 adventure-logo-block">
+	        <div>
+	        	<img src="${URLUtils.absStatic('../images/adventure/adventure-logo.png')}"/>
+	        </div>
+	        <ul class="social">
+	        	<li>
+	        		<a href="https://www.facebook.com/Panasonic" class="ico-facebook">facebook</a>
+	        	</li>
+	        	<li>
+	        		<a href="https://twitter.com/PanaAdventure" class="ico-twitter">twitter</a>
+	        	</li>
+	        	<iscomment>
+	        	<li>
+	        		<a href="" class="ico-instagram">instagram</a>
+	        	</li>
+	        	</iscomment>
+	        	<li>
+	        		<a href="https://www.youtube.com/playlist?list=PLJj3demzZ_dRIinyeHYhztagPpCA0EaAy" class="ico-youtube">youtube</a>
+	        	</li>
+	        </ul>
+	    </div>
+        <div class="column-8 partner">
+	        <a href="http://www.spartan.com/"><img src="${URLUtils.absStatic('../images/adventure/spartan-logo.png')}"/></a>
+	        <a href="http://www.nyctri.com/"><img src="${URLUtils.absStatic('../images/adventure/nyc-logo.png')}"/></a>
+	        <a href="http://www.eventsbylifetime.com/en/homepage.html"><img src="${URLUtils.absStatic('../images/adventure/lifetime-logo.png')}"/></a>
+        </div>
+	</section>
+	<section class="adventure-products">
+		<h2>The Gear You Need for the Adventures You Love</h2>
+		<div class="product-carousel row">
+	        <div class="product">
+	            <a href="${URLUtils.url('Product-Show','pid','HX-A1')}">
+		        	<div class="product-image">
+			        	<img src="${URLUtils.absStatic('/images/adventure/A1_Slant1_K.png')}"/>
+		        	</div>
+		        	<h3>Panasonic A1: Ultra-Light Wearable HD Action Cam</h3>
+	        	</a>
+	        </div>
+	       
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','RP-BTS50')}">
+		        	<div class="product-image">
+		        		<img width="245" height="185" src="${URLUtils.absStatic('../images/adventure/BTS50_K_front_151130-2400.png')}"/>
+		        	</div>
+		        	<h3>Panasonic WINGS: Premium Bluetooth 3D Flex Sport Clips - RP-BTS50</h3>
+	        	</a>
+	        </div>
+			<div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','DMC-TS30')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-camera.png')}"/>
+		        	</div>
+		        	<h3>Active Lifestyle Tough Camera: DMC-TS30</h3>
+	        	</a>
+	        </div>
+			<div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','RP-BTS30-R')}">
+		        	<div class="product-image">
+		        		<img width="245" height="185" src="${URLUtils.absStatic('../images/adventure/BTS30_R_front_151130-2400.png')}"/>
+		        	</div>
+		        	<h3>Panasonic WINGS: Bluetooth 3D Flex Sport Clips - RP-BTS30</h3>
+	        	</a>
+	        </div>
+	        <div class="product">
+     		    <a href="${URLUtils.url('Product-Show','pid','RP-HGS10-G')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-earphones.png')}"/>
+		        	</div>
+		        	<h3>Open-Ear Bone Conduction Headphones with Reflective Design - RP-HGS10-G</h3>
+	        	</a>
+	        </div>
+	        
+	        <div class="product">
+	        	<a href="${URLUtils.url('Product-Show','pid','RP-HS34M')}">
+		        	<div class="product-image">
+		        		<img src="${URLUtils.absStatic('../images/adventure/product-earbuds.png')}"/>
+		        	</div>
+		        	<h3>Water-Resistant Sport Clip Earbud Headphones RP-HS34M-Y</h3>
+	        	</a>
+	        </div>
+	    </div>
+		<div class="button-wrapper">
+			<a class="button-blue" href="${URLUtils.url('Search-Show','cgid','adventuregear')}">See All Adventure Products</a>
+		</div>
+	</section>
+	<section class="adventure-spartan">
+		<div class="row">
+			<div class="spartan-content"></div>
+				<div class="column-4 spartan-logo">
+					<a href="http://www.spartan.com/"><img src="${URLUtils.absStatic('../images/adventure/lumix-logo.png')}"/></a>
+				</div>
+				<div class="column-8 spartan-header">
+					<div class="header-content">
+						<h1>&#35;ChooseYourOwnAdventure</h1>
+						<p>Challenge your heart. Battle your will. The only thing that stands in your way is you.</p>
+					</div>
+				</div>
+		</div>
+		<div class="spartan-passport row">
+			<div class="spartan-video-player column-4">
+				<div id="spartan-video" data-youtubeid-1="lm7Z5tXNao4" data-youtubeid-2="AfVSC-YtmOc"></div>
+			</div>
+			<div class="column-8">
+				<form name="passportform" class="spartan-form" action="${URLUtils.url('Search-PanasonicAdventurePassport')}" method="get">
+					<h1>Spartans!</h1>
+					<p>You’re beat up, bruised, and possibly bloodied… and you’re still standing.</p>
+					<div class="row form-content">
+						<div class="column-2">
+							<img src="${URLUtils.absStatic('../images/adventure/passport.png')}"/>
+						</div>
+						<div class="column-6">
+							<p class="form-description">GET YOUR RACE PHOTOS &amp; VIDEOS</p>
+							<input name="passport" type="text" required="required" placeholder="Enter your passport number"></input>
+							<input class="button-blue" type="submit" value="VIEW GALLERY"></input>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="spartan-product">
+			<img src="${URLUtils.absStatic('../images/adventure/a500.png')}"/>
+		</div>
+	</section>
+	<section class="adventure-adventurer">
+		<div class="adventurer adventurer-1 row">
+			<div class="adventurer-content">
+				<div class="column-2">
+					<img src="${URLUtils.absStatic('../images/adventure/julian.png')}"/>
+				</div>
+				<div class="column-4">
+					<h2>Julian Wilson</h2>
+					<h3>Professional Surfer</h3>
+					<p>Australian surfing god, Julian Wilson, won many of surfing’s most iconic events by age 25. The Panasonic A500 captures his electrifying moves in 4K.</p>
+					<h3>Here's My Water Adventure Kit</h3>
+					<div class="adventurer-product row">
+						<div class="column-4">
+							<img src="${URLUtils.absStatic('../images/adventure/product-1.png')}"/>
+						</div>
+						<div class="column-8">
+							<ul>
+								<li><a href="">Panasonic A500 Wearable 4K Camcorder</a></li>
+								<li><a href="">Head Mount</a></li>
+								<li><a href="">Armband Case</a></li>
+								<li><a href="">USB Cable</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="column-6">
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/kzoPBj5NKRg?rel=0&amp;showinfo=0&amp;rel=0" frameborder="0" allowfullscreen></iframe>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="adventure-calendar row">
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Apr</h3>
+						<h1 class="date">16</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<img src="${URLUtils.absStatic('../images/adventure/spartan-red.png')}"/>
+						<h2>Citi Field Sprint</h2>
+						<p>Welcome to Citi Field. Home to the New York Mets, this venue is a 40,000+ capacity ball park. It will play host to thousands of Spartans for a premier addition to the Stadium Series Spartan Sprint. It's an easy place to get to via public transit, so you'll be able to ditch the car.
+						<a href="http://www.spartan.com/en/race/detail/1098/overview">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Apr</h3>
+						<h1 class="date">30-1</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<img src="${URLUtils.absStatic('../images/adventure/spartan-green.png')}"/>
+						<h2>Tri-State NJ Ultra Beast / Beast</h2>
+						<p> Spartan Race and mountainous terrain go hand-in-hand. Luckily, for Spartans of the Northeast there's Mountain Creek -- home to the largest ski mountain in New Jersey. As with any mountain course, you're guaranteed to see it all: peaks and valleys, slopes and climbs, ropes and walls, Spartan Kids and Spartan Pros. Discover what it means to be a Spartan and meet others as you battle toward one common goal: the finish line.
+						<a href="http://www.spartan.com/en/race/detail/1131/overview">Learn more.</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="column-6 row">
+				<div class="calendar-section">
+					<div class="calendar-date column-1">
+						<h3 class="calendar-month">Apr</h3>
+						<h1 class="date">14</h1>
+					</div>
+					<div class="calendar-description column-10">
+						<img src="${URLUtils.absStatic('../images/adventure/spartan-blue.png')}"/>
+						<h2>AT&T Park Sprint</h2>
+						<p>Can you feel the energy, San Fran? Run around the concourse. Rope climb in the outfield. Do burpees in the dugout. Challenge yourself to three miles that will include 20+ signature obstacles. "If you're going to San Francisco, be sure to wear some really, really comfortable shoes." Okay, so those aren't the lyrics to the city's flagship tune, but San Francisco is a city of hills. Let it be known: taking on the city's state-of-the-art stadium is no walk in the park. Of course, Spartans can expect to be thrown a few curve balls (so to speak) as they navigate staircases, dugouts, and tunnels that make up the park's five levels. There's nothing quite like running across a Major League Baseball field that's full of obstacles.
+						 <a href="http://www.spartan.com/en/race/detail/1288/overview ">Learn more.</a></p>
+					</div>
+				</div>
+			</div>			
+		</div>
+	</section>
+	<section class="adventure-campaigns row">
+       	<div class="campaign-1 column-6">
+			<a href="https://twitter.com/PanaAdventure">
+				<img src="${URLUtils.absStatic('../images/adventure/promo-3.png')}"/>
+			</a>
+       	</div>
+       	<div class="campaign-2 column-6">
+			<a href="http://lumixlounge.com/">
+				<img src="${URLUtils.absStatic('../images/adventure/promo-2.png')}"/>
+			</a>
+       	</div>
+	</section>
+</div>
+
+</isdecorate>

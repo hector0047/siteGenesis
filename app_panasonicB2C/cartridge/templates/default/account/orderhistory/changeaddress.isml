@@ -1,0 +1,36 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isdecorate template="account/pt_account">
+	<isinclude template="util/modules"/>
+	
+	<form action="${URLUtils.httpsContinue()}" method="post" id="${pdict.CurrentForms.changeaddress.htmlName}">
+		<isif condition="${pdict.errortrure}">	
+			<div class="hide">CITY : ${pdict.validcity} 
+			State : ${pdict.validstate}</div> 
+			<span class="ssrzip-error">${Resource.msg('singleshipping.texerror','checkout',null)}</span> 
+		</isif>
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.firstName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}"/>
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.lastName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}" />
+	
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.address1}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipaddress1.error','forms',null)}"/>
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.address2}" type="input" />	
+		
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.city}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipcity.missing-error','forms',null)}" />
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.states.state}" type="select" requiredtext="${Resource.msg('forms.customeraddress.state.missing-error','forms',null)}"/>				    	
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.postal}" type="input" xhtmlclass="ssrpostalcode"  requiredtext="${Resource.msg('forms.errorpostal','forms',null)}"/>
+		
+		<isinputfield formfield="${pdict.CurrentForms.changeaddress.phone}" type="input" requiredtext="${Resource.msg('forms.customeraddress.phone.missing-error','forms',null)}"/>	
+		
+			
+		<button class="validatessr" value="${Resource.msg('orders.return','account',null)}" name="${pdict.CurrentForms.changeaddress.validatessr.htmlName}" >
+			${Resource.msg('orders.return','account',null)}</button>							
+		
+		
+		<button type="submit" class="ssrAddressSubmit hide" value="${Resource.msg('orders.return','account',null)}" name="${pdict.CurrentForms.changeaddress.submitForm.htmlName}" >
+										${Resource.msg('orders.return','account',null)}</button>
+		
+		<input type="hidden" name="${pdict.CurrentForms.changeaddress.secureKeyHtmlName}" value="${pdict.CurrentForms.changeaddress.secureKeyValue}"/>		   	
+		<a href="javascript:void(0);" style="display:none;" class="button js-single-shippingactiondialog button-blue"  data-dlg-options='{"width":500,"height":"auto","dialogClass":"addressvalidation"}' > 
+      		addressvalidationactiondialog
+     	</a>
+	</form>
+</isdecorate>

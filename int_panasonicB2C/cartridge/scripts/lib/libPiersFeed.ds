@@ -1,0 +1,270 @@
+
+ importPackage( dw.system );
+ importPackage( dw.util );
+ importPackage( dw.web );
+ importPackage( dw.net );
+ importPackage( dw.catalog );
+ importPackage( dw.object );
+ importPackage( dw.io );
+ importPackage( dw.content );
+
+ var name : String;
+ var piersFeedObject : Object;
+ var ItemContentObjects : XMLList; 
+ var productumnObjects : XMLList;
+ var technicalspecificationContentsList : XMLList;
+ var piersFeeResultArrayList : ArrayList = new ArrayList();
+
+PiersFeedHelper = {
+		getXmlStreamReader : function (piersFile : File) {
+			this.name = piersFile.name;			
+		},
+		
+		parsePiersFeedTempXML : function(tempXMLPiersFeedFile : File) {
+			var fileReader : FileReader = new FileReader(tempXMLPiersFeedFile, "UTF-8");
+			var xmlStreamReader : XMLStreamReader = new XMLStreamReader(fileReader);
+			
+			 while (xmlStreamReader.hasNext())
+			 {
+			   if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT)
+			   {
+			     var localElementName : String = xmlStreamReader.getLocalName();
+			     if (localElementName == "technicalspecifications")
+			     {
+			       // read single "myobject" as XML
+			       var myObject : XML = xmlStreamReader.getXMLObject();
+			
+			       // process myObject
+			     }
+			   }
+			 }
+			 this.technicalspecificationContentsList = myObject.child('technicalspecificationContent');
+			 xmlStreamReader.close();
+ 			 fileReader.close();
+		},
+		
+		productUmnMapFile : function(productUmnMapFile : File) {
+			var fileReader : FileReader = new FileReader(productUmnMapFile, "UTF-8");
+			var xmlStreamReader : XMLStreamReader = new XMLStreamReader(fileReader);
+			
+			 while (xmlStreamReader.hasNext())
+			 {
+			   if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT)
+			   {
+			     var localElementName : String = xmlStreamReader.getLocalName();
+			     if (localElementName == "productumns")
+			     {
+			       // read single "myobject" as XML
+			       var myObject : XML = xmlStreamReader.getXMLObject();
+			
+			       // process myObject
+			     }
+			   }
+			 }
+			 this.productumnObjects = myObject.child('productumn');
+			 xmlStreamReader.close();
+ 			 fileReader.close();
+		},
+		
+		
+		parsePiersFeed : function(piersFile : File) {
+			var fileReader : FileReader = new FileReader(piersFile);
+			var xmlStreamReader : XMLStreamReader = new XMLStreamReader(fileReader);
+
+			 while (xmlStreamReader.hasNext()) 
+			 {
+			 	if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT)
+			   {
+			     var localElementName : String = xmlStreamReader.getLocalName();
+			     if (localElementName == "ItemContents")
+			     {			       
+			    	var piersFeedObject : XML = xmlStreamReader.getXMLObject();
+			     }
+			   }
+			 }
+			 this.ItemContentObjects = piersFeedObject.child('ItemContent');
+			 xmlStreamReader.close();
+			 fileReader.close();
+		},
+		
+		
+		//parseItemContentObjects : function(ItemContentObjects : XMLList, catalogXMLStreamWriter : XMLStreamWriter, productumnObjects : XMLList) {
+		parseItemContentObjects : function(ItemContentObjects : XMLList, catalogXMLStreamWriter : XMLStreamWriter, productumnObjects : XMLList) {
+			var count : Number = 0;
+			var technicalFeatureString : String;
+			var UMN : String;
+			var productId : String;	
+			for each ( var xmlObject : XML in ItemContentObjects) {
+				technicalFeatureString = this.parseItemContentObject(xmlObject);
+				UMN = xmlObject.data.(@attributeName == "Unified Model Number");
+				
+				//var testStr : String = "VW-SCA100GUK";
+				productId = productumnObjects.(@umn == UMN).productid;
+				//Logger.debug("Pk is great again");
+				Logger.debug("##productId" + productId + " ## UMN" + UMN);
+				
+				
+				if(technicalFeatureString != undefined && productId!= "") {
+					catalogXMLStreamWriter.writeStartElement("product");
+					catalogXMLStreamWriter.writeAttribute("product-id",productId);
+						catalogXMLStreamWriter.writeStartElement("custom-attributes");						
+							catalogXMLStreamWriter.writeStartElement("custom-attribute");
+								catalogXMLStreamWriter.writeAttribute("attribute-id","technicalSpecAttributes");
+								catalogXMLStreamWriter.writeCharacters(technicalFeatureString);
+							catalogXMLStreamWriter.writeEndElement();
+						catalogXMLStreamWriter.writeEndElement();
+					catalogXMLStreamWriter.writeEndElement();						
+				}
+				//Logger.debug("technicalFeatureString" + technicalFeatureString);				
+			 }
+		},	
+		
+		parseItemContentObjectsAndWrite : function(ItemContentObjects : XMLList, tempXMLPiersFeedXMLStreamWriter : XMLStreamWriter) {
+			var technicalFeatureString : String;
+			var UMN : String;
+			for each ( var xmlObject : XML in ItemContentObjects) {
+				technicalFeatureString = this.parseItemContentObject(xmlObject);
+				UMN = xmlObject.data.(@attributeName == "Unified Model Number");				
+				Logger.debug("## UMN" + UMN);				
+				if(technicalFeatureString != undefined) {
+					tempXMLPiersFeedXMLStreamWriter.writeStartElement("technicalspecificationContent");
+					tempXMLPiersFeedXMLStreamWriter.writeAttribute("UMN",UMN);
+						tempXMLPiersFeedXMLStreamWriter.writeStartElement("technicalspecification");
+						tempXMLPiersFeedXMLStreamWriter.writeAttribute("attribute","value");
+								tempXMLPiersFeedXMLStreamWriter.writeCharacters(technicalFeatureString);
+						tempXMLPiersFeedXMLStreamWriter.writeEndElement();
+					tempXMLPiersFeedXMLStreamWriter.writeEndElement();						
+				}			
+			 }
+		},	
+		
+		parseItemContentObject : function(xmlObject : XML){
+			var umnNo : String = xmlObject.data.(@attributeName == "Unified Model Number");
+			var technicalFeatureString : String;
+			Logger.debug("Unified Model Number:" + umnNo);			
+			// check is Region is America, if Region is America then only parsing will continue else will terminate for that ItemContent
+			if(xmlObject.dataGroup.(@attributeName == "GeneralData").dataGroup.(@attributeName == "Sales Region").data.(@attributeName == "America") == "true") {
+				Logger.debug("Parsing is continued for UMN " + umnNo + " due to America Region Status:" + xmlObject.dataGroup.(@attributeName == "GeneralData").dataGroup.(@attributeName == "Sales Region").data.(@attributeName == "America"));
+				// getting Product id for UMN number
+				technicalFeatureString = this.createTechnicalFeatureString(xmlObject);
+			} else {
+				Logger.debug("Parsing is stopped for UMN " + umnNo + " due to America Region Status:" + xmlObject.dataGroup.(@attributeName == "GeneralData").dataGroup.(@attributeName == "Sales Region").data.(@attributeName == "America"));
+			}
+			return technicalFeatureString;
+		},
+		
+		
+		
+		
+		createTechnicalFeatureString : function(xmlObject : XML) {
+			
+			var technicalFeatureString : String;
+			var groupDataPipeDelimitedText : String;
+			var subGroupPipeDelimitedText : String;
+			var subGroupDataPipeDelimitedText : String;
+			
+			// // read TechnicalFeature tag
+			var technicalFeatureXMLObject : XML = xmlObject.dataGroup.(@attributeName == "TechnicalFeature");
+			
+			
+			//read all data tags on 1st level of TechnicalFeature tag
+			groupDataPipeDelimitedText = this.getDataPipeDelimitedText(technicalFeatureXMLObject);
+			if(groupDataPipeDelimitedText != undefined) {
+				if(technicalFeatureString == null) { 
+					technicalFeatureString = groupDataPipeDelimitedText;
+				} else {
+					technicalFeatureString = technicalFeatureString + groupDataPipeDelimitedText;
+				}				
+			}
+			
+			// read all dataGroup tags on 1st level of TechnicalFeature tag
+			var technicalFeatureXMLListObjects : XMLList = technicalFeatureXMLObject.child("dataGroup");
+			
+			for each ( var technicalFeatureListXMLObject : XML in technicalFeatureXMLListObjects) {	
+				if(technicalFeatureListXMLObject!= "\n") {					
+					// read all dataGroup tags on 2nd level of TechnicalFeature tag and creare subgroup text
+					subGroupPipeDelimitedText = this.getSubGroupPipeDelimitedText(technicalFeatureListXMLObject);					 
+					
+					//read all data tags on 2nd level TechnicalFeature tag and creare subgroup text
+					subGroupDataPipeDelimitedText = this.getDataPipeDelimitedText(technicalFeatureListXMLObject);					
+					
+					if(subGroupPipeDelimitedText !=undefined || subGroupDataPipeDelimitedText != undefined) {
+						if(technicalFeatureString == null) {
+							technicalFeatureString = technicalFeatureListXMLObject.@["attributeName"] + "||group\n";
+						} else {
+							technicalFeatureString  = technicalFeatureString + technicalFeatureListXMLObject.@["attributeName"] + "||group\n";
+						}
+						
+						if(subGroupDataPipeDelimitedText != undefined) {
+							technicalFeatureString = technicalFeatureString + subGroupDataPipeDelimitedText;
+						}					
+						if(subGroupPipeDelimitedText != undefined) {
+							technicalFeatureString = technicalFeatureString + subGroupPipeDelimitedText;
+						}						
+					}
+				}							
+			 }			 
+			return technicalFeatureString;
+			
+		},
+		
+		
+		
+		
+		getDataPipeDelimitedText : function(xmlObject : XML) {
+			var dataPipeDelimitedText : String;
+			var dataXMLListObjects : XMLList = xmlObject.child("data");
+			var pipedData : String = "N/A";
+			if(dataXMLListObjects != undefined) {
+				for each ( var dataXMLListObject : XML in dataXMLListObjects) {	
+					pipedData = "N/A";
+					if(dataXMLListObject!= "\n" && dataXMLListObject.toString()  != "") {
+						pipedData = dataXMLListObject;
+					}
+					
+					if(dataPipeDelimitedText == null) {
+						dataPipeDelimitedText = dataXMLListObject.@["attributeName"] + "|" + pipedData + "\n";
+					} else {
+						dataPipeDelimitedText  = dataPipeDelimitedText + dataXMLListObject.@["attributeName"] + "|" + pipedData + "\n";
+					}
+												
+				 }
+			}			 
+			 return dataPipeDelimitedText;		
+			
+		},
+		
+		
+		
+		getSubGroupPipeDelimitedText : function(xmlObject : XML) {
+			var subgroupPipeDelimitedText : String;
+			var subGroupDataPipeDelimitedText : String;
+			
+			var subgroupXMLListObjects : XMLList = xmlObject.child("dataGroup");
+			if(subgroupXMLListObjects != undefined) {
+				for each ( var subgroupXMLListObject : XML in subgroupXMLListObjects) {	
+					
+					
+					//read all data tags on 2nd level TechnicalFeature tag and creare subgroup text
+					subGroupDataPipeDelimitedText = this.getDataPipeDelimitedText(subgroupXMLListObject);
+					if(subGroupDataPipeDelimitedText != undefined) {
+						if(subgroupXMLListObject!= "\n") {
+							if(subgroupPipeDelimitedText == null) {
+								subgroupPipeDelimitedText = subgroupXMLListObject.@["attributeName"] + "||subgroup\n";
+							} else {
+								subgroupPipeDelimitedText  = subgroupPipeDelimitedText + subgroupXMLListObject.@["attributeName"] + "||subgroup\n";
+							}
+						}
+						subgroupPipeDelimitedText = subgroupPipeDelimitedText + subGroupDataPipeDelimitedText;
+					}							
+				 }
+			}			 
+			 return subgroupPipeDelimitedText;			
+		}
+} 
+
+
+function getPiersFeedHelper()
+{
+	return PiersFeedHelper;
+}

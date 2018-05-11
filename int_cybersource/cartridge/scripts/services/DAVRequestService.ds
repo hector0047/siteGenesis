@@ -1,0 +1,74 @@
+var sf = require("bc_serviceframework");
+var DAVRequest = require("../objects/DAVRequest");
+
+importScript('cybersource/libCybersource.ds');
+importScript('cybersource/Cybersource_BillTo_Object.ds');
+importScript('cybersource/Cybersource_ShipTo_Object.ds');
+
+
+var CybersourceHelper = getCybersourceHelper();	 
+
+function getDAVRequestService() {
+	return DAVRequestService;
+}
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var DAVRequestService = sf.getService('AbstractSoapService').extend(
+/** @lends DAVRequestService.prototype */ 
+{
+	/**
+	 * @constructs DAVRequestService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("CybersourceService" , new DAVRequest());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.CyberSourceTransaction;
+		this.serviceClient = this.webReference.getService("TransactionProcessor", "portXML");
+		CybersourceHelper.setEndpoint(this.serviceClient);			
+	},
+
+	createRequest: function (DAVrequest) {	
+		
+		var basket : LineItemCtnr 					= DAVrequest.basket;  			
+		var billToObject: BillTo_Object 			= DAVrequest.billToObject;		
+		var shipToObject: ShipTo_Object 			= DAVrequest.shipToObject;		
+		
+		if(!CybersourceHelper.createHeader(this.serviceClient))
+		{
+			return null;
+		}	
+		var request = new this.webReference.RequestMessage();
+		var ignoreDAVResult = CybersourceHelper.getAvsIgnoreResult();
+		var refcode : String = basket.UUID;
+		CybersourceHelper.addDAVRequestInfo(request,billToObject,shipToObject,ignoreDAVResult,refcode);
+		return request;
+				
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.runTransaction(this.request);
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('CybersourceService',DAVRequestService);

@@ -1,0 +1,157 @@
+/**
+*
+* TITLE:  
+*
+*	Direct Payment
+*
+* DESCRIPTION:
+*
+*	Payment system that accepts and processes credit cards through a business PayPal account
+*
+* INPUT PARAMETERS:
+*
+*	@input Basket : dw.order.LineItemCtnr The current Basket (which the order is created from)
+* 	@input PaymentProcessor : dw.order.PaymentProcessor The needed payment processor.
+* 	@input CCPaymentInstrument : dw.order.PaymentInstrument The needed payment instrument.
+* 	@input OrderNo : String Order Number
+* 	@input CreditCardCVN : String Order Number
+* 	@input IPAddress : String IP address of the machine
+* 	@input ButtonSource : String Flow - PayPal payment source
+* 	@input currentCustomerAuthenticated : Boolean 
+* 	@input creditCardNumberGuest : String
+* 	@input setFraudAlert : Boolean 
+*
+* OUPUT PARAMETERS:
+*
+* 	@output TransactionID : String The returned token from Paypal
+* 	@output TransactionToken : String The returned token from Paypal
+* 	@output Error : Object The Error object
+* 	@output PaypalError : String If a Paypal call fails or doesn't return Success
+* 	@output ReturnCode : Number The returned token from Paypal
+* 	@output AvailFuncs  : dw.util.ArrayList
+* 	@output WSResponse : Object
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+importPackage( dw.rpc );
+
+importScript("int_paypal:cart/Credentials.ds");
+importScript("int_paypal:cart/WsUtil.ds");
+
+
+
+var sf = require("bc_serviceframework");
+require("../services/PayPalDirectPaymentService");
+
+
+function execute(pdict) {
+	
+	if( pdict.Basket == null )
+	{
+		Logger.error("Please provide a Basket!");
+		return PIPELET_ERROR;
+	}
+	try{
+		
+		
+		var PayPalDirectPaymentService = sf.getService('PayPalExpress');
+		var service = new PayPalDirectPaymentService();
+		
+		var directPaymentInfo : Object	=	new Object();
+		
+		directPaymentInfo.basket						=	pdict.Basket;
+		directPaymentInfo.paymentProcessor				=	pdict.PaymentProcessor;
+		directPaymentInfo.cCPaymentInstrument			=	pdict.CCPaymentInstrument;
+		directPaymentInfo.orderNo		      			=	pdict.OrderNo;
+		directPaymentInfo.creditCardCVN					=	pdict. CreditCardCVN;
+		directPaymentInfo.iPAddress						=   pdict.IPAddress;
+		directPaymentInfo.buttonSource  				= 	pdict.ButtonSource;
+		directPaymentInfo.currentCustomerAuthenticated 	= 	pdict.currentCustomerAuthenticated;
+		directPaymentInfo.creditCardNumberGuest  		= 	pdict.creditCardNumberGuest;
+		directPaymentInfo.setFraudAlert  				=  	pdict.setFraudAlert;
+		
+		service.call(directPaymentInfo);
+		
+		
+		//response handling
+		
+		var response  : Object = service.response;
+		var paypalDirectPayment : WebReference = service.webReference;
+		
+		pdict.WSResponse = response;
+		
+		pdict.TransactionToken = " - " + response.getAck();
+
+		Logger.debug('Ack  -- ' + response.getAck().toString() );
+		
+		if( response.getAck() != null && ( response.getAck().equals(paypalDirectPayment.AckCodeType.Success) || response.getAck().equals(paypalDirectPayment.AckCodeType.SuccessWithWarning))) 
+		{
+			var transactionId : String = response.getTransactionID();
+			pdict.TransactionID = transactionId;
+			pdict.ReturnCode = 1; 
+			
+			//Get Fraud Alert Results
+			if (pdict.setFraudAlert) 
+			{
+				var fmfDetails = response.getFMFDetails();
+				Logger.debug('getFMFDetails  --' + fmfDetails );
+				
+				if (fmfDetails != null) 
+				{
+					Logger.debug('AcceptFilters   --' + fmfDetails.getAcceptFilters() );
+					Logger.debug('DenyFilters     --' + fmfDetails.getDenyFilters() );
+					Logger.debug('PendingFilters  --' + fmfDetails.getPendingFilters() );
+					Logger.debug('ReportsFilters  --' + fmfDetails.getReportsFilters() );
+				}
+			}
+			
+		} 
+		else 
+		{
+			//Uncomment the following if you need more debugging tools
+				/*Logger.debug('looping thru response object  -- ');
+				for (i in response)
+				{
+	  				Logger.debug("object has property -- " + i);
+				}
+				Logger.debug('looping thru error object in response object  -- ');
+				for (j in response.getErrors() )
+				{
+	  				Logger.debug("object has property ------- " + j);
+				}
+				Logger.debug('Corelation ID  --' + response.correlationID );
+				Logger.debug('Ack response  --' + response.getAck().toString());
+				Logger.debug('Error Message Short Message  -- ' + response.getErrors()[0].getShortMessage() );
+				Logger.debug('Error Message Long Message  -- ' + response.getErrors()[0].getLongMessage() );
+				Logger.debug('Error Message ErrorCode  -- ' + response.getErrors()[0].getErrorCode() );
+				*/
+			
+			pdict.ReturnCode = new Number(response.getErrors()[0].getErrorCode().toString()); 
+			pdict.PaypalError = response.getErrors()[0].getLongMessage() + " (" + response.getErrors()[0].getErrorCode() + ")" + "-(" + response.correlationID + ")";
+		}
+		
+		
+		
+	}
+	catch(e){
+		
+		//uncomment var error for error debugging
+		//var error = e;
+		
+		if(e instanceof Fault)
+		{
+			Logger.error("Actor " + e.faultActor+" caused fault '"+e.faultCode +"' ("+e.faultString+" - "+e.faultDetail+")");
+		}
+		else
+		{
+			Logger.error(e.toString());
+		}
+		pdict.Error = e;
+		pdict.PaypalError = e.toString();
+		return PIPELET_ERROR;
+	}
+	
+   	return PIPELET_NEXT;
+}

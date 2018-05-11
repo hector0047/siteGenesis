@@ -1,0 +1,50 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscomment>
+	Renders Amplience DI Viewer content assets.
+</iscomment>
+
+<isset name="DiViewerID" value="${dw.system.Site.getCurrent().getCustomPreferenceValue('ampDiViewer')}" scope="page" />
+<isset name="DiViewerContent" value="${dw.content.ContentMgr.getContent(DiViewerID)}" scope="page" />
+
+<isif condition="${DiViewerContent != null}">
+
+<isscript>
+	importScript("amplience/libAmplienceContent.ds");
+	
+	var mediaSetRegEx = /[^\/]*$/;
+	
+	var ampDiViewerContent = new AmplienceContent( DiViewerContent );
+	var diViewer = ampDiViewerContent.getContent();
+	
+	var imgMediaFile : MediaFile = pdict.Product.getImage('set');
+	var mediaSet : String = !empty(imgMediaFile) ? imgMediaFile.getURL().toString().match(mediaSetRegEx)[0] : '';
+</isscript>
+
+<!-- Amplience DI viewer-->
+
+<script type="text/javascript">
+(function () {
+	
+	var ecommBridge = window.ecommBridge,
+		amp = window.amp = window.amp || {},
+		isProductQuickView = amp.isProductQuickView = ${isQuickView ? true : false};
+	
+	
+	
+	if(!ecommBridge.site){
+		ecommBridge.site = {
+        	"page":{
+		        "type":"product",
+		        "name":"", 
+		        "mediaSet":"${mediaSet}"
+	       	}
+	    }
+	};
+	
+	console.log(ecommBridge);
+	
+})();
+</script>
+<isprint value="${diViewer}" encoding="off"/>
+
+</isif>

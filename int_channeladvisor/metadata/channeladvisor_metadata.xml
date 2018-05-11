@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="ChannelAdvisorEnabled">
+                <display-name xml:lang="x-default">Enable ChannelAdvisor Tracking Pixels</display-name>
+                <description xml:lang="x-default">If set to "true" ChannelAdvisor tracking pixels will be activated.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="ChannelAdvisorSMCID">
+                <display-name xml:lang="x-default">ChannelAdvisor PID</display-name>
+                <description xml:lang="x-default">ChannelAdvisor PID</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="listPriceDefault">
+                <display-name xml:lang="x-default">Default List Price Book ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <default-value>usd-list-prices</default-value>
+            </attribute-definition>
+			<attribute-definition attribute-id="thresoldPriceDefault">
+                <display-name xml:lang="x-default">Default Thresold Price Book ID</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="CA_Error_Email">
+                <display-name xml:lang="x-default">Error Email</display-name>
+                <type>email</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CA_FTP_Hostname">
+                <display-name xml:lang="x-default">FTP Host Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CA_FTP_Password">
+                <display-name xml:lang="x-default">FTP Password</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CA_FTP_Username">
+                <display-name xml:lang="x-default">FTP Username</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="CA_From_Email">
+                <display-name xml:lang="x-default">From Email</display-name>
+                <type>email</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="PriceBook">
+                <display-name xml:lang="x-default">Price Book Settings</display-name>
+                <attribute attribute-id="listPriceDefault"/>
+				<attribute attribute-id="thresoldPriceDefault"/>
+            </attribute-group>
+            <attribute-group group-id="ChannelAdvisor">
+                <display-name xml:lang="x-default">ChannelAdvisor Settings</display-name>
+                <attribute attribute-id="ChannelAdvisorEnabled"/>
+                <attribute attribute-id="ChannelAdvisorSMCID"/>
+                <attribute attribute-id="CA_FTP_Username"/>
+                <attribute attribute-id="CA_FTP_Hostname"/>
+                <attribute attribute-id="CA_FTP_Password"/>
+                <attribute attribute-id="CA_Error_Email"/>
+                <attribute attribute-id="CA_From_Email"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+    <type-extension type-id="Product">
+	  <custom-attribute-definitions>
+      	<attribute-definition attribute-id="caMarketPlace">
+                <display-name xml:lang="x-default">CA Marketplace</display-name>
+                <description xml:lang="x-default">Contains a list of marketplaces this product should be exported to</description>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+         </attribute-definition>
+		 <attribute-definition attribute-id="condition">
+                <display-name xml:lang="x-default">Condition</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+         </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="custom">
+                <display-name xml:lang="x-default">Custom</display-name>
+                <attribute attribute-id="caMarketPlace"/>
+				<attribute attribute-id="condition"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

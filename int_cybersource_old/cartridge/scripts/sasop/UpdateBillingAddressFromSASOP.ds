@@ -1,0 +1,27 @@
+/**
+*   UpdateBillingAddressFromSASOP.ds
+*   This file will use to update billing address Form with SASOP response
+*   @input ParameterMap : dw.web.HttpParameterMap The current parameter map.
+*   @input Address : dw.order.OrderAddress
+*	@output AddressOut : dw.order.OrderAddress
+*/
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var address : dw.order.OrderAddress = args.Address;
+	var map : dw.web.HttpParameterMap = args.ParameterMap;
+
+	address.setFirstName(map.get("req_bill_to_forename").stringValue);
+	address.setLastName(map.get("req_bill_to_surname").stringValue);
+	address.setAddress1(map.get("req_bill_to_address_line1").stringValue);
+	address.setAddress2(map.get("req_bill_to_address_line2").stringValue);
+	address.setCity(map.get("req_bill_to_address_city").stringValue);
+	address.setCountryCode(map.get("req_bill_to_address_country").stringValue.toUpperCase());
+	address.setPostalCode(map.get("req_bill_to_address_postal_code").stringValue);
+	address.setPhone(map.get("req_bill_to_phone").stringValue);
+	address.setStateCode(map.get("req_bill_to_address_state").stringValue);
+   
+	args.AddressOut = address;
+   return PIPELET_NEXT;
+}

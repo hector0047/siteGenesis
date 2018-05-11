@@ -1,0 +1,60 @@
+/**
+ * Generates import content asset xml file for IM Area
+ * 
+ * Params:
+ *
+ * @input AssetsForMigration : dw.util.Collection
+ *
+ * @output GeneratedContentAssetPath : String
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.util );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+
+		var assetsForMigration : Collection = args.AssetsForMigration;
+		var areasArr : ArrayList = new ArrayList();
+		
+		/**
+		 * Get Custom Preferences
+		 */
+		var customPreferences = dw.system.Site.getCurrent().getPreferences().custom;
+		
+		var ampRenderingTemplate : String = customPreferences['ampRenderingTemplate'];
+
+		for each (var assetForMigration in assetsForMigration) {
+		
+			var areaInfo = {
+			contentAssetId : assetForMigration.ID,
+			contentAssetName : assetForMigration.name,
+			contentAssetTemplate : ampRenderingTemplate,
+			ampAssetCustomAttrs : {	
+									amplienceId 	 : assetForMigration.custom['amplienceId'],
+									amplienceWidth	 : assetForMigration.custom['amplienceWidth'],
+					        		amplienceHeight  : assetForMigration.custom['amplienceHeight'],
+					        		amplienceColor   : assetForMigration.custom['amplienceColor']
+								}
+			};
+			
+			areasArr.push(areaInfo);
+		}
+		
+		var ampContentAssetsHelper : AmplienceContentAssetsHelper = new AmplienceContentAssetsHelper();
+		var contentAssetPath = ampContentAssetsHelper.generateIMAreasImportXML(areasArr);
+
+		args.GeneratedContentAssetPath = contentAssetPath;
+		
+	} catch(e) {
+
+		var errMsg = 'GenerateMigrateIMAreaImportXML.ds : ' + e.message;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

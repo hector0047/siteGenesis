@@ -1,0 +1,110 @@
+/**
+ *	
+ * @input Basket : dw.order.LineItemCtnr
+ * @output  VertexInvalidAddressException : Boolean 
+ *
+ */
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.rpc );
+importPackage( dw.util );
+importPackage( dw.value);
+importPackage(dw.web);
+importPackage(dw.customer);
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.order );
+importScript("int_vertex:lib/libVertexRPCQuotation.ds");
+
+
+var sf = require("bc_serviceframework");
+require("../services/GetTaxService");
+
+function execute(pdict) {
+	
+	var GetTaxService = sf.getService('GetTaxService');
+	
+	var service = new GetTaxService();
+	try{
+		
+		var basket : Basket = pdict.Basket;		
+		var disableLog : Boolean =  Site.getCurrent().getCustomPreferenceValue("DisableVertexLog");
+	 	var vertexHelper : VertexRPCQuotationHelper = getVertexRPCQuotationHelper();
+	 	
+	 	if(disableLog == null)
+	 		disableLog = false;
+	 		 	
+	 	 if(!disableLog)
+	 	 	Logger.info("GetTax Started**************************************************************************************.");		 
+		 var nullShipmentAddr : Boolean = true; 
+		 
+		 if(vertexHelper == null) {
+		 	if(!disableLog)
+	 	 		Logger.info("Unable to get VertexHelper." );
+		 	return  PIPELET_NEXT;
+		 }
+		 if(!disableLog)
+	 	 	Logger.debug("GetTax Checking for shipping addresses.");
+		 for each (var shipment : Shipment in basket.shipments) {
+			var shippingAddress : OrderAddress = shipment.getShippingAddress();
+			 
+			if(!vertexHelper.validateAddress(shippingAddress)){
+				if(!disableLog)	{
+	 	 			Logger.info("Shipping address is null.");
+					Logger.debug("Shipping address is null.");
+				}
+				
+				if(!disableLog){
+				Logger.debug("Shipping address/billing address is null. Applying default taxes. ");
+				Logger.info("Shipping address/billing address is null. Applying default taxes. ");
+				}
+				vertexHelper.applyDefaultTaxForShipment(shipment);
+				
+			}// End of if(shippingAddress == null)
+			else {
+				if(!disableLog){
+				Logger.debug("Shipment contains valid address.");
+				Logger.info("Shipment contains valid address.");
+				}
+				nullShipmentAddr = false;
+			}
+		 }// End of for each (var shipment
+		 if(nullShipmentAddr) {
+		 	if(!disableLog){
+		 	Logger.info("All shipments having shipping address null. Default taxes applied. Cannot proceed.");
+		 	Logger.debug("All shipments having shipping address null. Default taxes applied. Cannot proceed.");
+		 	}
+		 	vertexHelper.performPriceAdjustment(basket);
+		 	basket.updateTotals();
+		 	if(!disableLog)
+				Logger.info("GetTax Completed####################################################################################.");
+		 	return PIPELET_NEXT;
+		 }
+		 if(!disableLog){
+			 Logger.debug("Calling VertexTax.");
+			 Logger.info("Calling VertexTax.");
+		 }
+		
+		//This call method will call the createRequest, executeService methods GetTaxService.
+		service.call(basket);			
+		basket.updateTotals();
+		
+		//Handling the vertex exception
+		 if(vertexHelper.vtxsoapError == "VertexInvalidAddressException"){
+		 	 pdict.VertexInvalidAddressException = true;
+		 }else{
+			 pdict.VertexInvalidAddressException = false;
+		 }
+		
+		
+		if(!disableLog)
+		Logger.info("GetTax Completed####################################################################################.");
+		return PIPELET_NEXT;
+		 
+	}catch(e){		
+		Logger.error("=========vertex error=========" + e);
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}

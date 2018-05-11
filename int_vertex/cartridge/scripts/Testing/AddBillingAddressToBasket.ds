@@ -1,0 +1,35 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*    @input Basket : dw.order.Basket
+*	 @input Address : dw.order.OrderAddress
+*    @output Basket : dw.order.Basket
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+function execute( args : PipelineDictionary ) : Number
+{
+	var orderAddress :  OrderAddress = args.Address;   
+	var basket : Basket = args.Basket;
+	basket.billingAddress.setAddress1("10 Main Street");
+	basket.billingAddress.setCity("Winchendon");
+	basket.billingAddress.setStateCode("MA");
+	basket.billingAddress.setCountryCode("US");
+	basket.billingAddress.setPostalCode("01475");
+	
+	//var basket : Basket = args.Basket;
+	//basket.billingAddress = orderAddress;
+	
+   return PIPELET_NEXT;
+}

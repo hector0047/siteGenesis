@@ -1,0 +1,125 @@
+<!--- TEMPLATENAME: legacyarticle.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<isscript>	
+	importScript( "util/ViewHelpers.ds" );
+</isscript>
+
+<isset name="DecoratorTemplate" value="content/aboutus/pt_aboutuscontent" scope="page"/>
+
+<isset name="AboutUsPage" value="${true}" scope="page"/>
+<isset name="newsFolder" value="${dw.content.ContentMgr.getFolder('latest-news')}" scope="page" />
+<isset name="currentFolder" value="${dw.content.ContentMgr.getFolder('latest-news')}" scope="page" />
+
+<iscomment>Use another decorator if the context is the content search</iscomment>
+<isif condition="${!empty(pdict.ContentSearchResult) && pdict.ContentSearchResult.count > 0}">
+	<isset name="DecoratorTemplate" value="search/pt_contentsearchresult" scope="page"/>
+</isif>
+
+<isif condition="${pdict.CurrentHttpParameterMap.format.stringValue == 'ajax'}">
+	<isset name="DecoratorTemplate" value="util/pt_empty" scope="page"/>
+</isif>
+
+<isdecorate template="${DecoratorTemplate}">
+<iscomment>
+	Use the decorator template based on the page context. If
+	the content page was requested from a search result the
+	decorator search/pt_contentsearchresult is used. The default 
+	decorator for the content page is content/content/pt_content.
+</iscomment>
+<iscache type="relative" hour="24"/>
+
+<iscomment>
+	If content was found through a search build the list
+	of folders with the custom customCSSFile attribute to be
+	used in loading dynamic CSS.
+</iscomment>
+
+<isscript>
+	var folder : dw.content.Folder = null;
+	var folderCustomCSS : dw.util.Collection = new dw.util.ArrayList();
+	
+	// get folder from search context
+	if( !empty(pdict.ContentSearchResult) )
+	{
+		folder = pdict.ContentSearchResult.folder;
+		
+		if (folder != null)
+		{
+			while( folder.parent != null )
+			{
+				if( folder.online && ('customCSSFile' in folder.custom) && !empty(folder.custom.customCSSFile)) 
+				{
+					folderCustomCSS.addAt( 0, folder );
+				}
+				folder = folder.parent;
+			}
+		}
+	}
+</isscript>
+<isif condition="${pdict.Content != null}">
+
+<iscomment>Render a "back" link and the article title based on the page context.</iscomment>
+<isif condition="${!empty(pdict.CurrentHttpParameterMap.start.value) && !empty(pdict.CurrentHttpParameterMap.tab.value)}">
+  <div class="article-back">
+      <a href="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab',pdict.CurrentHttpParameterMap.tab.value,'prstart',pdict.CurrentHttpParameterMap.start.value)}">Back</a>
+  </div>
+</isif>
+
+<div id="primary" class="primary-content">
+		
+	<ol class="breadcrumb">
+	<iscomment>HOME BREADCRUMB</iscomment>
+	<li><a href="${URLUtils.httpHome()}" class="home">${Resource.msg('global.home','locale',null)}</a></li>
+	<li><a href="${MainNavigationUtilities.getContentFolderUrl(newsFolder)}" ><isprint value="${newsFolder.getDisplayName()}"/></a></li>
+	<li><isprint value="${pdict.Content.classificationFolder.displayName}" encoding="off"/></li>
+	</ol>
+	<div class="top-alligned-pdp share-linkbox">
+		<a href="javascript:void(0)" class="print-link print-page">
+			<span class="spriteico"></span>PRINT
+		</a>
+		<a href="javascript:void(0)" class="share-link">
+			<span class="spriteico"></span>SHARE
+		</a>
+		<div class="clearfix:after"></div>
+		<div class="addthis_toolbox addthis_default_style hide"></div>
+	</div>
+	<isinclude template="util/modules"/>
+
+	<isinclude template="content/content/htmlcontentasset"/>
+</div>
+<script>
+function addThisInit() {
+	//var addThisServices = ["twitter","pinterest_pinit","facebook","google"],
+	var addThisServices = ["twitter","facebook","google"],
+		addThisToolbox = $(".addthis_toolbox"),
+		addThisLinks="";
+
+	var i,len=addThisServices.length;
+	for (i=0;i<len;i++) {
+		if (addThisToolbox.find(".addthis_button_"+addThisServices[i]).length==0) {
+			addThisLinks += '<a class="addthis_button_'+addThisServices[i]+'"></a>';
+		}
+	}
+	if (addThisLinks.length===0) { return; }
+
+	addThisToolbox.html(addThisLinks);
+	try{
+		addthis.toolbox(".addthis_toolbox");
+	} catch(e) {
+		return;
+	}
+}
+
+addThisInit();
+
+$(".share-link").unbind('click').on('click', function(e){
+	e.preventDefault();
+	$(this).closest('div.share-linkbox').find('.addthis_toolbox').toggleClass('hide'); 
+});
+
+</script>
+</isif>
+
+</isdecorate>
+
+

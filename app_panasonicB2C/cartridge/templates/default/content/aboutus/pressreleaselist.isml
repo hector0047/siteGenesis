@@ -1,0 +1,74 @@
+<!--- TEMPLATENAME: pressreleaselist.isml --->
+	<isinclude template="util/modules"/>
+  <isset name="currentTab" value="press" scope="page"/>
+  <isset name="start" value="${pdict.CurrentHttpParameterMap.start.value}" scope="page" />
+
+<isset name="displayDateLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'displayDate', 'dir', '1')}" scope="page" />
+<isset name="displayDateLinkIcon" value="descending" scope="page" />
+
+<isset name="nameLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'name', 'dir', '2')}" scope="page" />
+<isset name="nameLinkIcon" value="ascending" scope="page" />
+
+
+<isif condition="${pdict.CurrentHttpParameterMap.psortb1.value == 'displayDate'}">
+
+<isif condition="${pdict.CurrentHttpParameterMap.psortd1.value == '1'}">
+<isset name="displayDateLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'displayDate', 'dir', '2')}" scope="page" />
+<isset name="displayDateLinkIcon" value="ascending" scope="page" />
+<iselseif condition="${pdict.CurrentHttpParameterMap.psortd1.value == '2'}">
+<isset name="displayDateLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'displayDate', 'dir', '1')}" scope="page" />
+<isset name="displayDateLinkIcon" value="descending" scope="page" />
+</iselseif>
+</isif>
+
+<iselseif condition="${pdict.CurrentHttpParameterMap.psortb1.value == 'name'}">
+<isif condition="${pdict.CurrentHttpParameterMap.psortd1.value == '1'}">
+<isset name="nameLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'name', 'dir', '2')}" scope="page" />
+<isset name="nameLinkIcon" value="ascending" scope="page" />
+<iselseif condition="${pdict.CurrentHttpParameterMap.psortd1.value == '2'}">
+<isset name="nameLink" value="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','sortBy', 'name', 'dir', '1')}" scope="page" />
+<isset name="nameLinkIcon" value="descending" scope="page" />
+</iselseif>
+</isif>
+</iselseif>
+</isif>
+
+
+	<iscomment>create reporting event</iscomment>
+	<isinclude template="util/reporting/ReportSearch.isml"/>
+	
+		<isif condition="${!pdict.ContentPagingModel.empty}">
+	
+			<iscomment>calculated correct index position to separate the result columns</iscomment>
+			<isscript>
+				var count = pdict.ContentPagingModel.end + 1;
+				var cutIndex = Math.ceil( count / 2 ) - 1;
+				var endIndex = cutIndex + (cutIndex + 1);
+			</isscript>
+			
+			<table class="pressrelease-content-list">
+			<thead><tr class="pressrelease-content-list__header"><th class="pressrelease-content-list__pubdate-header">Date<a href="${displayDateLink}" class="article-pubDate-sort--${displayDateLinkIcon} sort--${displayDateLinkIcon}"></a></th><th class="pressrelease-content-list__headline-header">Headline<a href="${nameLink}" class="article-name-sort--${nameLinkIcon} sort--${nameLinkIcon}"></a></th></tr></thead>
+			<tbody>
+			<isloop items="${pdict.ContentPagingModel.pageElements}" var="asset" status="loopstate" end="${endIndex}">
+
+				<tr class="pressrelease-content-list__row">
+				<iscomment>append the search parameters to the article URL</iscomment>
+        <isset name="articleURL" value="${URLUtils.url('Page-Show','cid', asset.ID,'tab','press', 'start', start)}" scope="page"/>
+
+					
+					<td class="pressrelease-content-list__pubdate"><span class="article-pubDate"><isprint value="${asset.custom.displayDate}" formatter="MM/dd/yyyy" timezone="SITE" /></span></td>
+					<td class="pressrelease-content-list__headline"><span class=""><a href="${articleURL}">
+						<isprint value="${asset.name}"/>
+					</a></span></td>
+				</tr>
+				
+			</isloop>
+			</tbody>
+			</table>
+			
+			<iscomment>pagination</iscomment>
+			
+			<isnewslistpagingbar pageurl="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab','press','psortb1', pdict.CurrentHttpParameterMap.psortb1.value, 'psortd1', pdict.CurrentHttpParameterMap.psortd1.value)}"  pagingmodel="${pdict.ContentPagingModel}" pagingstartvar="prstart" />
+			<!--- isnewslistpagingbar pageurl="${pdict.ContentSearchResult.url('Search-ShowContent')}"  pagingmodel="${pdict.ContentPagingModel}"/ --->
+
+		</isif>

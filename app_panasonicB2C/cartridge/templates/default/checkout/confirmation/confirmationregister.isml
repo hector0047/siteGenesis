@@ -1,0 +1,31 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!--- TEMPLATENAME: confirmationregister.isml --->
+<iscomment>Provide a create account form for unregistered customers</iscomment>
+<isif condition="${!pdict.CurrentCustomer.authenticated}">
+
+	<div class="login-box login-create-account clearfix">	
+	
+		<h2 >${Resource.msg('global.createbutton','locale',null)}</h2>		
+		
+		<div class="login-box-content clearfix">			
+		
+			<p>${Resource.msg('globalaccount.createmessageregistration','locale',null)}</p>					
+				
+			<form action="${URLUtils.httpsContinue()}" method="post" id="RegistrationForm">
+				<fieldset>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.firstname}" type="input" requiredtextstar="true" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.lastname}" type="input" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.email}" type="input" xhtmlclass="email" requiredtext="${Resource.msg('login.usernamelogin.missing-error','forms',null)}"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.emailconfirm}" type="input" xhtmlclass="email" requiredtext="${Resource.msg('logincreate.usernameconfirm.missing-error','forms',null)}"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.login.password}" type="password" requiredtext="${Resource.msg('login.newpassword.missing-error','forms',null)}"/>
+					<isinputfield formfield="${pdict.CurrentForms.profile.login.passwordconfirm}" type="password" requiredtext="${Resource.msg('login.newpasswordcon.missing-error','forms',null)}"/>
+					<iscomment>jira PBST-133 bug fix</iscomment>
+					<isinputfield formfield="${pdict.CurrentForms.profile.customer.confaddtoemaillist}" type="checkbox" rowclass="form-indent label-inline creat-accnt-formindent tickmark" attribute1="checked" value1="checked"/>
+					<button type="submit" class="largebutton" value="${Resource.msg('global.createbutton','locale',null)}" name="${pdict.CurrentForms.profile.confirm.htmlName}"><span>${Resource.msg('global.createbutton','locale',null)}</span></button>
+					<input type="hidden" name="${pdict.CurrentForms.profile.secureKeyHtmlName}" value="${pdict.CurrentForms.profile.secureKeyValue}"/>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+
+</isif>

@@ -1,0 +1,50 @@
+/**
+ * The script finds the last catalog click and returns it 
+ * as the target for a redirect.
+ *
+ * @input compareshowpage : String
+ * @output Location : String
+ */
+importPackage( dw.system );
+importPackage( dw.web );
+importPackage( dw.util );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	// find the last catalog related click
+	var list : List = session.clickStream.clicks;
+	for( var i = list.size()-1; i >= 0; i-- )
+	{
+		var click : ClickStreamEntry = list[i];
+		//Farhans Dev team : 15-12-2015 03:46PM PANC-1143
+		if(!empty(pdict.compareshowpage) && pdict.compareshowpage=="compareshow")
+			{
+				switch( click.pipelineName )
+				{
+					case "Search-Show":
+						// catalog related click
+						// replace well-known http parameter names "source" and "format" to avoid loading partial page markup only
+						pdict.Location = 'http://' + click.host + click.url.replace(/source=/g, "src=").replace(/format=/g, "frmt=");
+						return PIPELET_NEXT;
+				}
+			}else{
+				switch( click.pipelineName ){
+				case "Product-Show":
+				case "Product-ShowInCategory":
+					// product detail page click(s)
+					// replace well-known http parameter names "source" and "format" to avoid loading partial page markup only
+					pdict.Location = 'http://' + click.host + click.url.replace(/source=/g, "src=").replace(/format=/g, "frmt=");
+					return PIPELET_NEXT;
+				case "Search-Show":
+					// catalog related click
+					// replace well-known http parameter names "source" and "format" to avoid loading partial page markup only
+					pdict.Location = 'http://' + click.host + click.url.replace(/source=/g, "src=").replace(/format=/g, "frmt=");
+					return PIPELET_NEXT;
+			}
+	}
+}
+	//PANC-1143  END
+	// nothing found, go to the home page
+	pdict.Location = URLUtils.httpHome().toString();
+    return PIPELET_NEXT;
+}

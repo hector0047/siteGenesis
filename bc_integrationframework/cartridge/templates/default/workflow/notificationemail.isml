@@ -1,0 +1,5 @@
+<iscontent type="text/plain" charset="UTF-8" compact="true">The workflow with ID "${pdict.CurrentWorkflowScheduleInstance.custom.workflowScheduleDefinitionID}" finished with status "${pdict.Status}" on Site "${dw.system.Site.current.ID}".
+
+The components finished with the following statuses:
+<isloop var="workflowComponentInstance" items="${pdict.CurrentWorkflowScheduleInstance.getWorkflowComponentInstances()}">${workflowComponentInstance.custom.workflowComponentDefinitionName}: ${workflowComponentInstance.custom.status.value}
+</isloop>

@@ -1,0 +1,17 @@
+<iscomment>
+	Renders Amplience DI Libs content asset.
+</iscomment>
+
+<isset name="DiLibsContent" value="${dw.content.ContentMgr.getContent('amp-di-libs')}" scope="page" />
+
+<isif condition="${DiLibsContent != null}">
+<isscript>
+	importScript("amplience/libAmplienceContent.ds");
+	var ampDiLibsContent = new AmplienceContent( DiLibsContent );
+	var content = ampDiLibsContent.getContent();
+</isscript>
+
+<!-- Amplience IM libs -->
+<isprint value="${content}" encoding="off"/>
+
+</isif>

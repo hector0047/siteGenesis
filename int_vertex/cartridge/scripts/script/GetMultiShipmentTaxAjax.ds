@@ -1,0 +1,40 @@
+/**
+*	GetMultiShipmentTaxAjax.ds
+*
+* 	This script will attempt to update the tax to the basket based on the shipping address selections
+*
+*	@input Basket	: dw.order.Basket
+*	@input MultiShipData :String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.rpc );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.util );
+importPackage( dw.net );
+importScript('lib/libVertexRPCQuotation.ds');
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try{
+		Logger.info("GetMultiShipmentTaxAjax Started**************************************************************************************.");
+		var basket 	: Basket		=	args.Basket;
+
+		var multiShipData: String	=	args.MultiShipData;
+		var vertexHelper:VertexRPCQuotationHelper = getVertexRPCQuotationHelper();
+		if(vertexHelper == null) {
+			Logger.info("Unable to get VertexHelper." );
+			return  PIPELET_NEXT;
+		}
+		if(!empty(multiShipData)){
+			vertexHelper.calculateTax(basket,multiShipData,true);
+			Logger.info("GetMultiShipmentTaxAjax Completed####################################################################################.");
+		}
+		return PIPELET_NEXT;
+	}catch(e){
+		Logger.error(" GetMultiShipmentTaxAjax Exception thrown. Error=" + e );
+	}
+	Logger.info("GetMultiShipmentTaxAjax Completed after exception.");
+	return PIPELET_NEXT;
+}

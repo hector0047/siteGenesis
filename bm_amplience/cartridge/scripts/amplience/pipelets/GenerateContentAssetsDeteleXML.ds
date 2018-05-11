@@ -1,0 +1,53 @@
+/**
+ * Generates content assets xml file for Delete
+ * 
+ * Params:
+ *
+ * @input assetids : String
+ * @input parentFolderId : String
+ *
+ * @output GeneratedContentAssetPath : String
+ *
+ */
+importPackage( dw.system );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		if ( empty(args.assetids) ) {
+		
+			throw new Error('No Asset IDs set');	
+		}
+		
+		/**
+		 * Content Assets folders where the delete of assets is allowed
+		 */
+		var amplienceFolders : Array = ['amp_modules_im',
+						                'amp_modules_imgroup',
+						                'amp_modules_ugc'];
+						   
+		if ( empty(args.parentFolderId) || amplienceFolders.indexOf(args.parentFolderId) == -1 ) {
+		
+			throw new Error('Invalid folder (' + args.parentFolderId + ') for content assets to delete');	
+		}
+		
+		var assetsIdsArr : Array = args.assetids.split(',');
+
+		var ampContentAssetsHelper = new AmplienceContentAssetsHelper();
+		
+		var contentAssetPath = ampContentAssetsHelper.generateContentAssetsDeleteXML(assetsIdsArr, args.parentFolderId);
+
+		args.GeneratedContentAssetPath = contentAssetPath;
+		
+	} catch(e) {
+
+		var errMsg = 'GenerateContentAssetsDeleteXML.ds : ' + e.message;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

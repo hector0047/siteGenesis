@@ -1,0 +1,125 @@
+<!--- TEMPLATENAME: latestnewscontent.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<isset name="AboutUsPage" value="${true}" scope="page"/>
+<isset name="currentFolder" value="${pdict.ContentSearchResult.folder}" scope="page" />
+<isset name="newsFolder" value="${dw.content.ContentMgr.getFolder('news')}" scope="page" />
+<isset name="pressFolder" value="${dw.content.ContentMgr.getFolder('press-releases')}" scope="page" />
+
+  <isif condition="${!empty(currentFolder.pageTitle)}">
+    <isset name="pageTitle" value="${currentFolder.pageTitle}" scope="page"/>
+  <iselse>
+    <isset name="pageTitle" value="${currentFolder.displayName}" scope="page"/>
+  </iselse>
+  </isif>
+
+
+<isset name="prSortBy" value="displayDate" scope="page"/>
+<isset name="prSortDir" value="2" scope="page"/>
+
+<isif condition="${!empty(pdict.CurrentHttpParameterMap.sortBy.value)}">
+  <isset name="prSortBy" value="${pdict.CurrentHttpParameterMap.sortBy.value}" scope="page"/>
+</isif>
+
+<isif condition="${!empty(pdict.CurrentHttpParameterMap.dir.value)}">
+  <isset name="prSortDir" value="${pdict.CurrentHttpParameterMap.dir.value}" scope="page"/>
+<iselseif condition="${empty(pdict.CurrentHttpParameterMap.dir.value) && !empty(pdict.CurrentHttpParameterMap.sortBy.value) && pdict.CurrentHttpParameterMap.sortBy.value == 'name'}">
+  <isset name="prSortDir" value="1" scope="page"/>
+</iselseif>
+</isif>
+
+<isif condition="${!empty(pdict.CurrentHttpParameterMap.tab.value) && pdict.CurrentHttpParameterMap.tab.value == 'news'}">
+	<isset name="currentTab" value="news" scope="page"/>
+<iselse>
+	<isset name="currentTab" value="press" scope="page"/>
+</iselse>
+</isif>
+
+<isscript>	
+	importScript( "util/ViewHelpers.ds" );
+</isscript>
+
+<isdecorate template="content/aboutus/pt_aboutuscontentsearchresult">
+	<div class="content-slot">
+		<isslot id="about-header" context="folder" description="About Page Header Image" context-object="${currentFolder}"/>
+	</div>	
+	<div id="primary" class="primary-content">
+		<isinclude template="components/browsertoolscheck"/>		
+		<ol class="breadcrumb">
+		<iscomment>HOME BREADCRUMB</iscomment>
+		<li><a href="${URLUtils.httpHome()}" class="home">${Resource.msg('global.home','locale',null)}</a></li>	
+		<isif condition="${!empty(pdict.CurrentHttpParameterMap.q.value)}">
+		<li><a href="${URLUtils.url('Search-ShowContent','fdid','latest-news')}">${currentFolder.displayName}</a></li>
+		<li>Search Results</li>
+		<iselse>
+		<li>${currentFolder.displayName}</li>
+		</iselse>
+		</isif>
+		</ol>
+	
+		<isinclude template="util/modules"/>
+
+		<isif condition="${currentFolder.description != null}">
+			<h1 class="page-title">${currentFolder.description}</h1>
+		<iselse>
+			<h1 class="page-title">${currentFolder.displayName}</h1>
+		</iselse>
+		</isif>
+
+
+			
+		<div class="content-slot">
+			<isslot id="about-slot-a" context="folder" description="About Content Slot A" context-object="${currentFolder}"/>
+		</div>
+		
+		<div class="two-column media-contacts">
+		<div class="column">
+		<p><strong>Media Contacts -</strong> <a href="mailto:pressroom@us.panasonic.com">For All Press Matters</a></p>
+		</div>
+		<p><a href="http://news.panasonic.net/" target="_blank">Global Panasonic News Portal | <a href="http://www.panasonic.com/global/corporate/ir.html" target="_blank">Investor Relations</a></p>
+		</div>
+		</div>
+		
+		<isif condition="${!empty(pdict.CurrentHttpParameterMap.q.value)}">
+			<isset name="searchTerms" value="${pdict.CurrentHttpParameterMap.q.value}" scope="page" />
+		    <isinclude template="content/aboutus/advancednewssearch.isml" />
+			<isinclude template="content/aboutus/newssearchresults.isml" />
+		<iselse>
+			<isif condition="${!empty(pdict.CurrentHttpParameterMap.prstart.value)}">
+				<isset name="prSearchStart" value="${pdict.CurrentHttpParameterMap.prstart.value}" scope="page" />
+			<iselse>
+				<isset name="prSearchStart" value="0" scope="page" />
+			</iselse>
+			</isif>
+			<isif condition="${!empty(pdict.CurrentHttpParameterMap.nstart.value)}">
+				<isset name="newsSearchStart" value="${pdict.CurrentHttpParameterMap.nstart.value}" scope="page" />
+			<iselse>
+				<isset name="newsSearchStart" value="0" scope="page" />
+			</iselse>
+			</isif>
+			<isset name="searchTerms" value="" scope="page" />
+		    <isinclude template="content/aboutus/simplenewssearch.isml" />
+		
+			<div class="latest-news-nav">
+				<ul class="latest-news-tabs">
+          <isif condition="${pressFolder.onlineContent.length > 0}"><li class="latest-news-tab ${currentTab == 'press' ? 'latest-news-tab--active' : ''}"><a href="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab', 'press')}">Press Releases</a></li></isif>
+					<isif condition="${newsFolder.onlineContent.length > 0}"><li class="latest-news-tab ${currentTab == 'news' ? 'latest-news-tab--active' : ''}"><a href="${URLUtils.url('Search-ShowContent','fdid','latest-news','tab', 'news')}">News</a></li></isif>
+				</ul>
+				<div class="latest-news-rss">
+					<a href="${URLUtils.url('AboutUs-RSS')}" class="latest-news-rss__link"><img src="${URLUtils.absStatic('/images/rss.png')}" /></a>
+				</div>
+			</div>
+      <isif condition="${pressFolder.onlineContent.length > 0}">
+        <div id="press-releases-panel" class="latest-news-panel ${currentTab == 'press' ? 'latest-news-panel--active' : ''}">
+        <isinclude url="${URLUtils.url('AboutUs-PressReleaseContentList','fdid','press-releases','start',prSearchStart, 'psortb1', prSortBy, 'psortd1', prSortDir)}"/>
+        </div>
+        </isif>		
+		    <isif condition="${newsFolder.onlineContent.length > 0}">
+		    <div id="news-articles-panel" class="latest-news-panel ${currentTab == 'news' ? 'latest-news-panel--active' : ''}">
+		    <isinclude url="${URLUtils.url('AboutUs-NewsContentList','fdid','news','start',newsSearchStart, 'psortb1', 'displayDate', 'psortd1', '2')}"/>
+		    </div>
+		    </isif>
+		</iselse>
+		</isif>
+	</div>
+</isdecorate>

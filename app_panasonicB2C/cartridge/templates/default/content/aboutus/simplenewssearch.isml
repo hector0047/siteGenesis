@@ -1,0 +1,18 @@
+<!--- TEMPLATENAME: simplenewssearch.isml --->
+<div id="news-search-form" class="news-search-form news-search-form--simple">
+
+<form role="search" action="${URLUtils.url('Search-ShowContent','fdid',currentFolder.ID)}" method="get" name="simpleSearchLN">
+	<fieldset>
+		<legend class="visually-hidden">Search Latest News</legend>
+		<label class="visually-hidden" for="q">Search Latest News</label>
+		<input type="text" id="q" name="q" value="${searchTerms}"  placeholder="Search Latest News"  autocomplete="off" />	
+		
+
+		<input type="hidden" name="psortb1" value="displayDate"/>
+		<input type="hidden" name="psortd1" value="2"/>
+			
+		<input type="submit" value="Search" />
+	</fieldset>
+</form>
+
+</div>

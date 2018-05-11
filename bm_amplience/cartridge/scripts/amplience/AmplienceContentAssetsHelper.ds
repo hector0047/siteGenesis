@@ -1,0 +1,589 @@
+/**
+* Class which helps with creating different types of content assets for Amplience: Imported IM Areas, Grouped IM Areas, Import UGC streams
+*
+*/
+importPackage( dw.system );
+importPackage( dw.object );
+importPackage( dw.io );
+importPackage( dw.util );
+importPackage( dw.content );
+
+function AmplienceContentAssetsHelper() {
+	
+	/**
+	 * Array with All Amplience Content Asset Custom Attribute IDs
+	 */
+	var AMPLIENCE_CUSTOM_ATTRIBUTE_IDS = [
+		"amplienceId",
+        "amplienceWidth",
+        "amplienceHeight",
+        "amplienceColor",
+        "amplienceStandalonePage",
+        "amplienceResponsive",
+        "amplienceSafeRegionW",
+        "amplienceSafeRegionH",
+        "amplienceScale",
+        "amplienceAssociatedModuleName",
+        "amplienceColor",
+        "ampConfig"
+	];
+	
+	/**
+	 * Default Amplience content asset xml path and file used for import of newly created content assets
+	 */
+	var CONTENT_TARGET_PATH : String = "IMPEX/src/temp";
+	
+	var CONTENT_NAME : String = "amplience_asset.xml";
+	
+	var DELETE_CONTENT_NAME : String = "delete_assets.xml";
+	
+	var UPDATE_CONTENT_NAME : String = "update_assets.xml";
+	
+	/**
+	 * Generates import content asset xml file for multiple IM Areas
+	 *
+	 * @param {Array} contentAssets - array with Amplience content assets info
+	 *
+	 * @return {String} file path of the generated xml file
+	 */
+	this.generateIMAreasImportXML = function(contentAssets : Array) : String {
+		
+		if (contentAssets.length == 0) {
+			
+			throw new Error('No Content Assets set to import as xml.');
+		}
+	
+		var fullFileName : String = CONTENT_TARGET_PATH + File.SEPARATOR + CONTENT_NAME;
+		
+		generateMultipleAssetsImportXML(fullFileName, contentAssets, "amp_modules_im");
+
+		return fullFileName.replace("IMPEX/src/", "");
+	};
+	
+	/**
+	 * Generates import content asset xml file for UGC Stream
+	 *
+	 * @param {String} ampStreamId - Amplience stream identifier
+	 * @param {String} ampStreamName - Amplience stream name
+	 * @param {String} ampViewerId - Amplience viewer identifier
+	 * @param {String} template - rendering template
+	 *
+	 * @return {String} file path of the generated xml file
+	 */
+	this.generateUGCStreamImportXML = function(ampStreamId : String, ampStreamName : String, ampViewerId : String, template : String) : String {
+		
+		var ampConfig : String = JSON.stringify({
+			"viewer" : ampViewerId,
+			"stream" : ampStreamId
+		});
+		
+		var customAttrs = {
+			"ampConfig"	: ampConfig
+		};
+
+		var fullFileName : String = CONTENT_TARGET_PATH + File.SEPARATOR + CONTENT_NAME;
+		
+		var ampAssetId : String = ampStreamId + '-' + ampViewerId;
+		var ampAssetName : String = ampStreamName;
+		
+		generateAssetImportXML(fullFileName, ampAssetId, ampAssetName, "amp_modules_ugc", customAttrs, template, '');
+
+		return fullFileName.replace("IMPEX/src/", "");
+	};
+	
+	/**
+	 * Generates content asset update xml file for UGC Streams
+	 *
+	 * @param {Array} onlineList - List with assets to be set online
+	 * @param {Array} offlineList - List with assets to be set offline
+	 * @param {Boolean} setToOnline - Set offline assets to online
+	 *
+	 * @return {String} file path of the generated xml file
+	 */
+	this.generateUGCStreamUpdateXML = function (onlineList : Array, offlineList : Array, setToOnline : Boolean) : String {
+	
+		var fullFileName : String = CONTENT_TARGET_PATH + File.SEPARATOR + UPDATE_CONTENT_NAME;
+		
+		var onlineList : Array = setToOnline ? onlineList : [],
+			offlineList : Array = offlineList;
+		
+		generateAssetUpdateXML(fullFileName, onlineList, offlineList);
+		
+		return fullFileName.replace("IMPEX/src/", "");
+	};
+	
+	/**
+	 * Generates import content asset xml file for Delete of Content Assets
+	 *
+	 * @param {Array} assetIds - array with content asset identifiers
+	 * @param {String} parentFolderId - parent folder of the assets to delete
+	 *
+	 * @return {String} file path of the generated xml file
+	 */
+	this.generateContentAssetsDeleteXML = function(assetIds : Array, parentFolderId : String) : String {
+
+		var fullFileName : String = CONTENT_TARGET_PATH + File.SEPARATOR + DELETE_CONTENT_NAME;
+
+		generateAssetsDeleteXML(fullFileName, assetIds, parentFolderId);
+
+		return fullFileName.replace("IMPEX/src/", "");
+	};
+	
+	/**
+	 * Generates xml file for import of IM Grouped Area
+	 *
+	 * @param {Array} areasIds - array with Amplience area identifiers to group
+	 * @param {String} template - rendering template
+	 * @param {String} groupName - Group name
+	 * @param {String} groupDescription - group Description
+	 *
+	 * @return {String} file path of the generated xml file
+	 */
+	this.generateIMAreasGroupImportXML = function(areasIds : Array, template : String, groupName : String, groupDescription : String) : String {
+		
+		var json = JSON.stringify(areasIds);
+
+		var customAttrs = {
+			"ampConfig" : json
+		};
+
+		var fullFileName : String = CONTENT_TARGET_PATH + File.SEPARATOR + CONTENT_NAME;
+		
+		var assetID : String = UUIDUtils.createUUID();
+		
+		generateAssetImportXML(fullFileName, assetID, groupName, "amp_modules_imgroup", customAttrs, template, groupDescription);
+
+		return fullFileName.replace("IMPEX/src/", "");
+	};
+	
+	/**
+	 * Utility method to generate a XML file for a content assests update
+	 *
+	 * @param {String} fileName - filename where to store the generated XML file
+	 * @param {Array} onlineContentAssetIds - content assets identifiers
+	 * @param {Array} offlineContentAssetIds - content assets identifiers
+	 *
+	 */
+	var generateAssetUpdateXML = function (fileName : String, onlineContentAssetIds : Array, offlineContentAssetIds : Array) {
+		
+		if ( onlineContentAssetIds == null || offlineContentAssetIds == null ) {
+		
+			throw new Error('Content assets update list is missing.');	
+		}
+		
+		var file : File = new File(fileName);
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		var xsw : XMLStreamWriter = new XMLIndentingStreamWriter(fileWriter);
+		
+		xsw.writeStartDocument("UTF-8", "1.0");
+		
+		xsw.writeStartElement("library");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/library/2006-10-31");
+		
+		/**
+		 * Iterate through Content Assets and export them as separate xml nodes
+		 */
+		 
+		 // Iterate through Online Content Assets
+		for (var i = 0; i < onlineContentAssetIds.length; i++) {
+			
+			xsw.writeStartElement("content");
+			xsw.writeAttribute("content-id", onlineContentAssetIds[i]);
+			
+			xsw.writeStartElement("online-flag");
+			xsw.writeCharacters("true");
+			xsw.writeEndElement(); // </online-flag>
+			
+			xsw.writeStartElement("searchable-flag");
+			xsw.writeCharacters("true");
+			xsw.writeEndElement(); // </searchable-flag>
+			
+			xsw.writeEndElement(); // </content>
+		}
+		
+		// Iterate through Offline Content Assets
+		for (var i = 0; i < offlineContentAssetIds.length; i++) {
+			
+			xsw.writeStartElement("content");
+			xsw.writeAttribute("content-id", offlineContentAssetIds[i]);
+			
+			xsw.writeStartElement("online-flag");
+			xsw.writeCharacters("false");
+			xsw.writeEndElement(); // </online-flag>
+			
+			xsw.writeStartElement("searchable-flag");
+			xsw.writeCharacters("false");
+			xsw.writeEndElement(); // </searchable-flag>
+			
+			xsw.writeEndElement(); // </content>
+		}
+		
+		
+		xsw.writeEndElement(); // </library>
+		xsw.writeEndDocument();
+		
+		xsw.close();
+		fileWriter.close();
+	};
+
+	/**
+	 * Utility method to generate a XML file for a content assest
+	 *
+	 * @param {String} fileName - filename where to store the generated XML file
+	 * @param {String} contentAssetId - content asset identifier
+	 * @param {String} contentAssetName - content asset name
+	 * @param {String} parentFolderId - content asset folder identifier
+	 * @param {Object} ampAssetCustomAttrs - Amplience content asset custom attributes
+	 * @param {String} template - rendering template
+	 * @param {String} contentAssetDescription : content asset description 
+	 *
+	 */
+	var generateAssetImportXML = function(fileName : String, contentAssetId : String, contentAssetName : String, parentFolderId : String, ampAssetCustomAttrs : Object, template : String, contentAssetDescription : String) {
+		
+		if ( empty(contentAssetId) ) {
+		
+			throw new Error('Amplience content asset ID missing.');	
+		}
+		
+		if ( empty(parentFolderId) ) {
+		
+			throw new Error('Amplience content asset folder missing.');	
+		}
+	
+		var file : File = new File(fileName);
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		var xsw : XMLStreamWriter = new XMLIndentingStreamWriter(fileWriter);
+		
+		xsw.writeStartDocument("UTF-8", "1.0");
+		
+		xsw.writeStartElement("library");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/library/2006-10-31");
+		
+		xsw.writeStartElement("content");
+		xsw.writeAttribute("content-id", contentAssetId);
+
+		if ( !empty(contentAssetName) ) {
+			
+			xsw.writeStartElement("display-name");
+			xsw.writeAttribute("xml:lang", "x-default");
+			xsw.writeCharacters(contentAssetName);
+			xsw.writeEndElement(); // </display-name>
+		}
+		
+		if ( !empty(contentAssetDescription) ) {
+
+			xsw.writeStartElement("description");
+			xsw.writeCharacters(contentAssetDescription);
+			xsw.writeEndElement(); // </description>
+		}
+		
+		if ( !empty(template) ) {
+
+			xsw.writeStartElement("template");
+			xsw.writeCharacters(template);
+			xsw.writeEndElement(); // </template>
+		}
+		
+		xsw.writeStartElement("online-flag");
+		xsw.writeCharacters("true");
+		xsw.writeEndElement(); // </online-flag>
+		
+		xsw.writeStartElement("searchable-flag");
+		xsw.writeCharacters("true");
+		xsw.writeEndElement(); // </searchable-flag>
+		
+		/**
+		 * Export Amplience Content Asset Custom attributes
+		 */
+		xsw.writeStartElement("custom-attributes");
+		
+		for (var i = 0; i < AMPLIENCE_CUSTOM_ATTRIBUTE_IDS.length; i++) {
+			
+			var customAttrName = AMPLIENCE_CUSTOM_ATTRIBUTE_IDS[i];
+			
+			if ( !empty(ampAssetCustomAttrs[customAttrName]) ) {
+				
+				xsw.writeStartElement("custom-attribute");
+				xsw.writeAttribute("attribute-id", customAttrName);
+				xsw.writeCharacters( ampAssetCustomAttrs[customAttrName] );
+				xsw.writeEndElement(); // </custom-attribute>
+			}
+		}
+		
+		/**
+		 * Add body custom attribute
+		 */
+		xsw.writeStartElement("custom-attribute");
+		xsw.writeAttribute("attribute-id", "body");
+		xsw.writeEndElement(); // </custom-attribute>
+		
+		xsw.writeEndElement(); // </custom-attributes>
+		
+		/**
+		 * Export Parent Folder
+		 */
+		xsw.writeStartElement("folder-links");
+		
+		xsw.writeStartElement("classification-link");
+		xsw.writeAttribute("folder-id", parentFolderId);
+		xsw.writeEndElement(); // classification-link
+		
+		xsw.writeEndElement(); // </folder-links>
+		
+		xsw.writeEndElement(); // </content>
+		
+		xsw.writeEndElement(); // </library>
+		xsw.writeEndDocument();
+		
+		xsw.close();
+		fileWriter.close();	
+	}
+	
+	/**
+	 * Utility method to generate a XML file for a multiple content assets
+	 *
+	 * @param {String} fileName - filename where to store the generated XML file
+	 * @param {Array} contentAssets - with content assets objects info (identifier, name and custom attributes)
+	 * @param {String} parentFolderId - content asset folder identifier
+	 *
+	 */
+	var generateMultipleAssetsImportXML = function(fileName : String, contentAssets : Array, parentFolderId : String) {
+		
+		if ( empty(parentFolderId) ) {
+		
+			throw new Error('Amplience content asset folder missing.');	
+		}
+		
+		var file : File = new File(fileName);
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		var xsw : XMLStreamWriter = new XMLIndentingStreamWriter(fileWriter);
+		
+		xsw.writeStartDocument("UTF-8", "1.0");
+		
+		xsw.writeStartElement("library");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/library/2006-10-31");
+		
+		/**
+		 * Iterate through Content Assets and export them as separate xml nodes
+		 */
+		for each (var contentAsset in contentAssets) {
+		
+			if ( empty(contentAsset['contentAssetId']) ) {
+			
+				throw new Error('Amplience content asset ID missing.');	
+			}
+			
+			xsw.writeStartElement("content");
+			xsw.writeAttribute("content-id", contentAsset['contentAssetId']);
+			
+			if ( !empty(contentAsset['contentAssetName']) ) {
+				
+				xsw.writeStartElement("display-name");
+				xsw.writeAttribute("xml:lang", "x-default");
+				xsw.writeCharacters(contentAsset['contentAssetName']);
+				xsw.writeEndElement(); // </display-name>
+			}
+			
+			if ( !empty(contentAsset['contentAssetTemplate']) ) {
+				
+				xsw.writeStartElement("template");
+				xsw.writeCharacters(contentAsset['contentAssetTemplate']);
+				xsw.writeEndElement(); // </template>
+			}
+			
+			xsw.writeStartElement("online-flag");
+			xsw.writeCharacters("true");
+			xsw.writeEndElement(); // </online-flag>
+			
+			xsw.writeStartElement("searchable-flag");
+			xsw.writeCharacters("true");
+			xsw.writeEndElement(); // </searchable-flag>
+			
+			/**
+			 * Export Amplience Content Asset Custom attributes
+			 */
+			xsw.writeStartElement("custom-attributes");
+			
+			for (var i = 0; i < AMPLIENCE_CUSTOM_ATTRIBUTE_IDS.length; i++) {
+				
+				var customAttrName = AMPLIENCE_CUSTOM_ATTRIBUTE_IDS[i];
+				
+				if ( !empty(contentAsset['ampAssetCustomAttrs'][customAttrName]) ) {
+					
+					xsw.writeStartElement("custom-attribute");
+					xsw.writeAttribute("attribute-id", customAttrName);
+					xsw.writeCharacters( contentAsset['ampAssetCustomAttrs'][customAttrName] );
+					xsw.writeEndElement(); // </custom-attribute>
+				}
+			}
+			
+			/**
+			 * Add body custom attribute
+			 */
+			xsw.writeStartElement("custom-attribute");
+			xsw.writeAttribute("attribute-id", "body");
+			xsw.writeEndElement(); // </custom-attribute>
+			
+			xsw.writeEndElement(); // </custom-attributes>
+			
+			/**
+			 * Export Parent Folder
+			 */
+			xsw.writeStartElement("folder-links");
+			
+			xsw.writeStartElement("classification-link");
+			xsw.writeAttribute("folder-id", parentFolderId);
+			xsw.writeEndElement(); // classification-link
+			
+			xsw.writeEndElement(); // </folder-links>
+			
+			xsw.writeEndElement(); // </content>
+		}
+		
+		xsw.writeEndElement(); // </library>
+		xsw.writeEndDocument();
+		
+		xsw.close();
+		fileWriter.close();	
+	}
+	
+	/**
+	 * Utility method to generate a XML file for a content assets Delete
+	 *
+	 * @param {String} fileName - filename where to store the generated XML file
+	 * @param {Array} contentAssetIds - array with content asset identifiers
+	 * @param {String} parentFolderId - content asset folder identifier
+	 *
+	 */
+	var generateAssetsDeleteXML = function(fileName : String, contentAssetIds : Array, parentFolderId : String) {
+		
+		if ( empty(contentAssetIds) ) {
+		
+			throw new Error('Content asset IDs for delete are missing.');	
+		}
+		
+		if ( empty(parentFolderId) ) {
+		
+			throw new Error('Amplience content asset folder missing.');	
+		}
+	
+		var file : File = new File(fileName);
+		var fileWriter : FileWriter = new FileWriter(file, "UTF-8");
+		var xsw : XMLStreamWriter = new XMLIndentingStreamWriter(fileWriter);
+		
+		xsw.writeStartDocument("UTF-8", "1.0");
+		
+		xsw.writeStartElement("library");
+		xsw.writeDefaultNamespace("http://www.demandware.com/xml/impex/library/2006-10-31");
+		
+		for each (var assetId in contentAssetIds) {
+			
+			xsw.writeStartElement("content");
+			xsw.writeAttribute("content-id", assetId);
+			
+			/**
+			 * Export Parent Folder
+			 */
+			xsw.writeStartElement("folder-links");
+			
+			xsw.writeStartElement("classification-link");
+			xsw.writeAttribute("folder-id", parentFolderId);
+			xsw.writeEndElement(); // classification-link
+			
+			xsw.writeEndElement(); // </folder-links>
+			
+			xsw.writeEndElement(); // </content>	
+		}
+		
+		xsw.writeEndElement(); // </library>
+		xsw.writeEndDocument();
+		
+		xsw.close();
+		fileWriter.close();	
+	}
+	
+	/**
+	 * Get Cotent Assets after applying filtering by folder IDs skipping and custom attributes to contain
+	 *
+	 * @param {Folder} assetFolder - current asset folder
+	 * @param {Array} requiredCustomAttrNames - custom attribute names that asset should contains to be added in the result
+	 * @param {Array} skipFolderIDs - folder identifiers that will be skiped 
+	 *
+	 * @return {ArrayList} result - cotent assets array list
+	 */
+	var getContentAssets = function(assetFolder : Folder, requiredCustomAttrNames : Array, skipFolderIDs : Array) : ArrayList {
+		
+		var result : ArrayList = new ArrayList();
+	
+		// Add all assets from current folder to the result
+		var contentAssets : Collection = assetFolder.getContent();
+		for each (var contentAsset in contentAssets) {
+			
+			// check if the contentAsset should be added to the result
+			var addToResult : Boolean = true;
+			for each (var requiredCustomAttrName in requiredCustomAttrNames) {
+				if ( empty(contentAsset.custom[requiredCustomAttrName]) ) {
+					addToResult = false;
+					break;
+				}
+			}
+			
+			if (addToResult) {
+			
+				result.push(contentAsset);	
+			}
+		}
+
+		/**
+		 * Iterate through all sub-folder and add assets to the result
+		 */
+		var subFolders : Collection = assetFolder.getSubFolders();
+		for each (var subFolder in subFolders) {
+			
+			// add child assets if the current folder name is NOT included in the skip folder names requirements
+			if ( skipFolderIDs.indexOf( subFolder.getID() ) == -1 ) {
+			
+				var subFolderAssets : ArrayList = getContentAssets(subFolder, requiredCustomAttrNames, skipFolderIDs);
+				
+				result.addAll(subFolderAssets);
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Gets All DW Content Assets that need to be migrated to IM Imported Areas
+	 *
+	 * @return {Collection} contentAssetsForMigration - content assets for migration
+	 */
+	this.getAllContentAssetsForMigration = function() : Collection {
+		
+		var requiredCustomAttrNames = [
+			"amplienceId",
+			"amplienceWidth",
+			"amplienceHeight"
+		];
+		
+		var skipFolderIDs = [
+			"amplience",
+			"amp_modules",
+			"amp_modules_im",
+			"amp_modules_imgroup",
+			"amp_modules_ugc",
+			"amp_viewers",
+			"amp_viewers_im",
+			"amp_viewers_ugc",
+			"amp_viewers_di"
+		];
+		
+		var contentAssetsForMigration : ArrayList = new ArrayList();
+		
+		var siteLibary : Library = ContentMgr.getSiteLibrary();
+		var rootFolder : Folder = siteLibary.getRoot();
+		
+		var contentAssetsForMigration : ArrayList = getContentAssets(rootFolder, requiredCustomAttrNames, skipFolderIDs);
+	
+		return contentAssetsForMigration;
+	};
+}

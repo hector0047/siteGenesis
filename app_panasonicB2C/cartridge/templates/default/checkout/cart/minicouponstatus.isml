@@ -1,0 +1,21 @@
+<isif condition="${pdict.Basket.couponLineItems.length > 0}">
+		<isloop items="${pdict.Basket.couponLineItems}" var="couponLineItem" status="cliloopstate">
+			<iscomment>Farhans dev team PANC-1564 10/12/2015 11:55pm</iscomment>
+			<div class="couponmsg">
+				<isif condition="${couponLineItem.valid && (couponLineItem.applied || (couponLineItem.statusCode==dw.campaign.CouponStatusCodes.NO_APPLICABLE_PROMOTION && couponLineItem.bonusDiscountLineItems.size()>0) )}">
+						<a class="textbutton CCremovebutton CCremovebutton-mini" type="submit" value="${Resource.msg('global.remove','locale',null)}" href="${URLUtils.url('COBilling-RemoveCoupon','CouponCode',couponLineItem.couponCode)}">
+							<span class="cross">x</span>${Resource.msg('global.removecode','locale',null)}
+						</a>
+						<span class="coupon-msg success">${Resource.msgf('billing.couponapplied', 'checkout', null, couponLineItem.couponCode.toString().toUpperCase())}</span>	
+				<iselse/>
+						<isif condition="${couponLineItem.valid}">
+							<a class="textbutton CCremovebutton CCremovebutton-mini" type="submit" value="${Resource.msg('global.remove','locale',null)}" href="${URLUtils.url('COBilling-RemoveCoupon','CouponCode',couponLineItem.couponCode)}">
+								<span class="cross">x</span>${Resource.msg('global.removecode','locale',null)}
+							</a>
+						</isif>
+						<span class="coupon-msg unsuccess">${Resource.msgf('billing.couponnotapplied', 'checkout', null, couponLineItem.couponCode.toString().toUpperCase())}</span>	
+				</isif>
+			</div>
+			<iscomment>PANC-1564 end</iscomment>
+		</isloop>					
+	</isif>

@@ -1,0 +1,13 @@
+<div class="product-tutorials-holder-support">
+	<span class="block-content-head"><isprint value="${Resource.msg('product.howto','product',null)}" /></span>
+	<span class="block-content-subhead"><isprint value="${Resource.msg('product.guidedtutorials','product',null)}" /></span>
+	<ul class="block-content-ul">
+		<isloop items="${pdict.HowToGuide}" var="url" status="loopstate">
+			<li class="block-content-li">
+				<div class="headblock">	
+					<div class="block-info-holder"><a href="${url.toString().split('$')[1]}" target="_blank"><isprint value="${url.toString().split('$')[0]}" encoding="off"/></a></div>	
+				</div>
+			</li>
+		</isloop>
+	</ul>
+</div>

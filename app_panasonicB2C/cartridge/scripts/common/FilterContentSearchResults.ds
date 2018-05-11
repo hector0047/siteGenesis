@@ -1,0 +1,40 @@
+/**
+ *   @input ContentSearchModel : Object
+ *   @input dateFilter : Number
+ *   @output contents : dw.util.Collection
+ *
+ */
+importPackage(dw.system);
+importPackage(dw.util);
+
+function execute(args: PipelineDictionary): Number {
+    try {
+        var contentSearchResults = args.ContentSearchModel.content,
+        	dateFilter = args.dateFilter || (new Date().getUTCFullYear()),
+            filterByDate = new Date(dateFilter, 11, 31).getUTCFullYear(),
+            filteredContentSearchResults: Collection = new ArrayList(),
+            content,
+            displayDate;
+
+        while (contentSearchResults.hasNext()) {
+            content = contentSearchResults.next();
+			displayDate = content.custom.displayDate;
+			
+			if (displayDate) {
+				displayDate = displayDate.getUTCFullYear();
+			} else {
+				continue;	
+			}
+            
+            if (filterByDate == "-1" || displayDate == filterByDate) {
+                filteredContentSearchResults.push(content);
+            }
+        }
+
+        args.contents = filteredContentSearchResults;
+    	
+    	return PIPELET_NEXT;
+    } catch (e) {
+        return PIPELET_ERROR;
+    }
+}

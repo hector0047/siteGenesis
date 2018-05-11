@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="ensighten_client_id">
+                <display-name xml:lang="x-default">Client ID</display-name>
+                <description xml:lang="x-default">Your ID provided from Ensighten.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="ensighten_space_id">
+                <display-name xml:lang="x-default">Space ID</display-name>
+                <description xml:lang="x-default">Space ID provided in Manage, if unknown leave blank.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="ensighten_server_host">
+                <display-name xml:lang="x-default">Ensighten server host.</display-name>
+                <description xml:lang="x-default">Location of Ensighten server, typically nexus.ensighten.com. If unknown leave blank.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="EnableEnsighten">
+                <display-name xml:lang="x-default">Enable Ensighten</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+
+			
+        </custom-attribute-definitions> 		
+        <group-definitions>
+            <attribute-group group-id="Ensighten">
+                <display-name xml:lang="x-default">Ensighten TMS Configuration</display-name>
+                <attribute attribute-id="ensighten_client_id"/>
+                <attribute attribute-id="ensighten_space_id"/> 
+				<attribute attribute-id="ensighten_server_host"/>
+				<attribute attribute-id="EnableEnsighten"/>
+				
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

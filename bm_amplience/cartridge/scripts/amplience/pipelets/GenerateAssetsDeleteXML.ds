@@ -1,0 +1,38 @@
+/**
+ * Generates import content asset xml file for IM Area
+ * 
+ * Params:
+ *
+ * @input ampAreaId : String
+ * @input ampName : String
+ * @input ampWidth : String
+ * @input ampHeight : String
+ * @input ampAssociatedModule : String
+ *
+ * @output GeneratedContentAssetPath : String
+ *
+ */
+importPackage( dw.system );
+
+importScript( "amplience/AmplienceContentAssetsHelper.ds" );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var ampContentAssetsHelper = new AmplienceContentAssetsHelper();
+		
+		var contentAssetPath = ampContentAssetsHelper.generateIMAreaImportXML(args.ampAreaId,
+					args.ampName, args.ampWidth, args.ampHeight, args.ampAssociatedModule);
+
+		args.GeneratedContentAssetPath = contentAssetPath;
+		
+	} catch(e) {
+
+		var errMsg = 'GenerateIMAreaImportXML.ds : ' + e.message;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

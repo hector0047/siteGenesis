@@ -1,0 +1,231 @@
+/**
+* 
+*
+* For example:
+*
+*   @input siteID : String siteID to use as asset prefix
+*	@input CurrentWorkflowComponentInstance : Object The current workflow component instanceile objects
+*/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.customer );
+importPackage( dw.io );
+importPackage( dw.svc );
+importPackage( dw.net );
+importPackage( dw.object );
+importPackage( dw.campaign );
+importPackage( dw.web );
+importPackage( dw.crypto );
+importScript("int_dis:product/ProductImageSO.ds");
+importScript("util/GetAmplienceImageUrl.ds");
+
+var uri : String = "http://www.demandware.com/xml/impex/library/2006-10-31";
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+	//var siteID : String = args.siteID;
+	var CurrentWorkflowComponentInstance : Object = args.CurrentWorkflowComponentInstance;
+	var cat : Catalog = dw.catalog.CatalogMgr.siteCatalog;
+	var productList : SeekableIterator = dw.catalog.ProductMgr.queryProductsInCatalogSorted(cat);
+	
+	try{
+		
+		var file_path : Boolean = CurrentWorkflowComponentInstance.getParameterValue('filePath');
+		
+		var calendar : Calendar = new Calendar();
+		calendar.timeZone = "GMT";
+		var dateString : String = dw.util.StringUtils.formatCalendar(calendar, "yyyyMMddhmm");
+		
+		var csvpath : String = File.IMPEX + File.SEPARATOR + file_path + dateString + ".csv";
+		var csvfile : File = new File(csvpath);
+		var csvfileWriter : FileWriter = new FileWriter(csvfile);
+		var csw : CSVStreamWriter = new CSVStreamWriter(csvfileWriter, ",");
+		var csvheadArray : Array = new Array("Sr", "ProductID", "HeroImage", "HeroImage_On_Amplience", "Expected_Heroimage","Expected_Heroimage_On_Amplience","comment", "categoryImage2", "categoryImage2_On_Amplience", "set", "set_On_Amplience", "Expected_Set", "Expected_Set_On_Amplience", "masterOrVariant", "online", "supportOnly", "isWarranty", "isAccessory", "isRefurbished");
+		csw.writeNext(csvheadArray);
+		
+		var count : Number = 1;
+		
+		var productID : String;
+		var product : Product;
+				
+		var HeroImageObject : Object;
+		var HeroImage : String;
+		var HeroImage_On_Amplience : Boolean;
+		
+		var Expected_Heroimage : String;
+		var Expected_Heroimage_On_Amplience : Boolean;
+		
+		var categoryImage2Object : Object;
+		var categoryImage2 : String;
+		var categoryImage2_On_Amplience : Boolean;
+		
+		var setObject : Object;
+		var set : String;
+		var set_On_Amplience : Boolean;
+		
+		var Expected_Set : String;
+		var Expected_Set_On_Amplience : Boolean;
+		
+		var masterOrVariant : String;
+		
+		var productOnline : Boolean;
+		/*var productAvailable : Boolean = false;*/
+		var productSupport : Boolean;
+		var productWarranty : Boolean;
+		var productAccessory : Boolean;
+		var productRefurbished : Boolean;
+		
+		var csvheadArray : Array; 	
+		
+			
+		var validHeroImageURL: Number = -1;
+		var validcategoryImage2URL: Number = -1;
+		var validSetURL: Number = -1;
+		
+		var comment : String;
+		//var validExpectedAssetId : Number = -1;
+
+		while(productList.hasNext()) {	
+					
+			product = productList.next();
+			productID = product.ID;				
+			
+			Logger.info("Product id :" + productID);
+			
+			validHeroImageURL = -1;
+			validcategoryImage2URL = -1;
+			validSetURL= -1;
+			
+			//if(productID == "ES-LT3N-K"){
+				//invalidProduct = invalidProducts.indexOf(productID);
+			//}
+			//if(productID == "2CR-5MPA/1B"){
+			
+			
+			//Expected_Heroimage = productID + "_ALT01";
+			//Expected_Set = productID + "_MSET";
+			
+			//validExpectedAssetId = Expected_Heroimage.indexOf("/");			
+			
+			// checking for expected heroimage and expected set
+			comment = "Asset id contains '/'";	
+			Expected_Heroimage_On_Amplience = false;
+			Expected_Set_On_Amplience = false;
+			if((productID + "_ALT01").indexOf("/") == -1) {
+				comment = "";
+				if(checkAssetOnAmplience("http://i1.adis.ws/i/pcec/" + productID + "_ALT01" + ".json")) {
+					Expected_Heroimage_On_Amplience = true;
+				}				
+				if(checkAssetOnAmplience("http://i1.adis.ws/s/pcec/" + productID + "_MSET" + ".json")) {
+					Expected_Set_On_Amplience = true;
+				}			
+			}
+			
+			
+			HeroImageObject = new ProductImage('pdpmainimage430X334',product,0);
+			HeroImage = "";
+			HeroImage_On_Amplience = false;
+			if(HeroImageObject.mediaFile != null) {
+				HeroImage = HeroImageObject.mediaFile.fullPath.replace("/CATALOGS/","");
+				if(HeroImageObject.image != null) {					
+					validHeroImageURL = HeroImage.indexOf("[");
+					if((validHeroImageURL == -1) && (checkAssetOnAmplience(HeroImageObject.image.absURL.toString() + ".json"))) {
+						HeroImage_On_Amplience = true;
+					}				
+				} 				
+			} 
+			
+			categoryImage2Object = new ProductImage('image360X360',product,0);	
+			categoryImage2 = "";
+			categoryImage2_On_Amplience = false;
+			if(categoryImage2Object.mediaFile != null) {
+				categoryImage2 = categoryImage2Object.mediaFile.fullPath.replace("/CATALOGS/","");
+				if(categoryImage2Object.image != null) {
+					validcategoryImage2URL = categoryImage2.indexOf("[");
+					if((validcategoryImage2URL == -1) && (checkAssetOnAmplience(categoryImage2Object.image.absURL.toString() + ".json"))) {						
+						categoryImage2_On_Amplience = true;	
+					}			
+				}
+			}			
+			
+			setObject = new ProductImage('set',product,0);	
+			set = "";
+			set_On_Amplience = false;
+			if(setObject.mediaFile != null) {
+				set = setObject.mediaFile.fullPath.replace("/CATALOGS/","");					
+				if(setObject.image != null) {
+					validSetURL = set.indexOf("[");
+					if((validSetURL == -1) && (checkAssetOnAmplience("http://i1.adis.ws/s/pcec/" + set + ".json"))) {
+						set_On_Amplience = true;
+					}									
+				}
+			}	
+			
+			masterOrVariant = "";
+			if(product.isMaster()) {
+				masterOrVariant = "Master";
+			}
+			
+			if(product.isVariant()) {
+				masterOrVariant = "Variant";
+			}
+			
+			
+			if(product.online) {
+				productOnline = true;
+			} else {
+				productOnline = false;
+			}				
+			
+			/*if(product.availabilityModel.availability > 0)
+				productAvailable = true;*/
+			
+			if(product.custom.supportOnly) {
+				productSupport = true;
+			} else {
+				productSupport = false;
+			}
+				
+			
+			if(product.custom.isWarranty) {
+				productWarranty = true;
+			} else {
+				productWarranty = false;
+			}
+				
+			
+			if(product.custom.isAccessory) {
+				productAccessory = true;
+			} else {
+				productAccessory = false;
+			}
+				
+			
+			if(product.custom.isRefurbished) {
+				productRefurbished = true;
+			} else {
+				productRefurbished = false;
+			}			
+				
+			//	if(productID == "AY-DV180EJ"){
+				//	productID == "AY-DV180EJ";
+				//}
+			csvheadArray = new Array(count, productID, HeroImage, HeroImage_On_Amplience, (productID + "_ALT01"), Expected_Heroimage_On_Amplience, comment, categoryImage2, categoryImage2_On_Amplience, set, set_On_Amplience, (productID + "_MSET"), Expected_Set_On_Amplience, masterOrVariant, productOnline, productSupport, productWarranty, productAccessory, productRefurbished);
+			csw.writeNext(csvheadArray);
+			count++;
+		//}
+		}
+	
+		csw.close();
+		csvfileWriter.close();
+	
+	} catch(ex) {
+		Logger.error("[callParsePriceSpiderService.ds] Error in file ( {0} )",ex.message);
+		return PIPELET_ERROR;
+	}
+
+	return PIPELET_NEXT;
+}

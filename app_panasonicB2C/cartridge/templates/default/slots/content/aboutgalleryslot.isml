@@ -1,0 +1,17 @@
+<!--- TEMPLATENAME: aboutgalleryslot.isml --->
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<iscache type="relative" hour="24"/>
+
+<iscomment>make sure we have content at all</iscomment>
+<isif condition="${slotcontent != null}">
+	<isloop items="${slotcontent.content}" var="contentAsset">
+		<isprint value="${contentAsset.custom.body}" encoding="off"/>
+	</isloop>
+</isif>
+
+<script>
+$( document ).ready(function() {
+	$('.about-gallery').slick();
+});
+</script>
+

@@ -1,0 +1,157 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+	<isset name="DecoratorTemplate" value="checkout/pt_sbcheckout" scope="page"/>
+	<isdecorate template="${DecoratorTemplate}">
+<isinclude template="util/modules"/>
+
+<iscomment>
+	This template visualizes the first step of the single shipping checkout
+	scenario. It renders a form for the shipping address and shipping method
+	selection. Both are stored at a single shipment only.
+</iscomment>
+
+<iscomment>Report this checkout step (we need to report two steps)</iscomment>
+<isset name="PageName" value="sb_ShippingPage" scope="page"/>
+<isreportcheckout checkoutstep="${2}" checkoutname="${'ShippingAddress'}"/>
+<isreportcheckout checkoutstep="${3}" checkoutname="${'ShippingMethod'}"/>
+<isset name="p_shippingpage" value="${true}" scope="pdict"/>
+<input type="hidden" value="${pdict.p_shippingpage}" class="shipping-flag"/>
+	<div class="shipng-header-n-error-holder">
+		<h1>${dw.web.Resource.msg('checkout.shippingsub','sb_forms',null)}</h1>
+	</div>
+    <iscomment>checkout progress indicator</iscomment>
+    
+    <ischeckoutprogressindicatorsb step="1" rendershipping="true"/>
+      
+              
+    	<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.singleshippingsb.shippingAddress.htmlName}" class="checkout-shipping address sb-shipping-form online-repair-request-summary">
+		
+		<fieldset>
+		<isif condition="${true}">	
+				<iscomment>shipping address area</iscomment>
+					 
+				<isif condition="${!pdict.CurrentCustomer.authenticated}">
+					<legend class="shippingnewer"><span  class="shipping">${Resource.msg('singleshipping.enteraddressforguest','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				<iselseif condition="${pdict.CurrentCustomer.authenticated && !pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">
+					 <legend class="shippingnewer"><span  class="shipping">${Resource.msg('singleshipping.enteraddressforguest','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				<iselse/>
+					 <legend><span class="shipping">${Resource.msg('singleshipping.enteraddress','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				</isif>
+					<iscomment>display select box with stored addresses if customer is authenticated and there are saved addresses</iscomment>
+					<isif condition="${pdict.CurrentCustomer.authenticated && pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">
+						
+						<div class="select-address">
+				
+							<div class="form-row shippingnew">
+											
+								<label for="${pdict.CurrentForms.singleshippingsb.addressList.htmlName}">
+									${Resource.msg('global.selectaddressmessage','locale',null)}:
+								</label>
+								<iscomment>Service Bench drop down </iscomment>
+								<isaddressselectlistsb p_listaddresses="${pdict.CurrentCustomer.profile.addressBook.addresses}" p_form="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.ID}"/>	
+							</div>
+							
+							<div class="form-row form-row-button hide">
+								<button id="addressSelectGoButton" class="select" name="${pdict.CurrentForms.singleshippingsb.shippingAddress.selectAddress.htmlName}" type="submit" value="Go" >${Resource.msg('singleshipping.select','checkout',null)}</button>
+							</div>
+						
+						</div>
+						
+					<iselse/>
+					
+						<isif condition="${productListAddresses.size() > 0}">
+						
+						<div class="select-address">
+						
+							<div class="form-row">
+							
+								<label for="${pdict.CurrentForms.singleshippingsb.addressList.htmlName}">
+									${Resource.msg('global.selectaddressmessage','locale',null)}:
+								</label>
+								<isaddressselectlistsb p_listaddresses="${pdict.CurrentCustomer.profile.addressBook.addresses}" p_form="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.ID}"/>
+							</div>					
+						</div>
+						
+						</isif>
+					</isif>	
+			
+					<div class="form-section two-row">
+						<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.firstName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="10"/>
+						<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.lastName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}" rowclass="last" attribute1="tabindex" value1="11"/>	
+					</div>
+		
+				    <div class="form-section two-row">
+				 	   <isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.address1}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipaddress1.error','forms',null)}" rowclass="first" attribute1="tabindex" value1="12" xhtmlclass="pobox_validation"/>
+			     	   <isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.address2}" type="input" rowclass="last" attribute1="tabindex" value1="13" xhtmlclass="pobox_validation"/>
+				    </div>
+				      	<div class="form-section two-row pobox-error">
+					      	<span id="poBoxErrorMsgadd1"></span>
+					    	<span id="poBoxErrorMsgadd2"></span>
+				    	</div>	
+			    	<div class="form-section three-row">
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.city}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipcity.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="14"/>
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.states.state}" type="select" requiredtext="${Resource.msg('forms.customeraddress.state.missing-error','forms',null)}" rowclass="middle" attribute1="tabindex" value1="15"/>
+				    	<iscomment>Start JIRA PREV-77 : Zip code validation is not happening with respect to the State/Country.Added xhtmlclass="zip" for validation.</iscomment>
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.postal}" type="input" xhtmlclass="zip" requiredtext="${Resource.msg('forms.errorpostal','forms',null)}" rowclass="last" attribute1="tabindex" value1="16"/>
+				    	<iscomment>End JIRA PREV-77</iscomment>
+			    	</div>
+			    	<span id="shiperror"></span>		 
+			    	<div class="form-section three-row">
+			    		<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.phone}" type="input" requiredtext="${Resource.msg('forms.customeraddress.phone.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="18"/>
+				    	<div class="form-field-tooltip with-helper-text">
+							<a href="${URLUtils.url('Page-Show', 'cid', 'help-telephone')}" class="tooltip shipping-tooltip">
+								${Resource.msg('singleshipping.phonerequired','checkout',null)}
+								<div class="tooltip-content"  data-layout="small">
+									<iscontentasset aid="help-telephone"/>
+								</div>
+							</a>
+						</div>
+					</div>
+					<a href="javascript:void(0);" style="display:none;" class="button js-single-shippingactiondialog button-blue"  data-dlg-options='{"width":500,"height":"auto","dialogClass":"addressvalidation"}' > 
+						shippingactiondialog
+					</a>
+					<div class="form-row  required sb-prob-desc-block" data-required-text="${Resource.msg('forms.prodprobdesc.errormessage','forms',null)}">
+						<label>
+			    			<span>Problem Description</span>
+			    			<span class="required-indicator">*</span>
+			    		</label>
+			    		<span class="sb-prod-desc-msg">
+			    			${Resource.msg('sbshipping.productproblem.message','checkout',null)}
+			    		</span>
+						<textarea name="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.problemDescription.htmlName}" cols="113" rows="8" class="required" required="required" data-character-limit="2000" tabindex="19">${((typeof pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.problemDescription.value !='undefined') && !empty(pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.problemDescription.value))?pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.problemDescription.value:''}</textarea>
+					</div>
+					
+			    	<div class ="hide">
+			    		<isinputfield formfield="${pdict.CurrentForms.singleshippingsb.shippingAddress.addressFields.country}" type="select" requiredtext="${Resource.msg('forms.customeraddress.country.missing-error','forms',null)}"/>
+			    	</div>
+			    	<isif condition="${'privacy' in session && 'serviceBenchObject' in session.privacy && 'shippingAddress' in session.privacy.serviceBenchObject}">
+			    		<input type="hidden" name="sessionaddress1" value="${session.privacy.serviceBenchObject.shippingAddress.address1}"/>
+						<input type="hidden" name="sessioncity" value="${session.privacy.serviceBenchObject.shippingAddress.city}"/>
+						<input type="hidden" name="sessionpostal" value="${session.privacy.serviceBenchObject.shippingAddress.postal}"/>
+						<input type="hidden" name="sessionstate" value="${session.privacy.serviceBenchObject.shippingAddress.state}"/>
+					</isif>
+				</fieldset>
+		</isif>		
+		<fieldset>
+		
+				<div class="form-row form-row-button">
+			
+				<a href="javascript:void()" class="button js-singleship-noaddresscontinue-link button-blue hide" tabindex="20"><span>Continue</span></a>	               	
+			
+				<button  class="button hiddenSaveShipping-sb button-blue hide" type="submit" name="${pdict.CurrentForms.singleshippingsb.shippingAddress.save.htmlName}" value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>			
+			</div>
+			<input type="hidden" name="${pdict.CurrentForms.singleshippingsb.secureKeyHtmlName}" value="${pdict.CurrentForms.singleshippingsb.secureKeyValue}"/>
+			<iscomment>
+				<div class="request-summary-block block-3">
+					 <isinclude template="responses/sb_requestsummary.isml"/> 
+		    	</div>
+		   </iscomment>
+		</fieldset>
+	</form>
+	 
+</isdecorate>

@@ -1,0 +1,49 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+	<isscript>var pageContext={title:'Content Search Results',type:'search',ns:'search'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="search/pt_contentsearchresult_UI"/>
+	
+	<iscomment>Add template-specific header information here.</iscomment>	
+	<link rel="canonical" href="${URLUtils.http('Search-Show','cgid', pdict.CurrentHttpParameterMap.cgid)}" />	
+	<link rel="alternate" href="${URLUtils.http('Search-Show','cgid', pdict.CurrentHttpParameterMap.cgid)}" hreflang="en-us"/>
+	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_category-search-result">
+
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',true)}"/>
+
+		<div id="main" role="main" class="clearfix">
+			<isinclude template="components/browsertoolscheck"/>		
+			<isinclude template="search/components/productsearchbreadcrumbs"/>
+		
+			<div id="primary" class="primary-content full-width">
+			<div class="top-alligned-pdp">
+				<a href="javascript:void(0)" class="live-chat-link livechat pre-chat">
+					<span class="spriteico"></span>LIVE CHAT
+				</a>
+			</div>
+				<isreplace/>
+			</div>
+			
+		</div>
+
+		<isinclude template="components/footer/footer"/>
+
+		<isinclude template="search/pt_contentsearchresult_VARS"/>
+		
+	</div>
+	
+</body>
+</html>

@@ -1,0 +1,47 @@
+/**********************************************************************************************************************************************************************************************
+*
+* TITLE:  
+*
+*	Service Bench session Objects
+*
+* 
+*
+*	
+*
+*@input SBObject : Object
+*@output Status : Boolean
+**********************************************************************************************************************************************************************************************/
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute(pdict) {
+
+ try{
+	if(pdict.SBObject instanceof Object){
+		var arr : LinkedHashSet = new LinkedHashSet();
+		getObjectStatus(pdict.SBObject,arr);
+		pdict.Status = arr.contains(true);
+	}else{
+	    pdict.Status= false;
+	}
+ }catch(e){
+  var error = e;
+  pdict.Status= false;
+  return PIPELET_ERROR;
+ }
+  return PIPELET_NEXT;
+}
+
+function getObjectStatus(sbObj : Object , arr : LinkedHashSet) {
+	for(var key in sbObj){
+	 	if(sbObj[key] instanceof Object){
+	 		getObjectStatus(sbObj[key],arr);
+	 	}else{
+	 		if(sbObj[key] != 'null' && !empty(sbObj[key]) && sbObj[key] != null){
+	 		 	arr.add(true);
+	 		}else{
+	 			arr.add(false);
+	 		}
+	 	}
+	}
+}

@@ -1,0 +1,307 @@
+
+importPackage(dw.rpc);
+importPackage(dw.order);
+importPackage(dw.util);
+
+importScript("int_paypal:cart/Credentials.ds");
+importScript("int_paypal:cart/WsUtil.ds");
+
+var sf = require("bc_serviceframework");
+var PayPalSetExpressCheckout = require("../objects/PayPalSetExpressCheckout");
+ 
+function getPayPalSetExpressCheckoutService() {
+	return PayPalSetExpressCheckoutService;
+}
+
+/**
+ * @class
+ */
+var PayPalSetExpressCheckoutService = sf.getService('AbstractSoapService').extend(
+/** @lends PayPalSetExpressCheckoutService.prototype */ 
+{
+	/**
+	 * @constructs PayPalSetExpressCheckoutService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("PayPalExpress" , new PayPalSetExpressCheckout());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		
+		this.webReference = webreferences.PayPalSvcDev;	
+		if (dw.system.System.getInstanceType() == dw.system.System.PRODUCTION_SYSTEM) {
+			this.webReference = webreferences.PayPalSvc;
+		}
+				
+		this.serviceClient = this.webReference.getService("PayPalAPIInterfaceService", "PayPalAPIAA");
+	},
+
+	createRequest: function (setExpressCheckoutInfo) {
+		
+		var basket : Basket = setExpressCheckoutInfo.basket;
+		var paymentProcessor : PaymentProcessor  = setExpressCheckoutInfo.paymentProcessor;
+		var paypalExpress : WebReference=this.webReference;
+		
+		 // security header
+		SetCredentials( paymentProcessor, this.serviceClient );	
+		
+		var paymentDetails = new paypalExpress.PaymentDetailsType();
+		
+		var currencyID = paypalExpress.CurrencyCodeType.fromString( basket.getCurrencyCode() );
+
+		// SetExpressCheckout
+		var paypalRequest = new paypalExpress.SetExpressCheckoutRequestType();
+		paypalRequest.setVersion( "104.0" );
+		var details = new paypalExpress.SetExpressCheckoutRequestDetailsType();
+
+		//Bill Me Later (BML) enhancement
+		var isBML = setExpressCheckoutInfo.isBML;
+		
+		if(isBML != null && isBML == true)
+		{
+			details.setSolutionType(paypalExpress.SolutionTypeType.Sole);
+			details.setLandingPage(paypalExpress.LandingPageType.Billing);	
+			
+			var fundingSourceDetails = new paypalExpress.FundingSourceDetailsType();	
+			fundingSourceDetails.setUserSelectedFundingSource(paypalExpress.UserSelectedFundingSourceType.BML);
+			details.setFundingSourceDetails(fundingSourceDetails);
+		}
+		
+		// ReturnURL - The URL to which PayPal sends your customer after they log in to PayPal and select a payment method and shipping address. 
+		details.returnURL = setExpressCheckoutInfo.returnURL; //dw.web.URLUtils.httpsContinue();
+		
+		// CancelURL - The URL to which PayPal redirects your customer if the customer is unable to pay or decides not to use PayPal.
+		// PayPal recommends that this value be the original page on which the customer chose to use PayPal. 
+		details.cancelURL = setExpressCheckoutInfo.cancelURL; //dw.web.URLUtils.http( 'Cart-Show' );
+		
+		//Set locale for PayPal login page (possible values: AU, DE, FR, IT, GB, ES, US
+		details.localeCode = setExpressCheckoutInfo.locale; //"GB"; 
+
+		//Payment Action Authorization/Sale/Order
+		details.setPaymentAction(paypalExpress.PaymentActionCodeType.Authorization);
+		
+		if (setExpressCheckoutInfo.paymentAction != null && setExpressCheckoutInfo.paymentAction == "Order") 
+		{
+			details.setPaymentAction(paypalExpress.PaymentActionCodeType.Order);
+		} 
+		else if (setExpressCheckoutInfo.PaymentAction != null && setExpressCheckoutInfo.PaymentAction == "Sale") 
+		{
+			details.setPaymentAction(paypalExpress.PaymentActionCodeType.Sale);
+		}
+		
+		//set merchant logo and colors for PayPal website
+		details.setCppHeaderImage(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalCppHeaderImage'));
+		details.setCppHeaderBorderColor(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalCppHeaderborderColor'));
+		details.setCppHeaderBackColor(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalCppHeaderbackColor'));
+		details.setCppPayflowColor(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalCppPayflowColor'));
+		
+		//setting option for getting billing address from PayPal
+		if (setExpressCheckoutInfo.getBillingAddrFromPP)
+		{
+			details.reqBillingAddress = "1";			
+		}
+		
+		// Send Shipping Address override if process originated from Payment page 
+		if (setExpressCheckoutInfo.paypalOrigination == "PaymentPage") 
+		{
+			details.addressOverride = "1";
+			var shippingAddress : OrderAddress = basket.defaultShipment.shippingAddress;
+			
+			if (shippingAddress == null) 
+			{
+				var shippingAddressCollection : Collection = basket.shipments;
+				
+				for( var i = 0; i < shippingAddressCollection.size(); i++ ) 
+				{
+					shippingAddress = shippingAddressCollection[i].shippingAddress;
+				}
+			}			
+			
+			var paypalShippingAddress = new paypalExpress.AddressType();
+			
+			paypalShippingAddress.setName(shippingAddress.fullName);
+			paypalShippingAddress.setStreet1( shippingAddress.getAddress1() );
+			paypalShippingAddress.setStreet2( shippingAddress.getAddress2() );
+			paypalShippingAddress.setCityName( shippingAddress.getCity() );
+			paypalShippingAddress.setStateOrProvince( shippingAddress.getStateCode() );
+			
+			if (shippingAddress.getCountryCode() != null && shippingAddress.getCountryCode().toString().length>0) 
+			{
+				paypalShippingAddress.setCountry(paypalExpress.CountryCodeType.fromString( shippingAddress.getCountryCode() ));
+			} 
+			else 
+			{
+				//set default country code as US.
+				paypalShippingAddress.setCountry(paypalExpress.CountryCodeType.US);
+			}
+			
+			paypalShippingAddress.setPostalCode( shippingAddress.getPostalCode() );
+			paypalShippingAddress.setPhone( shippingAddress.phone);
+
+			details.setAddress(paypalShippingAddress);
+		}
+		
+		if(!empty(setExpressCheckoutInfo.ReferenceTransRequired) && setExpressCheckoutInfo.ReferenceTransRequired &&('PayPalIncludeRefTran' in dw.system.Site.current.preferences.custom && dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalIncludeRefTran')))
+		{
+			var paypalBillingADs = new paypalExpress.BillingAgreementDetailsType();	
+			paypalBillingADs.billingType = paypalExpress.BillingCodeType.MerchantInitiatedBilling;
+			paypalBillingADs.setBillingAgreementDescription(dw.system.Site.getCurrent().getCustomPreferenceValue('PayPalRefTranDescriptionName'));
+			
+			var arrayAD : Array = new Array();
+			arrayAD.push( paypalBillingADs );
+			details.billingAgreementDetails =arrayAD;		           
+		}
+		
+        // Sets the purchased items for this PaymentDetailsType.
+        var items : Collection = basket.getAllProductLineItems();
+        var itemType;
+        var item : ProductLineItem;
+        var arrayItems : Array = new Array();
+
+        for( var i = 0; i < items.size(); i++ ) 
+        {
+        	item = items[i];
+        	itemType = new paypalExpress.PaymentDetailsItemType();
+
+			// Sets the name value for this PaymentDetailsItemType.
+        	itemType.setName( item.getProductName() );
+			// Sets the number value for this PaymentDetailsItemType.
+			itemType.setNumber( item.getProductID() );
+ 			// Sets the quantity value for this PaymentDetailsItemType.
+			itemType.setQuantity( item.quantity.value );
+			amount = new paypalExpress.BasicAmountType( item.basePrice );
+        	amount.currencyID = currencyID;
+   	    	itemType.setAmount( amount );
+ 
+ 			arrayItems.push( itemType );
+
+			var adjustments : Collection = item.getPriceAdjustments();
+			var adjust : PriceAdjustment = null;
+			var lineItem : LineItem = null
+			
+			for each( adjust in adjustments ) 
+			{
+				itemType = new paypalExpress.PaymentDetailsItemType();
+				itemType.setName( adjust.promotion == null ? "PriceAdjustment" : adjust.promotion.name );
+				itemType.setQuantity( 1 );
+				amount = new paypalExpress.BasicAmountType( adjust.netPrice.value );
+				amount.currencyID = currencyID;
+				itemType.setAmount( amount );
+				arrayItems.push( itemType );
+			}
+ 		}
+ 		
+ 		// Basket Price adjustments
+		var basketAdjustments : Collection = basket.getPriceAdjustments();
+		var basketAdjust : PriceAdjustment = null;
+		
+		for each( basketAdjust in basketAdjustments ) 
+		{
+ 			if (basketAdjust.netPrice.value != null) 
+ 			{
+				itemType = new paypalExpress.PaymentDetailsItemType();
+				itemType.setName("Basket Discount");
+				itemType.setQuantity( 1 );
+				amount = new paypalExpress.BasicAmountType( basketAdjust.netPrice.value );
+				amount.currencyID = currencyID;
+				itemType.setAmount( amount );
+				arrayItems.push( itemType );
+ 			}
+		}
+
+		//set item srray in payment details
+ 		paymentDetails.setPaymentDetailsItem(arrayItems);
+ 		
+ 		//Set PayPal totals based on PayPal origination
+ 		if (setExpressCheckoutInfo.paypalOrigination == "PaymentPage") 
+ 		{	
+			// Sets the Tax value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getAdjustedShippingTotalNetPrice() );
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setShippingTotal( amount );
+	
+			// Sets the Tax value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getTotalTax() );
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setTaxTotal( amount );
+	
+			// Sets the itemTotal value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getAdjustedMerchandizeTotalNetPrice().getValue() );
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setItemTotal( amount );
+	
+			// Sets the itemTotal value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType(basket.getTotalGrossPrice().getValue());
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setOrderTotal( amount );
+ 		
+ 		} 
+ 		else 
+ 		{		
+			// Sets the Tax value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getAdjustedShippingTotalNetPrice() );
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setShippingTotal( amount );
+	
+			// Sets the Tax value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getTotalTax() ); //getTotalTax()
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setTaxTotal( amount );
+	
+			// Sets the itemTotal value for this PaymentDetailsType.
+			amount = new paypalExpress.BasicAmountType( basket.getAdjustedMerchandizeTotalNetPrice().getValue() );
+			amount.currencyID = currencyID; 
+	 		paymentDetails.setItemTotal( amount );
+	
+			// Sets the itemTotal value for this PaymentDetailsType.
+			if(basket.getTotalGrossPrice() != 0)
+			{
+				amount = new paypalExpress.BasicAmountType( basket.getTotalGrossPrice().getValue() ); //getTotalGrossPrice() getAdjustedMerchandizeTotalPrice() getAdjustedMerchandizeTotalGrossPrice()
+			}
+			else
+			{
+				amount = new paypalExpress.BasicAmountType( basket.getAdjustedMerchandizeTotalPrice().getValue() ); //getTotalGrossPrice() getAdjustedMerchandizeTotalPrice() getAdjustedMerchandizeTotalGrossPrice()
+			}
+			
+			amount.currencyID = currencyID;
+	 		paymentDetails.setOrderTotal( amount );
+ 		}
+ 		
+ 		var arrayDetails : Array = new Array();
+		arrayDetails.push(paymentDetails);
+		
+		//set payment details which has item details
+		details.setPaymentDetails(arrayDetails);
+
+		//set details in request
+		paypalRequest.setSetExpressCheckoutRequestDetails( details );
+		var req = new paypalExpress.SetExpressCheckoutReq();
+		req.setSetExpressCheckoutRequest( paypalRequest );
+		
+		return req;
+		
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.setExpressCheckout( this.request );
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('PayPalExpress',PayPalSetExpressCheckoutService);

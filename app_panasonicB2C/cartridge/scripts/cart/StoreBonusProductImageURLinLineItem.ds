@@ -1,0 +1,60 @@
+/**
+* Demandware Script File
+* StoreProductImageURLinLineItem.ds
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*	@input  Basket : dw.order.Basket
+*	- @input productLineItem : dw.order.ProductLineItem
+*   - @output ExampleOut : Number
+*
+*/
+importPackage(dw.system);
+importPackage(dw.order);
+importPackage(dw.catalog);
+importPackage(dw.content);
+importPackage(dw.web);
+
+importScript("int_dis:product/ProductImageSO.ds");
+
+function execute( args : PipelineDictionary ) : Number
+{
+	//Input Product Obj
+	
+  try
+  {
+	var productLineItems : Iterator = args.Basket.getAllProductLineItems().iterator();
+	
+	while(productLineItems.hasNext())
+	{
+		var productLineItem : ProductLineItem = productLineItems.next();
+		
+		if(productLineItem.bonusProductLineItem)
+		{
+		  var imgObj : MediaFile = productLineItem.product.getImage('categoryImage2', 0);
+		  productLineItem.custom.bvProductURL = URLUtils.http('Product-Show','pid',productLineItem.productID);
+		  if(!empty(imgObj))
+		   {
+		      productLineItem.custom.bvProductImageURL=imgObj.getAbsURL().toString();
+		   }
+		}
+		
+	}
+	
+	return PIPELET_NEXT;
+  
+  }
+  catch(e)
+   {
+		Logger.error("Error while executing the script StoreProductImageURLinLineItem.ds  Error : "+e.message);
+		return PIPELET_NEXT;
+	}
+    
+}

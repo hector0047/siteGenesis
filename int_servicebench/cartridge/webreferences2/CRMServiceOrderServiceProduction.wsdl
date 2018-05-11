@@ -1,0 +1,1885 @@
+<?xml version='1.0' encoding='UTF-8'?><definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://servicebench.com/serviceOrder/service" xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://servicebench.com/serviceOrder/service/types" xmlns="http://schemas.xmlsoap.org/wsdl/" name="CRMServiceOrderService" targetNamespace="http://servicebench.com/serviceOrder/service">
+<types>
+<schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://servicebench.com/serviceOrder/service/types" xmlns:sp="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://servicebench.com/serviceOrder/service/types" xmlns="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://servicebench.com/serviceOrder/service/types">
+<complexType name="requestDetails">
+<sequence>
+<element minOccurs="0" name="version" type="xsd:string"/>
+<element minOccurs="0" name="v4CrmVersion" type="xsd:string"/>
+<element minOccurs="0" name="sourceSystemName" type="xsd:string"/>
+<element minOccurs="0" name="sourceSystemVersion" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="statusDetail">
+<sequence>
+<element minOccurs="0" name="errorNo" type="xsd:string"/>
+<element minOccurs="0" name="errorText" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="statusDetails">
+<sequence>
+<element maxOccurs="unbounded" name="statusDetail" type="tns:statusDetail"/>
+</sequence>
+</complexType>
+<complexType name="responseDetails">
+<sequence>
+<element minOccurs="0" name="version" type="xsd:string"/>
+<element minOccurs="0" name="v4CrmVersion" type="xsd:string"/>
+<element minOccurs="0" name="sourceSystemName" type="xsd:string"/>
+<element minOccurs="0" name="sourceSystemVersion" type="xsd:string"/>
+<element name="msgStatus" type="xsd:string"/>
+<element name="statusDetails" type="tns:statusDetails"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobType">
+<sequence>
+<element minOccurs="0" name="serviceJobTypeCode" type="xsd:string"/>
+<element minOccurs="0" name="enabledforServiceJob" type="xsd:string"/>
+<element minOccurs="0" name="priorityLevel" type="xsd:string"/>
+<element minOccurs="0" name="priorityRank" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobTypes">
+<sequence>
+<element maxOccurs="unbounded" name="serviceJobType" type="tns:serviceJobType"/>
+</sequence>
+</complexType>
+<complexType name="dayOfTheWeek">
+<sequence>
+<element minOccurs="0" name="day" type="xsd:string"/>
+<element minOccurs="0" name="fromHours" type="xsd:string"/>
+<element minOccurs="0" name="toHours" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="businessHours">
+<sequence>
+<element maxOccurs="unbounded" name="dayOfTheWeek" type="tns:dayOfTheWeek"/>
+</sequence>
+</complexType>
+<complexType name="locationEmail">
+<sequence>
+<element minOccurs="0" name="emailType" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="locationEmails">
+<sequence>
+<element maxOccurs="unbounded" name="locationEmail" type="tns:locationEmail"/>
+</sequence>
+</complexType>
+<complexType name="location">
+<sequence>
+<element minOccurs="0" name="locationID" type="xsd:string"/>
+<element minOccurs="0" name="locationPhone" type="xsd:string"/>
+<element minOccurs="0" name="locationEmails" type="tns:locationEmails"/>
+</sequence>
+</complexType>
+<complexType name="locations">
+<sequence>
+<element maxOccurs="unbounded" name="location" type="tns:location"/>
+</sequence>
+</complexType>
+<complexType name="serviceProviderEmails">
+<sequence>
+<element minOccurs="0" name="serviceProviderContactEmail" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderManagementEmail" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPaymentEmail" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderNewsEmail" type="xsd:string"/>
+</sequence>
+</complexType>
+<!--  Service Provider Info Starts Here  -->
+<!--  Service Provider Request Type  -->
+<complexType name="serviceProviderRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="serviceProviderResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCountry" type="xsd:string"/>
+<element minOccurs="0" name="minimumServiceCharge" type="xsd:string"/>
+<element minOccurs="0" name="comments" type="xsd:string"/>
+<element minOccurs="0" name="contactName" type="xsd:string"/>
+<element minOccurs="0" name="boxesAvailable" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabels" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobTypes" type="tns:serviceJobTypes"/>
+<element minOccurs="0" name="businessHours" type="tns:businessHours"/>
+<element minOccurs="0" name="serviceProviderEmails" type="tns:serviceProviderEmails"/>
+<element minOccurs="0" name="locations" type="tns:locations"/>
+</sequence>
+</complexType>
+<!--  Service Provider Info Request  -->
+<element name="serviceProviderInfoRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="serviceProviderRequest" type="tns:serviceProviderRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<!--  Service Provider Info Response  -->
+<element name="serviceProviderInfoResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="serviceProviderResponse" type="tns:serviceProviderResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<!--  Service Provider Info Ends Here  -->
+<complexType name="veraZipLists">
+<sequence>
+<element minOccurs="0" name="veraZipState" type="xsd:string"/>
+<element minOccurs="0" name="veraZipStateTx" type="xsd:string"/>
+<element minOccurs="0" name="veraZipZip1" type="xsd:string"/>
+<element minOccurs="0" name="veraZipZip2" type="xsd:string"/>
+<element minOccurs="0" name="veraZipGeoCode" type="xsd:string"/>
+<element minOccurs="0" name="veraZipZipExt1" type="xsd:string"/>
+<element minOccurs="0" name="veraZipZipExt2" type="xsd:string"/>
+<element minOccurs="0" name="veraZipCity" type="xsd:string"/>
+<element minOccurs="0" name="veraZipCountyCode" type="xsd:string"/>
+<element minOccurs="0" name="veraZipCounty" type="xsd:string"/>
+<element minOccurs="0" name="veraZipInOutLimit" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="veraZipReply">
+<sequence>
+<element minOccurs="0" name="transactionID" type="xsd:string"/>
+<element minOccurs="0" name="veraZipCompletionCode" type="xsd:string"/>
+<element minOccurs="0" name="customerNumber" type="xsd:string"/>
+<element minOccurs="0" name="nameFirst" type="xsd:string"/>
+<element minOccurs="0" name="nameMiddle" type="xsd:string"/>
+<element minOccurs="0" name="name" type="xsd:string"/>
+<element minOccurs="0" name="phoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="addressLine1" type="xsd:string"/>
+<element minOccurs="0" name="addressLine2" type="xsd:string"/>
+<element minOccurs="0" name="aptNumber" type="xsd:string"/>
+<element minOccurs="0" name="addressCity" type="xsd:string"/>
+<element minOccurs="0" name="addressState" type="xsd:string"/>
+<element minOccurs="0" name="addressZip" type="xsd:string"/>
+<element minOccurs="0" name="zipExt" type="xsd:string"/>
+<element minOccurs="0" name="veraZipReturnedRows" type="xsd:string"/>
+<element minOccurs="0" name="veraZipLists" type="tns:veraZipLists"/>
+</sequence>
+</complexType>
+<complexType name="scheduleResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="customerNumber" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="customerFirstName" type="xsd:string"/>
+<element minOccurs="0" name="customerLastName" type="xsd:string"/>
+<element minOccurs="0" name="customerAddress1" type="xsd:string"/>
+<element minOccurs="0" name="customerAddress2" type="xsd:string"/>
+<element minOccurs="0" name="customerCity" type="xsd:string"/>
+<element minOccurs="0" name="customerStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="customerPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="customerCountry" type="xsd:string"/>
+<element minOccurs="0" name="customerHomePhone" type="xsd:string"/>
+<element minOccurs="0" name="customerWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="veraZipReply" type="tns:veraZipReply"/>
+<element minOccurs="0" name="warehouseService" type="tns:warehouseService"/>
+<element minOccurs="0" name="paymentDetail" type="tns:paymentDetail"/>
+<element minOccurs="0" name="addressTypeFlag" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelStatus" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelTrackingNumber" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelCarrierName" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelImage" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelType" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelErrors" type="tns:mailLabelErrors"/>
+</sequence>
+</complexType>
+<complexType name="mailLabelErrors">
+<sequence>
+<element minOccurs="0" name="mailLabelErrorCode" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelErrorDescription" type="xsd:string"/>
+<element maxOccurs="unbounded" minOccurs="0" name="mailLabelError" type="tns:mailLabelError"/>
+</sequence>
+</complexType>
+<complexType name="mailLabelError">
+<sequence>
+<element minOccurs="0" name="mailLabelErrorCode" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelErrorDescription" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="paymentDetail">
+<sequence>
+<element minOccurs="0" name="paymentIdentifier" type="xsd:string"/>
+<element minOccurs="0" name="transactionStatus" type="xsd:string"/>
+<element minOccurs="0" name="transactionDetails" type="xsd:string"/>
+<element minOccurs="0" name="authorizedAmount" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="conditionAmounts">
+<sequence>
+<element minOccurs="0" name="amountType" type="xsd:string"/>
+<element minOccurs="0" name="amount" type="xsd:string"/>
+<element minOccurs="0" name="condition" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="warehouseService">
+<sequence>
+<element minOccurs="0" name="warehouseServicesType" type="xsd:string"/>
+<element minOccurs="0" name="clientAccountNumber" type="xsd:string"/>
+<element minOccurs="0" name="plantCode" type="xsd:string"/>
+<element minOccurs="0" name="itemNumber" type="xsd:string"/>
+<element minOccurs="0" name="modelNumber" type="xsd:string"/>
+<element minOccurs="0" name="serialNumber" type="xsd:string"/>
+<element minOccurs="0" name="quantity" type="xsd:string"/>
+<element minOccurs="0" name="routeOut" type="xsd:string"/>
+<element minOccurs="0" name="depotLocationCode" type="xsd:string"/>
+<element minOccurs="0" name="depotProcessingTask" type="xsd:string"/>
+<element minOccurs="0" name="productDepotHandling" type="xsd:string"/>
+<element minOccurs="0" name="purchaseOrder" type="tns:purchaseOrder"/>
+<element minOccurs="0" name="productReturnAuthorization" type="tns:productReturnAuthorization"/>
+</sequence>
+</complexType>
+<complexType name="purchaseOrder">
+<sequence>
+<element minOccurs="0" name="purchaseOrderNumber" type="xsd:string"/>
+<element minOccurs="0" name="internalDeliveryNumber" type="xsd:string"/>
+<element minOccurs="0" name="clientReferenceNumber" type="xsd:string"/>
+<element minOccurs="0" name="dateOrderCreated" type="xsd:string"/>
+<element minOccurs="0" name="clientShipmentTerms" type="xsd:string"/>
+<element minOccurs="0" name="requestedShipDate" type="xsd:string"/>
+<element minOccurs="0" name="internalShippingCarrierCode" type="xsd:string"/>
+<element minOccurs="0" name="internalShippingCarrierName" type="xsd:string"/>
+<element minOccurs="0" name="purchaseOrderSpecialInstructions" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="productReturnAuthorization">
+<sequence>
+<element minOccurs="0" name="rmaNumber" type="xsd:string"/>
+<element minOccurs="0" name="rmaType" type="xsd:string"/>
+<element minOccurs="0" name="rmaPostedDate" type="xsd:string"/>
+<element minOccurs="0" name="returnReasonCode" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="question">
+<sequence>
+<element minOccurs="0" name="questionText" type="xsd:string"/>
+<element minOccurs="0" name="answerText" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="preQualification">
+<sequence>
+<element maxOccurs="unbounded" name="question" type="tns:question"/>
+</sequence>
+</complexType>
+<complexType name="service">
+<sequence>
+<element minOccurs="0" name="serviceRowNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceID" type="xsd:string"/>
+<element minOccurs="0" name="serviceTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="quantity" type="xsd:string"/>
+<element minOccurs="0" name="serviceStatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceStatusDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceNumber" type="xsd:string"/>
+<element minOccurs="0" name="servicePurchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceProduct" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="services">
+<sequence>
+<element maxOccurs="unbounded" name="service" type="tns:service"/>
+</sequence>
+</complexType>
+<complexType name="transactionType">
+<sequence>
+<element minOccurs="0" name="transactionTypeCode" type="xsd:string"/>
+<element minOccurs="0" name="transactionDescription" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="transactionTypes">
+<sequence>
+<element maxOccurs="unbounded" name="transactionType" type="tns:transactionType"/>
+</sequence>
+</complexType>
+<complexType name="model">
+<sequence>
+<element minOccurs="0" name="productRowNumber" type="xsd:string"/>
+<element minOccurs="0" name="productStatus" type="xsd:string"/>
+<element minOccurs="0" name="productSubStatus" type="xsd:string"/>
+<element minOccurs="0" name="productCode" type="xsd:string"/>
+<element minOccurs="0" name="oem" type="xsd:string"/>
+<element minOccurs="0" name="productLine" type="xsd:string"/>
+<element minOccurs="0" name="merchandiseCode" type="xsd:string"/>
+<element minOccurs="0" name="modelID" type="xsd:string"/>
+<element minOccurs="0" name="brand" type="xsd:string"/>
+<element minOccurs="0" name="serialNumber" type="xsd:string"/>
+<element minOccurs="0" name="serialNumberElectronic" type="xsd:string"/>
+<element minOccurs="0" name="purchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="contractPurchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="contractNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceContractExpiryDate" type="xsd:string"/>
+<element minOccurs="0" name="purchasePrice" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element minOccurs="0" name="pexSerialNumber" type="xsd:string"/>
+<element minOccurs="0" name="pexModelId" type="xsd:string"/>
+<element minOccurs="0" name="pexBrand" type="xsd:string"/>
+<element minOccurs="0" name="pexPuchasePrice" type="xsd:string"/>
+<element minOccurs="0" name="pexUnitReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="pexExpectedDeliveryDate" type="xsd:string"/>
+<element minOccurs="0" name="pexDeliveredDate" type="xsd:string"/>
+<element minOccurs="0" name="failureDate" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="component">
+<sequence>
+<element minOccurs="0" name="rowNumber" type="xsd:string"/>
+<element minOccurs="0" name="componentNumber" type="xsd:string"/>
+<element minOccurs="0" name="serialNumber" type="xsd:string"/>
+<element minOccurs="0" name="quantities" type="tns:quantities"/>
+</sequence>
+</complexType>
+<complexType name="quantities">
+<sequence>
+<element maxOccurs="unbounded" name="quantityInfo" type="tns:quantityInfo"/>
+</sequence>
+</complexType>
+<complexType name="quantityInfo">
+<sequence>
+<element minOccurs="0" name="quantityType" type="xsd:string"/>
+<element minOccurs="0" name="quantity" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="models">
+<sequence>
+<element maxOccurs="unbounded" name="model" type="tns:model"/>
+</sequence>
+</complexType>
+<complexType name="productComponents">
+<sequence>
+<element maxOccurs="unbounded" name="component" type="tns:component"/>
+<element minOccurs="0" name="actionRequired" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobPayment">
+<sequence>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="billingAddress" type="tns:billingAddress"/>
+<element minOccurs="0" name="cardInfo" type="tns:cardInfo"/>
+</sequence>
+</complexType>
+<complexType name="cardInfo">
+<sequence>
+<element minOccurs="0" name="cardType" type="xsd:string"/>
+<element minOccurs="0" name="cardHolderFirstName" type="xsd:string"/>
+<element minOccurs="0" name="cardHolderMiddleName" type="xsd:string"/>
+<element minOccurs="0" name="cardHolderLastName" type="xsd:string"/>
+<element minOccurs="0" name="cardNumber" type="xsd:string"/>
+<element minOccurs="0" name="expirationDate" type="xsd:string"/>
+<element minOccurs="0" name="securityCode" type="xsd:string"/>
+<element minOccurs="0" name="authorizedAmount" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="billingAddress">
+<sequence>
+<element minOccurs="0" name="addressLine1" type="xsd:string"/>
+<element minOccurs="0" name="addressLine2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="state" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="scheduleRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderType" type="xsd:string"/>
+<element minOccurs="0" name="customerNumber" type="xsd:string"/>
+<element minOccurs="0" name="customerBillingAcct" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="address1" type="xsd:string"/>
+<element minOccurs="0" name="address2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="stateProvince" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="homePhone" type="xsd:string"/>
+<element minOccurs="0" name="workPhone" type="xsd:string"/>
+<element minOccurs="0" name="alternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="mobilePhone" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+<element minOccurs="0" name="alternateEmailAddress" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress1" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress2" type="xsd:string"/>
+<element minOccurs="0" name="accountCity" type="xsd:string"/>
+<element minOccurs="0" name="accountStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="accountPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="accountCountry" type="xsd:string"/>
+<element minOccurs="0" name="accountPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountAlternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="accountMobilePhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceAdministrator" type="xsd:string"/>
+<element minOccurs="0" name="serviceDescription" type="xsd:string"/>
+<element minOccurs="0" name="directionsCrossStreets" type="xsd:string"/>
+<element minOccurs="0" name="specialInstructions" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="thirdPartyID" type="xsd:string"/>
+<element minOccurs="0" name="employeeID" type="xsd:string"/>
+<element minOccurs="0" name="paymentTerms" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="programMatched" type="xsd:string"/>
+<element minOccurs="0" name="programID" type="xsd:string"/>
+<element minOccurs="0" name="availableDate" type="xsd:string"/>
+<element minOccurs="0" name="availableType" type="xsd:string"/>
+<element minOccurs="0" name="slotStartTime" type="xsd:string"/>
+<element minOccurs="0" name="slotLength" type="xsd:string"/>
+<element minOccurs="0" name="surveyCustomer" type="xsd:string"/>
+<element minOccurs="0" name="smsOptIn" type="xsd:string"/>
+<element minOccurs="0" name="customerLanguagePreference" type="xsd:string"/>
+<element minOccurs="0" name="geoCode" type="xsd:string"/>
+<element minOccurs="0" name="countyCode" type="xsd:string"/>
+<element minOccurs="0" name="veraZipState" type="xsd:string"/>
+<element minOccurs="0" name="commercialFlag" type="xsd:string"/>
+<element minOccurs="0" name="complaintCode" type="xsd:string"/>
+<element minOccurs="0" name="data1" type="xsd:string"/>
+<element minOccurs="0" name="data2" type="xsd:string"/>
+<element minOccurs="0" name="serviceRequestType" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="originalCrmNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceType" type="xsd:string"/>
+<element minOccurs="0" name="originalSaReferenceNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="requestedCompletionDate" type="xsd:string"/>
+<element minOccurs="0" name="requestedCompletionTime" type="xsd:string"/>
+<element minOccurs="0" name="forceBooked" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderUser" type="xsd:string"/>
+<element minOccurs="0" name="saAuthorizingUser" type="xsd:string"/>
+<element minOccurs="0" name="contractPurchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabelMethod" type="xsd:string"/>
+<element minOccurs="0" name="preferredContactMethod" type="xsd:string"/>
+<element minOccurs="0" name="primaryPhoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="productPickupLocation" type="xsd:string"/>
+<element minOccurs="0" name="posStoreNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTerminalNumber" type="xsd:string"/>
+<element minOccurs="0" name="posRetailerRefNumber" type="xsd:string"/>
+<element minOccurs="0" name="posPersonSelling" type="xsd:string"/>
+<element minOccurs="0" name="posSaleDate" type="xsd:string"/>
+<element minOccurs="0" name="posSaleTime" type="xsd:string"/>
+<element minOccurs="0" name="authorizationAmount" type="xsd:string"/>
+<element minOccurs="0" name="skippedAvailability" type="xsd:string"/>
+<element minOccurs="0" name="ofrNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceCategory" type="xsd:string"/>
+<element minOccurs="0" name="failureDate" type="xsd:string"/>
+<element minOccurs="0" name="planType" type="xsd:string"/>
+<element minOccurs="0" name="labelFormatRequest" type="xsd:string"/>
+<element minOccurs="0" name="addressValidation" type="xsd:string"/>
+<element minOccurs="0" name="addressValidationOverride" type="xsd:string"/>
+<element minOccurs="0" name="addressValidationFormat" type="xsd:string"/>
+<element minOccurs="0" name="proofOfPurchase" type="xsd:string"/>
+<element minOccurs="0" name="diagnosticProgram" type="xsd:string"/>
+<element minOccurs="0" name="activationCode" type="xsd:string"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="contractNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceContractExpiryDate" type="xsd:string"/>
+<element minOccurs="0" name="transactionTypes" type="tns:transactionTypes"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+<element minOccurs="0" name="preQualification" type="tns:preQualification"/>
+<element minOccurs="0" name="conditionAmounts" type="tns:conditionAmounts"/>
+<element minOccurs="0" name="warehouseService" type="tns:warehouseService"/>
+<element minOccurs="0" name="serviceJobPayment" type="tns:serviceJobPayment"/>
+<element minOccurs="0" name="productComponents" type="tns:productComponents"/>
+<element minOccurs="0" name="supportingInformation" type="tns:supportingInformation"/>
+<element minOccurs="0" name="thirdPartyBillAcct" type="xsd:string"/>
+<element minOccurs="0" name="premiumFlag" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element minOccurs="0" name="poNumber" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="rescheduleRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="programMatched" type="xsd:string"/>
+<element minOccurs="0" name="programID" type="xsd:string"/>
+<element minOccurs="0" name="availableDate" type="xsd:string"/>
+<element minOccurs="0" name="availableType" type="xsd:string"/>
+<element minOccurs="0" name="slotStartTime" type="xsd:string"/>
+<element minOccurs="0" name="slotLength" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReason" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReasonCode" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element minOccurs="0" name="forceBooked" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderUser" type="xsd:string"/>
+<element minOccurs="0" name="saAuthorizingUser" type="xsd:string"/>
+<element minOccurs="0" name="thirdPartyID" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="rescheduleResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="oldServiceJobID" type="xsd:string"/>
+<element minOccurs="0" name="newServiceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCountry" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReasonCode" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="cancelRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="cancelReason" type="xsd:string"/>
+<element minOccurs="0" name="cancelDate" type="xsd:string"/>
+<element minOccurs="0" name="cancelReasonCode" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="cancelResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="availabilityRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="merchandiseCode" type="xsd:string"/>
+<element minOccurs="0" name="collateResponse" type="xsd:string"/>
+<element minOccurs="0" name="startingDate" type="xsd:string"/>
+<element minOccurs="0" name="datesNeeded" type="xsd:string"/>
+<element minOccurs="0" name="programID" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="availableRequestNum" type="xsd:string"/>
+<element minOccurs="0" name="premiumFlag" type="xsd:string"/>
+<element minOccurs="0" name="recallNumber" type="xsd:string"/>
+<element minOccurs="0" name="oem" type="xsd:string"/>
+<element minOccurs="0" name="serviceRequestType" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="unscheduledProviders" type="xsd:string"/>
+<element minOccurs="0" name="minimumPriorityRank" type="xsd:string"/>
+<element minOccurs="0" name="programOnly" type="xsd:string"/>
+<element minOccurs="0" name="planType" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="formatType" type="xsd:string"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="thirdPartyId" type="xsd:string"/>
+<element minOccurs="0" name="selfServicingDealerNumber" type="xsd:string"/>
+<element minOccurs="0" name="carryInRadius" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="availabilityDate">
+<sequence>
+<element minOccurs="0" name="availableDate" type="xsd:string"/>
+<element minOccurs="0" name="availableDay" type="xsd:string"/>
+<element minOccurs="0" name="availableType" type="xsd:string"/>
+<element minOccurs="0" name="slotStartTime" type="xsd:string"/>
+<element minOccurs="0" name="slotLength" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="availabilityDates">
+<sequence>
+<element maxOccurs="unbounded" name="availabilityDate" type="tns:availabilityDate"/>
+</sequence>
+</complexType>
+<complexType name="timeSlot">
+<sequence>
+<element minOccurs="0" name="availableType" type="xsd:string"/>
+<element minOccurs="0" name="slotStartTime" type="xsd:string"/>
+<element minOccurs="0" name="slotLength" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="timeSlots">
+<sequence>
+<element maxOccurs="unbounded" name="timeSlot" type="tns:timeSlot"/>
+</sequence>
+</complexType>
+<complexType name="serviceProvider">
+<sequence>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderLocationPhone" type="xsd:string"/>
+<element minOccurs="0" name="minimumServiceCharge" type="xsd:string"/>
+<element minOccurs="0" name="unitType" type="xsd:string"/>
+<element minOccurs="0" name="workAreaCode" type="xsd:string"/>
+<element minOccurs="0" name="pricingTier" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderType" type="xsd:string"/>
+<element minOccurs="0" name="generalInfo" type="xsd:string"/>
+<element minOccurs="0" name="priorityLevel" type="xsd:string"/>
+<element minOccurs="0" name="priorityRank" type="xsd:string"/>
+<element minOccurs="0" name="enabledForServiceJobType" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="distance" type="xsd:string"/>
+<element minOccurs="0" name="additionalInfo" type="xsd:string"/>
+<element minOccurs="0" name="provideLabels" type="xsd:string"/>
+<element minOccurs="0" name="boxesAvailable" type="xsd:string"/>
+<element minOccurs="0" name="programAvailability" type="xsd:string"/>
+<element minOccurs="0" name="businessHours" type="tns:businessHours"/>
+<element minOccurs="0" name="availabilityDates" type="tns:availabilityDates"/>
+<element minOccurs="0" name="timeSlots" type="tns:timeSlots"/>
+<element minOccurs="0" name="partsShipmentPreference " type="xsd:string"/>
+<element minOccurs="0" name="activeAnalyticsPriority " type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="serviceProviders">
+<sequence>
+<element maxOccurs="unbounded" name="serviceProvider" type="tns:serviceProvider"/>
+</sequence>
+</complexType>
+<complexType name="date">
+<sequence>
+<element minOccurs="0" name="availableDate" type="xsd:string"/>
+<element minOccurs="0" name="availableDay" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviders" type="tns:serviceProviders"/>
+</sequence>
+</complexType>
+<complexType name="dates">
+<sequence>
+<element maxOccurs="unbounded" name="date" type="tns:date"/>
+</sequence>
+</complexType>
+<complexType name="availabilityResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="availabilityFound" type="xsd:string"/>
+<element minOccurs="0" name="programID" type="xsd:string"/>
+<element minOccurs="0" name="programMatched" type="xsd:string"/>
+<element minOccurs="0" name="productCode" type="xsd:string"/>
+<element minOccurs="0" name="storeDistance" type="xsd:string"/>
+<element minOccurs="0" name="skuTime" type="xsd:string"/>
+<element minOccurs="0" name="dates" type="tns:dates"/>
+<element minOccurs="0" name="serviceProviders" type="tns:serviceProviders"/>
+</sequence>
+</complexType>
+<complexType name="downloadRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="saDownloadMarked" type="xsd:string"/>
+<element minOccurs="0" name="saDownloadMarkedDateTimeFrom" type="xsd:string"/>
+<element minOccurs="0" name="saDownloadMarkedDateTimeTo" type="xsd:string"/>
+<element minOccurs="0" name="downloadLimit" type="xsd:string"/>
+<element minOccurs="0" name="merchandiseCode" type="xsd:string"/>
+<element minOccurs="0" name="thirdPartyID" type="xsd:string"/>
+<element minOccurs="0" name="createdBy" type="xsd:string"/>
+<element minOccurs="0" name="pexID" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="downloadResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="count" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrders" type="tns:serviceOrders"/>
+</sequence>
+</complexType>
+<complexType name="serviceOrders">
+<sequence>
+<element maxOccurs="unbounded" name="serviceOrder" type="tns:serviceOrder"/>
+</sequence>
+</complexType>
+<complexType name="serviceOrder">
+<sequence>
+<element minOccurs="0" name="serviceOrderID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderStatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderStatusDate" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="address1" type="xsd:string"/>
+<element minOccurs="0" name="address2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="stateProvince" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="homePhone" type="xsd:string"/>
+<element minOccurs="0" name="workPhone" type="xsd:string"/>
+<element minOccurs="0" name="alternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="mobilePhone" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+<element minOccurs="0" name="alternateEmailAddress" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress1" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress2" type="xsd:string"/>
+<element minOccurs="0" name="accountCity" type="xsd:string"/>
+<element minOccurs="0" name="accountStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="accountPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="accountCountry" type="xsd:string"/>
+<element minOccurs="0" name="accountPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountAlternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="preferredContactMethod" type="xsd:string"/>
+<element minOccurs="0" name="primaryPhoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="directionsCrossStreets" type="xsd:string"/>
+<element minOccurs="0" name="serviceDescription" type="xsd:string"/>
+<element minOccurs="0" name="smsOptIn" type="xsd:string"/>
+<element minOccurs="0" name="customerLanguagePreference" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobs" type="tns:serviceJobs"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobs">
+<sequence>
+<element maxOccurs="unbounded" name="serviceJob" type="tns:serviceJob"/>
+</sequence>
+</complexType>
+<complexType name="serviceJob">
+<sequence>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobDate" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="paymentTerms" type="xsd:string"/>
+<element minOccurs="0" name="specialInstructions" type="xsd:string"/>
+<element minOccurs="0" name="scheduledServiceDate" type="xsd:string"/>
+<element minOccurs="0" name="slotStartTime" type="xsd:string"/>
+<element minOccurs="0" name="slotLength" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobStatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobSubStatus" type="xsd:string"/>
+<element minOccurs="0" name="dateAccepted" type="xsd:string"/>
+<element minOccurs="0" name="serviceExplanation" type="xsd:string"/>
+<element minOccurs="0" name="rejectedDate" type="xsd:string"/>
+<element minOccurs="0" name="rejectReason" type="xsd:string"/>
+<element minOccurs="0" name="rejectExplaination" type="xsd:string"/>
+<element minOccurs="0" name="completionDate" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleDate" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReason" type="xsd:string"/>
+<element minOccurs="0" name="serviceDate" type="xsd:string"/>
+<element minOccurs="0" name="complaintCode" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabelMethod" type="xsd:string"/>
+<element minOccurs="0" name="data1" type="xsd:string"/>
+<element minOccurs="0" name="data2" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="planType" type="xsd:string"/>
+<element minOccurs="0" name="productPickupLocation" type="xsd:string"/>
+<element minOccurs="0" name="posStoreNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTerminalNumber" type="xsd:string"/>
+<element minOccurs="0" name="posRetailerRefNumber" type="xsd:string"/>
+<element minOccurs="0" name="posPersonSelling" type="xsd:string"/>
+<element minOccurs="0" name="posSaleDate" type="xsd:string"/>
+<element minOccurs="0" name="posSaleTime" type="xsd:string"/>
+<element minOccurs="0" name="boxSentDate" type="xsd:string"/>
+<element minOccurs="0" name="labelSentDate" type="xsd:string"/>
+<element minOccurs="0" name="productReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="productReturnedDate" type="xsd:string"/>
+<element minOccurs="0" name="technicianName" type="xsd:string"/>
+<element minOccurs="0" name="technicianPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCountry" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="lastModifiedUserID" type="xsd:string"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="comments" type="tns:comments"/>
+<element minOccurs="0" name="parts" type="tns:parts"/>
+<element minOccurs="0" name="mailIns" type="tns:mailIns"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+<element minOccurs="0" name="originalCrmNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceType" type="xsd:string"/>
+<element minOccurs="0" name="supportingInformation" type="tns:supportingInformation"/>
+<element minOccurs="0" name="merchandiseCode" type="xsd:string"/>
+<element minOccurs="0" name="thirdPartyID" type="xsd:string"/>
+<element minOccurs="0" name="createdBy" type="xsd:string"/>
+<element minOccurs="0" name="pexID" type="xsd:string"/>
+<element minOccurs="0" name="resolutionCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobOutcome" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="comments">
+<sequence>
+<element maxOccurs="unbounded" name="comment" type="tns:comment"/>
+</sequence>
+</complexType>
+<complexType name="comment">
+<sequence>
+<element minOccurs="0" name="commentText" type="xsd:string"/>
+<element minOccurs="0" name="userID" type="xsd:string"/>
+<element minOccurs="0" name="userServiceBenchID" type="xsd:string"/>
+<element minOccurs="0" name="commentDate" type="xsd:string"/>
+<element minOccurs="0" name="commentType" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="parts">
+<sequence>
+<element maxOccurs="unbounded" name="part" type="tns:part"/>
+</sequence>
+</complexType>
+<complexType name="part">
+<sequence>
+<element minOccurs="0" name="productRowNumber" type="xsd:string"/>
+<element minOccurs="0" name="lineNumber" type="xsd:string"/>
+<element minOccurs="0" name="partNumber" type="xsd:string"/>
+<element minOccurs="0" name="partDescription" type="xsd:string"/>
+<element minOccurs="0" name="quantity" type="xsd:string"/>
+<element minOccurs="0" name="partStatus" type="xsd:string"/>
+<element minOccurs="0" name="partStatusDate" type="xsd:string"/>
+<element minOccurs="0" name="partOrderedNumber" type="xsd:string"/>
+<element minOccurs="0" name="invoiceNumber" type="xsd:string"/>
+<element minOccurs="0" name="shippingCompany" type="xsd:string"/>
+<element minOccurs="0" name="trackingNumber" type="xsd:string"/>
+<element minOccurs="0" name="partOrderDate" type="xsd:string"/>
+<element minOccurs="0" name="partReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="partOrderETA" type="xsd:string"/>
+<element minOccurs="0" name="serialNumber" type="xsd:string"/>
+<element minOccurs="0" name="electronicSerialNumber" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="mailIns">
+<sequence>
+<element maxOccurs="unbounded" name="mailIn" type="tns:mailIn"/>
+</sequence>
+</complexType>
+<complexType name="mailIn">
+<sequence>
+<element minOccurs="0" name="shippedItem" type="xsd:string"/>
+<element minOccurs="0" name="status" type="xsd:string"/>
+<element minOccurs="0" name="shipper" type="xsd:string"/>
+<element minOccurs="0" name="trackingNumber" type="xsd:string"/>
+<element minOccurs="0" name="note" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="serviceJobScheduleRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="scheduleRequest" type="tns:scheduleRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobScheduleResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="scheduleResponse" type="tns:scheduleResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobRescheduleRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="rescheduleRequest" type="tns:rescheduleRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobRescheduleResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="rescheduleResponse" type="tns:rescheduleResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobCancelRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="cancelRequest" type="tns:cancelRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobCancelResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="cancelResponse" type="tns:cancelResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="spAvailabilityRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="availabilityRequest" type="tns:availabilityRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="spAvailabilityResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="availabilityResponse" type="tns:availabilityResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobDownloadRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="downloadRequest" type="tns:downloadRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="serviceJobDownloadResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="downloadResponse" type="tns:downloadResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<!--  Service Job Status Starts Here  -->
+<element name="serviceJobStatusRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="statusRequest" type="tns:statusRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="statusRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="phoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="returnCommentsFromDateTime" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="serviceJobStatusResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="statusResponse" type="tns:statusResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="statusResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element name="serviceJobStatusDetails" type="tns:serviceJobStatusDetails"/>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobStatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobSubstatus" type="xsd:string"/>
+<element minOccurs="0" name="dateAccepted" type="xsd:string"/>
+<element minOccurs="0" name="completionDate" type="xsd:string"/>
+<element minOccurs="0" name="rejectedDate" type="xsd:string"/>
+<element minOccurs="0" name="rejectReason" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleDate" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReason" type="xsd:string"/>
+<element minOccurs="0" name="serviceDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceExplanation" type="xsd:string"/>
+<element minOccurs="0" name="serviceDescription" type="xsd:string"/>
+<element minOccurs="0" name="specialInstructions" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="address1" type="xsd:string"/>
+<element minOccurs="0" name="address2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="stateProvince" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="homePhone" type="xsd:string"/>
+<element minOccurs="0" name="workPhone" type="xsd:string"/>
+<element minOccurs="0" name="alternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+<element minOccurs="0" name="alternateEmailAddress" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress1" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress2" type="xsd:string"/>
+<element minOccurs="0" name="accountCity" type="xsd:string"/>
+<element minOccurs="0" name="accountStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="accountPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="accountCountry" type="xsd:string"/>
+<element minOccurs="0" name="accountPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountAlternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="directionsCrossStreets" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="contractPurchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="complaintCode" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="programNumber" type="xsd:string"/>
+<element minOccurs="0" name="planType" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabelMethod" type="xsd:string"/>
+<element minOccurs="0" name="preferredContactMethod" type="xsd:string"/>
+<element minOccurs="0" name="primaryPhoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="productPickupLocation" type="xsd:string"/>
+<element minOccurs="0" name="posStoreNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTerminalNumber" type="xsd:string"/>
+<element minOccurs="0" name="posRetailerRefNumber" type="xsd:string"/>
+<element minOccurs="0" name="posPersonSelling" type="xsd:string"/>
+<element minOccurs="0" name="posSaleDate" type="xsd:string"/>
+<element minOccurs="0" name="posSaleTime" type="xsd:string"/>
+<element minOccurs="0" name="boxSentDate" type="xsd:string"/>
+<element minOccurs="0" name="labelSentDate" type="xsd:string"/>
+<element minOccurs="0" name="productReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="productReturnedDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="userName" type="xsd:string"/>
+<element minOccurs="0" name="technicianName" type="xsd:string"/>
+<element minOccurs="0" name="technicianPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCountry" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceCategory" type="xsd:string"/>
+<element minOccurs="0" name="serviceSubCategory" type="xsd:string"/>
+<element minOccurs="0" name="serviceType" type="xsd:string"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="comments" type="tns:comments"/>
+<element minOccurs="0" name="parts" type="tns:parts"/>
+<element minOccurs="0" name="mailIns" type="tns:mailIns"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobStatusDetails">
+<sequence>
+<element maxOccurs="unbounded" name="serviceJobStatusDetail" type="tns:serviceJobStatusDetail"/>
+</sequence>
+</complexType>
+<complexType name="serviceJobStatusDetail">
+<sequence>
+<element minOccurs="0" name="serviceProviderAccount" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobStatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobSubstatus" type="xsd:string"/>
+<element minOccurs="0" name="dateAccepted" type="xsd:string"/>
+<element minOccurs="0" name="completionDate" type="xsd:string"/>
+<element minOccurs="0" name="rejectedDate" type="xsd:string"/>
+<element minOccurs="0" name="rejectReason" type="xsd:string"/>
+<element minOccurs="0" name="rejectExplaination" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleDate" type="xsd:string"/>
+<element minOccurs="0" name="rescheduleReason" type="xsd:string"/>
+<element minOccurs="0" name="serviceDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceExplanation" type="xsd:string"/>
+<element minOccurs="0" name="serviceDescription" type="xsd:string"/>
+<element minOccurs="0" name="specialInstructions" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="address1" type="xsd:string"/>
+<element minOccurs="0" name="address2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="stateProvince" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="homePhone" type="xsd:string"/>
+<element minOccurs="0" name="workPhone" type="xsd:string"/>
+<element minOccurs="0" name="alternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+<element minOccurs="0" name="alternateEmailAddress" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress1" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress2" type="xsd:string"/>
+<element minOccurs="0" name="accountCity" type="xsd:string"/>
+<element minOccurs="0" name="accountStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="accountPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="accountCountry" type="xsd:string"/>
+<element minOccurs="0" name="accountPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountAlternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="directionsCrossStreets" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="programNumber" type="xsd:string"/>
+<element minOccurs="0" name="contractPurchaseDate" type="xsd:string"/>
+<element minOccurs="0" name="complaintCode" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabelMethod" type="xsd:string"/>
+<element minOccurs="0" name="preferredContactMethod" type="xsd:string"/>
+<element minOccurs="0" name="primaryPhoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="productPickupLocation" type="xsd:string"/>
+<element minOccurs="0" name="posStoreNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTerminalNumber" type="xsd:string"/>
+<element minOccurs="0" name="posRetailerRefNumber" type="xsd:string"/>
+<element minOccurs="0" name="posPersonSelling" type="xsd:string"/>
+<element minOccurs="0" name="posSaleDate" type="xsd:string"/>
+<element minOccurs="0" name="posSaleTime" type="xsd:string"/>
+<element minOccurs="0" name="boxSentDate" type="xsd:string"/>
+<element minOccurs="0" name="labelSentDate" type="xsd:string"/>
+<element minOccurs="0" name="productReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="productReturnedDate" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobType" type="xsd:string"/>
+<element minOccurs="0" name="userName" type="xsd:string"/>
+<element minOccurs="0" name="technicianName" type="xsd:string"/>
+<element minOccurs="0" name="technicianPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderName" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress1" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderAddress2" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCity" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderCountry" type="xsd:string"/>
+<element minOccurs="0" name="serviceProviderPhone" type="xsd:string"/>
+<element minOccurs="0" name="serviceCategory" type="xsd:string"/>
+<element minOccurs="0" name="serviceSubCategory" type="xsd:string"/>
+<element minOccurs="0" name="serviceType" type="xsd:string"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="comments" type="tns:comments"/>
+<element minOccurs="0" name="parts" type="tns:parts"/>
+<element minOccurs="0" name="mailIns" type="tns:mailIns"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+</sequence>
+</complexType>
+<!--  Service Job Status Ends Here  -->
+<!--  Service Job Status Ends Here  -->
+<!--  Service Job Update Starts Here  -->
+<element name="serviceJobUpdateRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="updateRequest" type="tns:updateRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="updateRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderDate" type="xsd:string"/>
+<element minOccurs="0" name="partstatus" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderStatusDate" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="address1" type="xsd:string"/>
+<element minOccurs="0" name="address2" type="xsd:string"/>
+<element minOccurs="0" name="city" type="xsd:string"/>
+<element minOccurs="0" name="stateProvince" type="xsd:string"/>
+<element minOccurs="0" name="postalCode" type="xsd:string"/>
+<element minOccurs="0" name="country" type="xsd:string"/>
+<element minOccurs="0" name="homePhone" type="xsd:string"/>
+<element minOccurs="0" name="workPhone" type="xsd:string"/>
+<element minOccurs="0" name="alternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="emailAddress" type="xsd:string"/>
+<element minOccurs="0" name="alternateEmailAddress" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress1" type="xsd:string"/>
+<element minOccurs="0" name="accountAddress2" type="xsd:string"/>
+<element minOccurs="0" name="accountCity" type="xsd:string"/>
+<element minOccurs="0" name="accountStateProvince" type="xsd:string"/>
+<element minOccurs="0" name="accountPostalCode" type="xsd:string"/>
+<element minOccurs="0" name="accountCountry" type="xsd:string"/>
+<element minOccurs="0" name="accountPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountWorkPhone" type="xsd:string"/>
+<element minOccurs="0" name="accountAlternatePhone" type="xsd:string"/>
+<element minOccurs="0" name="preferredContactMethod" type="xsd:string"/>
+<element minOccurs="0" name="primaryPhoneNumber" type="xsd:string"/>
+<element minOccurs="0" name="directionsCrossStreets" type="xsd:string"/>
+<element minOccurs="0" name="serviceDescription" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="crmNumber" type="xsd:string"/>
+<element minOccurs="0" name="paymentType" type="xsd:string"/>
+<element minOccurs="0" name="paymentTerms" type="xsd:string"/>
+<element minOccurs="0" name="specialInstructions" type="xsd:string"/>
+<element minOccurs="0" name="buyoutCode" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobSubStatus" type="xsd:string"/>
+<element minOccurs="0" name="complaintCode" type="xsd:string"/>
+<element minOccurs="0" name="requestedCompletionDate" type="xsd:string"/>
+<element minOccurs="0" name="requestCompletionTime" type="xsd:string"/>
+<element minOccurs="0" name="mailingLabelMethod" type="xsd:string"/>
+<element minOccurs="0" name="purchasedFrom" type="xsd:string"/>
+<element minOccurs="0" name="productSize" type="xsd:string"/>
+<element minOccurs="0" name="storeNumber" type="xsd:string"/>
+<element minOccurs="0" name="productPickupLocation" type="xsd:string"/>
+<element minOccurs="0" name="posStoreNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTransactionNumber" type="xsd:string"/>
+<element minOccurs="0" name="posTerminalNumber" type="xsd:string"/>
+<element minOccurs="0" name="posRetailerRefNumber" type="xsd:string"/>
+<element minOccurs="0" name="posPersonSelling" type="xsd:string"/>
+<element minOccurs="0" name="posSaleDate" type="xsd:string"/>
+<element minOccurs="0" name="posSaleTime" type="xsd:string"/>
+<element minOccurs="0" name="authorizationAmount" type="xsd:string"/>
+<element minOccurs="0" name="boxSentDate" type="xsd:string"/>
+<element minOccurs="0" name="labelSentDate" type="xsd:string"/>
+<element minOccurs="0" name="productReceivedDate" type="xsd:string"/>
+<element minOccurs="0" name="productReturnedDate" type="xsd:string"/>
+<element minOccurs="0" name="technicianName" type="xsd:string"/>
+<element minOccurs="0" name="technicianPhone" type="xsd:string"/>
+<element minOccurs="0" name="comment" type="xsd:string"/>
+<element minOccurs="0" name="commentType" type="xsd:string"/>
+<element minOccurs="0" name="serviceRequestType" type="xsd:string"/>
+<element minOccurs="0" name="serviceCategory" type="xsd:string"/>
+<element minOccurs="0" name="models" type="tns:models"/>
+<element minOccurs="0" name="parts" type="tns:parts"/>
+<element minOccurs="0" name="mailIns" type="tns:mailIns"/>
+<element minOccurs="0" name="services" type="tns:services"/>
+<element minOccurs="0" name="productComponents" type="tns:productComponents"/>
+<element minOccurs="0" name="originalCrmNumber" type="xsd:string"/>
+<element minOccurs="0" name="serviceType" type="xsd:string"/>
+<element minOccurs="0" name="supportingInformation" type="tns:supportingInformation"/>
+</sequence>
+</complexType>
+<element name="serviceJobUpdateResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="updateResponse" type="tns:updateResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="updateResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceOrderID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+</sequence>
+</complexType>
+<!--  Service Job Update Ends Here  -->
+<element name="serviceJobRenotificationRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="renotificationRequest" type="tns:renotificationRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="renotificationRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="renotifyReason" type="xsd:string"/>
+<element minOccurs="0" name="labelFormatRequest" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="serviceJobRenotificationResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="renotificationResponse" type="tns:renotificationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="renotificationResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="serviceJobID" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelStatus" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelTrackingNumber" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelCarrierName" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelImage" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelType" type="xsd:string"/>
+<element minOccurs="0" name="mailLabelErrors" type="tns:mailLabelErrors"/>
+</sequence>
+</complexType>
+<complexType name="supportInformation">
+<sequence>
+<element minOccurs="0" name="supportData" type="xsd:string"/>
+<element minOccurs="0" name="supportDataDescription" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="supportingInformation">
+<sequence>
+<element maxOccurs="unbounded" name="supportInformation" type="tns:supportInformation"/>
+</sequence>
+</complexType>
+<element name="preAuthorizationCreateRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="preauthorizationRequest" type="tns:preauthorizationRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="preauthorizationRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element name="preauthorizationDetails" type="tns:preauthorizationDetails"/>
+<element minOccurs="0" name="assignedBy" type="xsd:string"/>
+<element minOccurs="0" name="accountNumber" type="xsd:string"/>
+<element minOccurs="0" name="productNumber" type="xsd:string"/>
+<element minOccurs="0" name="productCategory" type="xsd:string"/>
+<element minOccurs="0" name="serialNumberFrom" type="xsd:string"/>
+<element minOccurs="0" name="serialNumberTo" type="xsd:string"/>
+<element minOccurs="0" name="lastName" type="xsd:string"/>
+<element minOccurs="0" name="firstName" type="xsd:string"/>
+<element minOccurs="0" name="companyName" type="xsd:string"/>
+<element minOccurs="0" name="addressLine1" type="xsd:string"/>
+<element minOccurs="0" name="addressLine2" type="xsd:string"/>
+<element minOccurs="0" name="addressLine3" type="xsd:string"/>
+<element minOccurs="0" name="email" type="xsd:string"/>
+<element minOccurs="0" name="addressCity" type="xsd:string"/>
+<element minOccurs="0" name="addressState" type="xsd:string"/>
+<element minOccurs="0" name="addressZip" type="xsd:string"/>
+<element minOccurs="0" name="addressCountry" type="xsd:string"/>
+<element minOccurs="0" name="phone" type="xsd:string"/>
+<element minOccurs="0" name="otherPhone" type="xsd:string"/>
+<element minOccurs="0" name="referenceNumber" type="xsd:string"/>
+<element minOccurs="0" name="comment" type="xsd:string"/>
+<element minOccurs="0" name="authorizationCode" type="xsd:string"/>
+<element minOccurs="0" name="authorizationType" type="xsd:string"/>
+<element minOccurs="0" name="costCenter" type="xsd:string"/>
+<element minOccurs="0" name="thirdPartyID" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="preauthorizationDetails">
+<sequence>
+<element maxOccurs="unbounded" name="preauthorizationDetail" type="tns:preauthorizationDetail"/>
+</sequence>
+</complexType>
+<complexType name="preauthorizationDetail">
+<sequence>
+<element minOccurs="0" name="authorizationDetailType" type="xsd:string"/>
+<element minOccurs="0" name="authorizationAmount" type="xsd:string"/>
+<element minOccurs="0" name="authorizationInterpretation" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="preAuthorizationCreateResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="preauthorizationResponse" type="tns:preauthorizationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="preauthorizationResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="preauthorizationNumber" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="preAuthorizationUpdateRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="updatePreauthorization" type="tns:updatePreauthorization"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="updatePreauthorization">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element name="preauthorizationDetails" type="tns:preauthorizationDetails"/>
+<element minOccurs="0" name="assignedBy" type="xsd:string"/>
+<element minOccurs="0" name="authorizationType" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="preAuthorizationUpdateResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="preauthorizationResponse" type="tns:preauthorizationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="preAuthorizationCancelRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="cancelPreauthorization" type="tns:cancelPreauthorization"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="cancelPreauthorization">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="authorizationNumber" type="xsd:string"/>
+<element minOccurs="0" name="assignedBy" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="preAuthorizationCancelResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="preauthorizationResponse" type="tns:preauthorizationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="transactionEscalationRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="escalationRequest" type="tns:escalationRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<element name="transactionEscalationUpdateRequest">
+<complexType>
+<complexContent>
+<extension base="tns:requestDetails">
+<sequence>
+<element name="escalationUpdateRequest" type="tns:escalationUpdateRequest"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="escalationRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="transactionId" type="xsd:string"/>
+<element minOccurs="0" name="escalationDescription" type="xsd:string"/>
+</sequence>
+</complexType>
+<complexType name="escalationUpdateRequest">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="transactionId" type="xsd:string"/>
+<element minOccurs="0" name="escalationDescription" type="xsd:string"/>
+<element minOccurs="0" name="escalationStatus" type="xsd:string"/>
+<element minOccurs="0" name="escalationComment" type="xsd:string"/>
+<element minOccurs="0" name="escalationEstimatedServiceDate" type="xsd:string"/>
+<element minOccurs="0" name="denialReason" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="transactionEscalationResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="escalationResponse" type="tns:escalationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="escalationResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="transactionId" type="xsd:string"/>
+</sequence>
+</complexType>
+<element name="transactionUpdateEscalationResponse">
+<complexType>
+<complexContent>
+<extension base="tns:responseDetails">
+<sequence>
+<element name="updateEscalationResponse" type="tns:updateEscalationResponse"/>
+</sequence>
+</extension>
+</complexContent>
+</complexType>
+</element>
+<complexType name="updateEscalationResponse">
+<sequence>
+<element minOccurs="0" name="requestControlID" type="xsd:string"/>
+<element minOccurs="0" name="transactionId" type="xsd:string"/>
+</sequence>
+</complexType>
+</schema>
+</types>
+<message name="serviceJobRescheduleRequest">
+<part element="ns1:serviceJobRescheduleRequest" name="in"></part>
+</message>
+<message name="preAuthorizationCancelRequest">
+<part element="ns1:preAuthorizationCancelRequest" name="in"></part>
+</message>
+<message name="serviceJobRenotificationRequest">
+<part element="ns1:serviceJobRenotificationRequest" name="in"></part>
+</message>
+<message name="serviceJobDownloadResponse">
+<part element="ns1:serviceJobDownloadResponse" name="out"></part>
+</message>
+<message name="preAuthorizationCreateRequest">
+<part element="ns1:preAuthorizationCreateRequest" name="in"></part>
+</message>
+<message name="serviceJobUpdateResponse">
+<part element="ns1:serviceJobUpdateResponse" name="out"></part>
+</message>
+<message name="serviceProviderInfoResponse">
+<part element="ns1:serviceProviderInfoResponse" name="out"></part>
+</message>
+<message name="serviceJobScheduleRequest">
+<part element="ns1:serviceJobScheduleRequest" name="in"></part>
+</message>
+<message name="serviceJobRescheduleResponse">
+<part element="ns1:serviceJobRescheduleResponse" name="out"></part>
+</message>
+<message name="serviceJobStatusResponse">
+<part element="ns1:serviceJobStatusResponse" name="out"></part>
+</message>
+<message name="serviceJobStatusRequest">
+<part element="ns1:serviceJobStatusRequest" name="in"></part>
+</message>
+<message name="preAuthorizationCreateResponse">
+<part element="ns1:preAuthorizationCreateResponse" name="out"></part>
+</message>
+<message name="serviceJobUpdateRequest">
+<part element="ns1:serviceJobUpdateRequest" name="in"></part>
+</message>
+<message name="spAvailabilityResponse">
+<part element="ns1:spAvailabilityResponse" name="out"></part>
+</message>
+<message name="transactionEscalationUpdateRequest">
+<part element="ns1:transactionEscalationUpdateRequest" name="in"></part>
+</message>
+<message name="transactionUpdateEscalationResponse">
+<part element="ns1:transactionUpdateEscalationResponse" name="out"></part>
+</message>
+<message name="serviceJobRenotificationResponse">
+<part element="ns1:serviceJobRenotificationResponse" name="out"></part>
+</message>
+<message name="transactionEscalationRequest">
+<part element="ns1:transactionEscalationRequest" name="in"></part>
+</message>
+<message name="spAvailabilityRequest">
+<part element="ns1:spAvailabilityRequest" name="in"></part>
+</message>
+<message name="serviceJobScheduleResponse">
+<part element="ns1:serviceJobScheduleResponse" name="out"></part>
+</message>
+<message name="preAuthorizationCancelResponse">
+<part element="ns1:preAuthorizationCancelResponse" name="out"></part>
+</message>
+<message name="preAuthorizationUpdateRequest">
+<part element="ns1:preAuthorizationUpdateRequest" name="in"></part>
+</message>
+<message name="serviceJobCancelResponse">
+<part element="ns1:serviceJobCancelResponse" name="out"></part>
+</message>
+<message name="serviceJobCancelRequest">
+<part element="ns1:serviceJobCancelRequest" name="in"></part>
+</message>
+<message name="preAuthorizationUpdateResponse">
+<part element="ns1:preAuthorizationUpdateResponse" name="out"></part>
+</message>
+<message name="transactionEscalationResponse">
+<part element="ns1:transactionEscalationResponse" name="out"></part>
+</message>
+<message name="serviceJobDownloadRequest">
+<part element="ns1:serviceJobDownloadRequest" name="in"></part>
+</message>
+<message name="serviceProviderInfoRequest">
+<part element="ns1:serviceProviderInfoRequest" name="in"></part>
+</message>
+<portType name="CRMServiceOrderPortType">
+<operation name="serviceProviderInfo">
+<input message="tns:serviceProviderInfoRequest" name="serviceProviderInfoRequest"></input>
+<output message="tns:serviceProviderInfoResponse" name="serviceProviderInfoResponse"></output>
+</operation>
+<operation name="serviceJobSchedule">
+<input message="tns:serviceJobScheduleRequest" name="serviceJobScheduleRequest"></input>
+<output message="tns:serviceJobScheduleResponse" name="serviceJobScheduleResponse"></output>
+</operation>
+<operation name="serviceJobReschedule">
+<input message="tns:serviceJobRescheduleRequest" name="serviceJobRescheduleRequest"></input>
+<output message="tns:serviceJobRescheduleResponse" name="serviceJobRescheduleResponse"></output>
+</operation>
+<operation name="serviceJobCancel">
+<input message="tns:serviceJobCancelRequest" name="serviceJobCancelRequest"></input>
+<output message="tns:serviceJobCancelResponse" name="serviceJobCancelResponse"></output>
+</operation>
+<operation name="serviceProviderAvailability">
+<input message="tns:spAvailabilityRequest" name="spAvailabilityRequest"></input>
+<output message="tns:spAvailabilityResponse" name="spAvailabilityResponse"></output>
+</operation>
+<operation name="serviceJobDownload">
+<input message="tns:serviceJobDownloadRequest" name="serviceJobDownloadRequest"></input>
+<output message="tns:serviceJobDownloadResponse" name="serviceJobDownloadResponse"></output>
+</operation>
+<operation name="serviceJobStatus">
+<input message="tns:serviceJobStatusRequest" name="serviceJobStatusRequest"></input>
+<output message="tns:serviceJobStatusResponse" name="serviceJobStatusResponse"></output>
+</operation>
+<operation name="serviceJobUpdate">
+<input message="tns:serviceJobUpdateRequest" name="serviceJobUpdateRequest"></input>
+<output message="tns:serviceJobUpdateResponse" name="serviceJobUpdateResponse"></output>
+</operation>
+<operation name="serviceJobRenotification">
+<input message="tns:serviceJobRenotificationRequest" name="serviceJobRenotificationRequest"></input>
+<output message="tns:serviceJobRenotificationResponse" name="serviceJobRenotificationResponse"></output>
+</operation>
+<operation name="preAuthorizationCreate">
+<input message="tns:preAuthorizationCreateRequest" name="preAuthorizationCreateRequest"></input>
+<output message="tns:preAuthorizationCreateResponse" name="preAuthorizationCreateResponse"></output>
+</operation>
+<operation name="preAuthorizationUpdate">
+<input message="tns:preAuthorizationUpdateRequest" name="preAuthorizationUpdateRequest"></input>
+<output message="tns:preAuthorizationUpdateResponse" name="preAuthorizationUpdateResponse"></output>
+</operation>
+<operation name="preAuthorizationCancel">
+<input message="tns:preAuthorizationCancelRequest" name="preAuthorizationCancelRequest"></input>
+<output message="tns:preAuthorizationCancelResponse" name="preAuthorizationCancelResponse"></output>
+</operation>
+<operation name="transactionEscalationCreate">
+<input message="tns:transactionEscalationRequest" name="transactionEscalationRequest"></input>
+<output message="tns:transactionEscalationResponse" name="transactionEscalationResponse"></output>
+</operation>
+<operation name="transactionEscalationUpdate">
+<input message="tns:transactionEscalationUpdateRequest" name="transactionEscalationUpdateRequest"></input>
+<output message="tns:transactionUpdateEscalationResponse" name="transactionUpdateEscalationResponse"></output>
+</operation>
+</portType>
+<binding name="CRMServiceOrderBinding" type="tns:CRMServiceOrderPortType">
+<wsp:PolicyReference URI="#UsernameTokenPolicy"/>
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="serviceProviderInfo">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceProviderInfoRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceProviderInfoResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobSchedule">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobScheduleRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobScheduleResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobReschedule">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobRescheduleRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobRescheduleResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobCancel">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobCancelRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobCancelResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceProviderAvailability">
+<soap:operation soapAction="" style="document"/>
+<input name="spAvailabilityRequest">
+<soap:body use="literal"/>
+</input>
+<output name="spAvailabilityResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobDownload">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobDownloadRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobDownloadResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobStatus">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobStatusRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobStatusResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobUpdate">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobUpdateRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobUpdateResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="serviceJobRenotification">
+<soap:operation soapAction="" style="document"/>
+<input name="serviceJobRenotificationRequest">
+<soap:body use="literal"/>
+</input>
+<output name="serviceJobRenotificationResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="preAuthorizationCreate">
+<soap:operation soapAction="" style="document"/>
+<input name="preAuthorizationCreateRequest">
+<soap:body use="literal"/>
+</input>
+<output name="preAuthorizationCreateResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="preAuthorizationUpdate">
+<soap:operation soapAction="" style="document"/>
+<input name="preAuthorizationUpdateRequest">
+<soap:body use="literal"/>
+</input>
+<output name="preAuthorizationUpdateResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="preAuthorizationCancel">
+<soap:operation soapAction="" style="document"/>
+<input name="preAuthorizationCancelRequest">
+<soap:body use="literal"/>
+</input>
+<output name="preAuthorizationCancelResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="transactionEscalationCreate">
+<soap:operation soapAction="" style="document"/>
+<input name="transactionEscalationRequest">
+<soap:body use="literal"/>
+</input>
+<output name="transactionEscalationResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+<operation name="transactionEscalationUpdate">
+<soap:operation soapAction="" style="document"/>
+<input name="transactionEscalationUpdateRequest">
+<soap:body use="literal"/>
+</input>
+<output name="transactionUpdateEscalationResponse">
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="CRMServiceOrderService">
+<port binding="tns:CRMServiceOrderBinding" name="CRMServiceOrderPort">
+<soap:address location="http://www.servicebench.com/servicebenchv5/services/CRMServiceOrderService"/>
+</port>
+</service>
+<wsp:Policy wsu:Id="UsernameTokenPolicy">
+<wsp:ExactlyOne>
+<wsp:All>
+<sp:SupportingTokens>
+<wsp:Policy>
+<sp:UsernameToken sp:IncludeToken="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/AlwaysToRecipient">
+<wsp:Policy>
+<wsp:ExactlyOne>
+<wsp:All>
+<sp:WssUsernameToken10/>
+</wsp:All>
+</wsp:ExactlyOne>
+</wsp:Policy>
+</sp:UsernameToken>
+</wsp:Policy>
+</sp:SupportingTokens>
+</wsp:All>
+</wsp:ExactlyOne>
+</wsp:Policy>
+</definitions>

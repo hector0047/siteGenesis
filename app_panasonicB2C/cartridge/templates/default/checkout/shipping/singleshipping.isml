@@ -1,0 +1,276 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+	<isset name="DecoratorTemplate" value="checkout/pt_checkout" scope="page"/>
+	<isdecorate template="${DecoratorTemplate}">
+<isinclude template="util/modules"/>
+<iscomment>
+	This template visualizes the first step of the single shipping checkout
+	scenario. It renders a form for the shipping address and shipping method
+	selection. Both are stored at a single shipment only.
+</iscomment>
+
+<iscomment>Report this checkout step (we need to report two steps)</iscomment>
+<isset name="PageName" value="ShippingPage" scope="page"/>
+<isreportcheckout checkoutstep="${2}" checkoutname="${'ShippingAddress'}"/>
+<isreportcheckout checkoutstep="${3}" checkoutname="${'ShippingMethod'}"/>
+<isset name="p_shippingpage" value="${true}" scope="pdict"/>
+<input type="hidden" value="${pdict.p_shippingpage}" class="shipping-flag"/>
+<isscript>
+	importScript("/cart/CartUtils.ds");	
+	var productListAddresses = CartUtils.getAddressList(pdict.Basket, pdict.CurrentCustomer, true);		
+</isscript>
+	
+<isscript>
+	for each(var shipment : dw.order.Shipment in pdict.Basket.getShipments()){
+		var dshipment : dw.order.Shipment = shipment;
+		break;
+	}		
+</isscript>
+	<div class="shipng-header-n-error-holder">
+		<h1>${Resource.msg('pt_checkout.breadcrumb','checkout',null)}</h1>
+		<isif condition="${pdict.vertexInvalidAddressException}">	
+			<span class="tax-error">${Resource.msg('singleshipping.texerror','checkout',null)}</span>
+		</isif>
+	</div>
+    <iscomment>checkout progress indicator</iscomment>
+    
+    <ischeckoutprogressindicator step="1" rendershipping="${pdict.Basket.productLineItems.size() == 0 ? 'false' : 'true'}"/>
+      
+      
+	<div class="mobileBlock mobile-summary">
+	 <h2>Summary</h2>
+		<isif condition="${!empty(pdict.checkoutstep)}">
+			<isset name="checkoutstep" value="${pdict.checkoutstep}" scope="page"/>
+		</isif>
+		<isif condition="${typeof checkoutstep !== 'undefined' && !empty(checkoutstep) && (checkoutstep >= 2)}">
+			<iscomment>Mobile Devices Order SubTotal</iscomment>
+			<iscomment>render the order totals</iscomment>
+			<div class="checkout-order-totals">
+				<isif condition="${checkoutstep > 3}">
+					<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${true}" p_shipmenteditable="${true}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${true}" multishipmentdiscount="${pdict.multishippingadjustedprice}"/>
+				<iselse/>
+					<isordertotals p_lineitemctnr="${pdict.Basket}" p_showshipmentinfo="${true}" p_shipmenteditable="${true}" p_totallabel="${Resource.msg('global.estimatedtotal','locale',null)}" p_cartpage="${false}" p_shippingpage="${true}"/>
+				</isif> 
+			</div>
+		</isif>
+	</div>
+	
+    	<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.singleshipping.shippingAddress.htmlName}" class="checkout-shipping address">
+		
+		<fieldset>
+		<isif condition="${pdict.HomeDeliveries}">	
+				<iscomment>shipping address area</iscomment>
+				<div class="mobilesectionHdr mobileBlock">SHIPPING INFORMATION</div>
+				<div class="desktopBlock"> 
+				<isif condition="${!pdict.CurrentCustomer.authenticated}">
+					<legend class="shippingnewer"><span  class="shipping">${Resource.msg('singleshipping.enteraddressforguest','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				<iselseif condition="${pdict.CurrentCustomer.authenticated && !pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">
+					 <legend class="shippingnewer"><span  class="shipping">${Resource.msg('singleshipping.enteraddressforguest','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				<iselse/>
+					 <legend><span class="shipping">${Resource.msg('singleshipping.enteraddress','checkout',null)}</span>
+						<div class="dialog-required shiping-dialog"> <span class="required-indicator">&#42; <em>${Resource.msg('global.requiredfield','locale',null)}</em></span></div>
+					</legend>
+				</isif>
+				</div>
+		
+					<iscomment>Entry point for Multi-Shipping (disabled on purpose)</iscomment>
+					<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('enableMultiShipping')}">
+						<isscript>
+							var plicount = 0;
+							for each (var pli : ProductLineItem in pdict.Basket.allProductLineItems){
+								if(pli.custom.fromStoreId == null ){
+									plicount += pli.quantityValue; 
+								}
+							}	 	
+						</isscript>
+						<isif condition="${plicount > 1 }">
+							<div class="ship-to-multiple">
+								${Resource.msg('singleshipping.multiple','checkout',null)} 
+								<button class="shiptomultiplebutton button-fancy-medium cancel" type="submit" name="${pdict.CurrentForms.singleshipping.shipToMultiple.htmlName}" value="${Resource.msg('global.yes','locale',null)}">
+									${Resource.msg('global.yes','locale',null)}
+								</button>
+							</div>
+						</isif>
+					</isif>
+					
+					<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('ATEnable')}">
+						<isinclude template="errormessages/errormessge.isml"/>
+					</isif>
+					
+					<iscomment>display select box with stored addresses if customer is authenticated and there are saved addresses</iscomment>
+					<iscomment>Shipment Address and Saved Address Start</iscomment>
+      				<div class="shipping-select-Add-Address">
+					<isif condition="${pdict.CurrentCustomer.authenticated && pdict.CurrentCustomer.profile.addressBook.addresses.size() > 0}">
+						<div class="select-address">
+						<style>.panasonic_device .shipmentAddressBlock {display:none;}</style>
+							<div class="form-row shippingnew">
+								<label for="${pdict.CurrentForms.singleshipping.addressList.htmlName}">
+									<span class="desktopBlock">${Resource.msg('global.selectaddressmessage','locale',null)}:</span>
+									<span class="mobileBlock saveaddress">Select a Saved Address</span>									
+									<span class="mobileBlock selctAddressCard">enter a new address</span>
+								</label>
+								<iscomment>Start JIRA PREV-33:Shipping page: Not displaying the selected Address details, in the "Select an Address" drop down.Added p_form attribute </iscomment>
+								<isaddressselectlist p_listId="${pdict.CurrentForms.singleshipping.addressList.htmlName}" p_listaddresses="${productListAddresses}"  p_form="shipping" />						
+								<iscomment>End JIRA PREV-33 </iscomment>
+							</div>
+							<div class="form-row form-row-button hide">
+								<button id="addressSelectGoButton" class="select" name="${pdict.CurrentForms.singleshipping.shippingAddress.selectAddress.htmlName}" type="submit" value="Go" >${Resource.msg('singleshipping.select','checkout',null)}</button>
+							</div>
+						</div>
+					<iselse/>
+						<isif condition="${productListAddresses.size() > 0}">
+						<div class="select-address">
+							<div class="form-row">
+								<label for="${pdict.CurrentForms.singleshipping.addressList.htmlName}">
+									${Resource.msg('global.selectaddressmessage','locale',null)}:
+								</label>
+								<iscomment>Start JIRA PREV-33:Shipping page: Not displaying the selected Address details, in the "Select an Address" drop down. Added p_form attribute </iscomment>
+								<isaddressselectlist p_listid="${pdict.CurrentForms.singleshipping.addressList.htmlName}" p_listaddresses="${productListAddresses}" p_form="shipping" />						
+								<iscomment>End JIRA PREV-33 </iscomment>
+							</div>					
+						</div>
+						</isif>
+					</isif>	 
+				<iscomment>Shipment Address Block Start</iscomment>
+				<div class="shipmentAddressBlock">
+					<div class="form-section two-row">
+						<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.firstName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.firstname.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="10" attribute2="placeholder" value2="First Name*"/>
+						<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.lastName}" type="input" requiredtext="${Resource.msg('forms.customeraddress.lastname.missing-error','forms',null)}" rowclass="last" attribute1="tabindex" value1="11" attribute2="placeholder" value2="Last Name*"/>	
+					</div>
+		
+				    <div class="form-section two-row">
+				 	   <isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.address1}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipaddress1.error','forms',null)}" rowclass="first" attribute1="tabindex" value1="12" xhtmlclass="pobox_validation" attribute2="placeholder" value2="Address 1*"/>
+			     	   <isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.address2}" type="input" rowclass="last" attribute1="tabindex" value1="13" xhtmlclass="pobox_validation" attribute2="placeholder" value2="Address 2"/>
+				    </div>
+				      	<div class="form-section two-row pobox-error">
+					      	<span id="poBoxErrorMsgadd1"></span>
+					    	<span id="poBoxErrorMsgadd2"></span>
+				    	</div>	
+			    	<div class="form-section three-row">
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.city}" type="input" requiredtext="${Resource.msg('forms.customeraddress.shipcity.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="14" attribute2="placeholder" value2="City*"/>
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.states.state}" type="select" requiredtext="${Resource.msg('forms.customeraddress.state.missing-error','forms',null)}" rowclass="middle" attribute1="tabindex" value1="15"/>
+				    	<iscomment>Start JIRA PREV-77 : Zip code validation is not happening with respect to the State/Country.Added xhtmlclass="zip" for validation.</iscomment>
+				    	
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.postal}" type="input" xhtmlclass="zip" requiredtext="${Resource.msg('forms.errorpostal','forms',null)}" rowclass="last" attribute1="tabindex" value1="16" attribute2="placeholder" value2="Zip Code*"/>
+				    	<iscomment>End JIRA PREV-77</iscomment>
+				    	
+				    	<div class="phoneCntr">
+				    	<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.phone}" type="input" requiredtext="${Resource.msg('forms.customeraddress.phone.missing-error','forms',null)}" rowclass="first" attribute1="tabindex" value1="18" attribute2="placeholder" value2="Phone Number*"/>
+				    	<div class="form-field-tooltip with-helper-text">
+							<a href="${URLUtils.url('Page-Show', 'cid', 'help-telephone')}" class="tooltip">
+								${Resource.msg('singleshipping.phonerequired','checkout',null)}
+								<div class="tooltip-content"  data-layout="small">
+									<iscontentasset aid="help-telephone"/>
+								</div>
+							</a>
+						</div>
+						</div>
+					
+			    	</div>
+			    	<span id="shiperror"></span>		 
+			    	
+			    	<div class ="hide">
+			    		<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addressFields.country}" type="select" requiredtext="${Resource.msg('forms.customeraddress.country.missing-error','forms',null)}"/>
+			    	</div>
+			    	</div>
+			    	</div>
+			    	<iscomment>Shipment Address and Saved Address End</iscomment>
+			    	<iscomment>Shipment Address Block End</iscomment>
+					<iscomment>Use address for Billing Address</iscomment>
+		    		<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.useAsBillingAddress}" type="checkbox" rowclass="form-indent label-inline billing-check" attribute1="checked" value1="checked"/>	
+		    		<iscomment>Add address to Address Book</iscomment>
+		    		<isif condition="${pdict.CurrentCustomer.authenticated}">
+		    			<isinputfield formfield="${pdict.CurrentForms.singleshipping.shippingAddress.addToAddressBook}" type="checkbox" rowclass="form-indent label-inline saved-address-check"/>
+		    		</isif>
+			    	
+			    	
+					<iscomment>Is this a gift</iscomment>
+				    <div class="form-row gift-row hide"> 
+				    	<label class="giftLable" for="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.htmlName}"><isprint value="${Resource.msg(pdict.CurrentForms.singleshipping.shippingAddress.isGift.label,'forms',null)}"/></label>
+			    		<div class="radio-section">
+			    			<span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.htmlName}" id="is-gift-yes" value="true" <isif condition="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.value}">checked="checked"</isif> /></span><label name="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.htmlName}">Yes</label>
+			    			<span class="custom-radio"><input class="input-radio" type="radio" name="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.htmlName}" id="is-gift-no" value="false" <isif condition="${!pdict.CurrentForms.singleshipping.shippingAddress.isGift.value}">checked="checked"</isif> /></span><label name="${pdict.CurrentForms.singleshipping.shippingAddress.isGift.htmlName}">No</label>
+			    		</div>
+			    		<isinputfield rowclass="gift-message-text" formfield="${pdict.CurrentForms.singleshipping.shippingAddress.giftMessage}" type="textarea" attribute3="data-character-limit" value3="250" attribute2="placeholder" value2="Gift Message (free)"/>
+				    </div> 
+				    
+			    		
+		
+				</fieldset> 
+			<iscomment>PANC-984 </iscomment>
+				<div id="shipping-method-list">
+					<isinclude url="${URLUtils.https('COShipping-UpdateShippingMethodList')}"/>
+				</div>
+		</isif>		
+		<fieldset>
+		
+			<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('enableStorePickUp')}">
+				<isset name="instoreShipmentsExists" value="${false}" scope="page"/>
+				<isinclude template="checkout/shipping/storepickup/instoremessages"/>
+			<iselse/>
+				<isset name="instoreShipmentsExists" value="${false}" scope="page"/>		
+			</isif>
+		
+			
+			<isif condition="${dw.system.Site.getCurrent().getCustomPreferenceValue('enableStorePickUp') && instoreShipmentsExists}">
+				<div class="form-row form-row-button instore-continue-button">
+			<iselse/>
+				<div class="form-row form-row-button">
+			</isif>		
+						
+				<input type="hidden" name="byPass" value="false" class="byPassAddressVerification"/>
+				<isif condition="${!empty(dshipment)}">
+					<isset name="address" value="${dshipment.shippingAddress}" scope="page"/>
+					<isif condition="${address != null}">
+						<input type="hidden" name="saddress1" value="${address.address1}"/>
+						<input type="hidden" name="scity" value="${address.city}"/>
+						<input type="hidden" name="spostal" value="${address.postalCode}"/>
+						<input type="hidden" name="sstate" value="${address.stateCode}"/>
+					</isif>
+				</isif>
+				<a href="javascript:void(0);" style="display:none;" class="button js-single-shippingactiondialog button-blue"  data-dlg-options='{"width":500,"height":"auto","dialogClass":"addressvalidation"}' > 
+					shippingactiondialog
+				</a>
+					<isif condition="${pdict.CurrentSession.privacy.isPaypal != null}"> 
+						<isset name="isPaypalCheckout" value="${pdict.CurrentSession.privacy.isPaypal}" scope="page" />
+						<input type="hidden" name="isPaypalcheck" value="${isPaypalCheckout}"/>
+					<iselse/>
+						<isset name="isPaypalCheckout" value="false" scope="page" />
+						<input type="hidden" name="isPaypalcheck" value="false"/>
+					</isif>
+				<isif condition="${(!empty(pdict.AddressList) && pdict.AddressList.length > 0) || isPaypalCheckout}"> 	                		                
+	                	<a href="${'#'}" class="button js-singleship-addresscontinue-link button-blue" name="${pdict.CurrentForms.singleshipping.shippingAddress.save.htmlName}" value="${Resource.msg('global.continuecheckoutbrief','locale',null)}" tabindex="19">${Resource.msg('checkout.shipping','checkout',null)}</a>	                		                					
+				<iselse/>
+					<a href="${URLUtils.https('COShipping-AddressDAV').toString()}" class="button js-singleship-noaddresscontinue-link button-blue" name="${pdict.CurrentForms.singleshipping.shippingAddress.save.htmlName}" tabindex="19"><span>Continue</span></a>	               	
+				</isif>
+								
+				<button style="display:none;" class="button button-fancy-large hiddenSaveShipping button-blue" type="submit" name="${pdict.CurrentForms.singleshipping.shippingAddress.save.htmlName}" value="${Resource.msg('global.continuecheckoutbrief','locale',null)}"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>			
+			</div>
+			
+			<iscomment>Entry point for Multi-Shipping (disabled on purpose)</iscomment>
+			<isif condition="${pdict.Basket.productLineItems.size() > 1 && false}">${Resource.msg('checkout.shipping','checkout',null)}
+				<div class="ship-to-multiple">
+					${Resource.msg('singleshipping.multiple','checkout',null)} <a href="${URLUtils.https('COShippingMultiple-Start')}">${Resource.msg('global.yes','locale',null)}</a>
+				</div>
+			</isif>
+			
+			<input type="hidden" name="${pdict.CurrentForms.singleshipping.secureKeyHtmlName}" value="${pdict.CurrentForms.singleshipping.secureKeyValue}"/>
+		
+		</fieldset>
+	</form>
+			
+<isscript>
+	importScript("util/ViewHelpers.ds");
+	var addressForm = pdict.CurrentForms.singleshipping.shippingAddress.addressFields;
+	var countries = ViewHelpers.getCountriesAndRegions(addressForm);
+	var json = JSON.stringify(countries);				
+</isscript>
+<script>if (window.app) {app.countries = <isprint value="${json}" encoding="off"/>;}</script>
+
+</isdecorate>
+<isif condition="${'EnableEnsighten' in dw.system.Site.current.preferences.custom && dw.system.Site.current.preferences.custom.EnableEnsighten && pdict.CurrentSession.privacy.isCheckout != null && pdict.CurrentSession.privacy.isCheckout == true}">	
+	<iscomponent pipeline="EnsightenFooterInjection-AJAXStart" ens_ajax_id="Shipping" page_id="${PageName}"/>
+</isif>

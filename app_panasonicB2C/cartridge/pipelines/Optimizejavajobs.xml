@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="Export">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="Export" secure="false"/>
+        <node-display x="2" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="util/ExportCatalogByFilter.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="xml" key="output"/>
+          <key-binding alias="notifyToEmailID" key="notifyToEmailId"/>
+          <key-binding alias="message" key="message"/>
+          <key-binding alias="Message" key="Message"/>
+          <key-binding alias="FeedEnabled" key="Enabled"/>
+          <key-binding alias="LocalFile" key="File"/>
+          <key-binding alias="RemoteFileName" key="RemoteFileName"/>
+          <key-binding alias="RemotePath" key="RemotePath"/>
+          <key-binding alias="Brands" key="Brands"/>
+          <key-binding alias="CurrentHttpParameterMap" key="httpParameterMap"/>
+          <key-binding alias="!empty(dw.catalog.CatalogMgr.getSiteCatalog())?dw.catalog.CatalogMgr.getSiteCatalog().getRoot():null" key="CatalogID"/>
+          <key-binding alias="catId" key="Catalog"/>
+          <key-binding alias="false" key="IncludeOfflineProducts"/>
+          <key-binding alias="false" key="IncludeSupportProducts"/>
+          <key-binding alias="false" key="IncludeWarrantyProducts"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node/>
+              <node-display orientation="horizontal" x="1" y="0"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

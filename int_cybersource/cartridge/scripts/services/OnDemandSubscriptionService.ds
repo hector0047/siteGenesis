@@ -1,0 +1,99 @@
+var sf = require("bc_serviceframework");
+
+var OnDemandSubscription = require("../objects/OnDemandSubscription");  
+
+importScript('cybersource/Cybersource_BillTo_Object.ds');
+importScript('cybersource/Cybersource_ShipTo_Object.ds');
+importScript('cybersource/Cybersource_Card_Object.ds');
+importScript('cybersource/Cybersource_PurchaseTotals_Object.ds');
+importScript('cybersource/libCybersource.ds');
+
+var CybersourceHelper = getCybersourceHelper();
+
+function getOnDemandSubscriptionService() {
+	return OnDemandSubscriptionService;
+}
+
+/**
+ * Webservice, which checks a creditcard number and provides CC provider
+ * @class
+ */
+var OnDemandSubscriptionService = sf.getService('AbstractSoapService').extend(
+/** @lends OnDemandSubscriptionService.prototype */ 
+{
+	/**
+	 * @constructs OnDemandSubscriptionService
+	 * @augments AbstractSoapService
+	 */
+	init: function() {
+		this._super("CybersourceService" , new OnDemandSubscription());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		this.webReference = webreferences.CyberSourceTransaction;	
+		this.serviceClient = this.webReference.getService("TransactionProcessor", "portXML");
+		CybersourceHelper.setEndpoint(this.serviceClient);
+	},
+
+	createRequest: function (subscriptionInfoObj) {	
+		
+		var subscriptionID  = subscriptionInfoObj.subscriptionID;
+		var purchaseObject  = subscriptionInfoObj.purchaseObject;
+		var billToObject 	= subscriptionInfoObj.billToObject;
+		var shipToObject 	= subscriptionInfoObj.shipToObject;
+		
+		if(!CybersourceHelper.createHeader(this.serviceClient)){
+			return null;
+		}
+		
+		var request = new this.webReference.RequestMessage();
+		CybersourceHelper.addOnDemandSubscriptionInfo(subscriptionID, request, purchaseObject, "test");
+		
+		/********************************/
+		/* DAV-related WebService setup */
+		/********************************/	
+		var enableDAV : String = CybersourceHelper.getDavEnable();
+		var approveDAV : String = CybersourceHelper.getDavOnAddressVerificationFailure();
+		
+		if( enableDAV=='YES' ) {
+			var ignoreDAVResult = false;
+			if( approveDAV=='APPROVE' ) {
+				ignoreDAVResult = true;
+			}
+			CybersourceHelper.addDAVRequestInfo(request,billToObject,shipToObject,ignoreDAVResult);
+		}
+		/* End of DAV WebService setup */
+		
+		/* AVS Service setup */
+		var ignoreAVSResult : Boolean = CybersourceHelper.getAvsIgnoreResult();
+		var declineAVSFlags : String = CybersourceHelper.getAvsDeclineFlags();
+		
+		CybersourceHelper.addAVSRequestInfo(request,ignoreAVSResult,declineAVSFlags);
+		/* End of AVS Service setup */	
+	
+		return request;	
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		return this.serviceClient.runTransaction(this.request);
+		
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('CybersourceService',OnDemandSubscriptionService);

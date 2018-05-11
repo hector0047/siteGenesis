@@ -1,0 +1,47 @@
+<!--- TEMPLATENAME: cartlogin.isml --->
+<isif condition="${!pdict.CurrentCustomer.authenticated}"> 
+<div class="cart-login">
+		<div  class="cart-message"><span>${Resource.msg('cart.login.haveaccount','checkout',null)}</span><div class="login-link">LOG IN<i></i></div>
+		<div>
+		<isset name="error" value="${false}" scope="page" /> 
+		<iscomment>Login Unsuccessful Error Message</iscomment>
+		<isif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && pdict.TempCustomer.profile.credentials.locked}">
+			<isset name="error" value="${true}" scope="page" />
+			<div class="error-form cart-login-error">${Resource.msg('logininclude.locked','account',null)}</div>
+		<iselseif condition="${pdict.TempCustomer != null && pdict.TempCustomer.profile != null && (pdict.TempCustomer.profile.credentials.remainingLoginAttempts == 1)}">
+			<isset name="error" value="${true}" scope="page" />
+			<div class="error-form cart-login-error">${Resource.msg('logininclude.willbelocked','account',null)}</div>
+		<iselseif condition="${pdict.RegistrationStatus != null && pdict.RegistrationStatus != false && pdict.RegistrationStatus.code == 'CustomerAlreadyExistError'}">			
+			<isset name="error" value="${true}" scope="page" />
+			<div class="error-form cart-login-error">${Resource.msg('logininclude.loginfberror','account',null)}</div>
+		<iselseif condition="${!pdict.CurrentForms.login.loginsucceeded.valid}">
+			<isset name="error" value="${true}" scope="page" />
+			<div class="error-form cart-login-error">${Resource.msg('logininclude.loginerror','account',null)}</div>
+		</isif>
+		
+			<div <isif condition="${(error)}"> class="login-form" <iselse/>class="login-form hide"</isif>>
+				<form action="${URLUtils.httpsContinue()}" method="post" class="clearfix checkoutlogin" id="${pdict.CurrentForms.login.cart_login.htmlName}"> 
+					<fieldset id="form-fields">				
+						<div class = "input-fields">
+							<div class="user-email"><isinputfield formfield="${pdict.CurrentForms.login.username}" type="input" xhtmlclass="email-input loginemail" p_dynamic="true" requiredtext="${Resource.msg('login.username.missing-error','forms',null)}" rowclass="loginrow-cont" requiredtextstar="true" attribute1="placeholder" value1="Email Address*"/></div>
+							<div class="user-password"><isinputfield formfield="${pdict.CurrentForms.login.password}" type="password" xhtmlclass="password-input" requiredtext="${Resource.msg('login.password.missing-error','forms',null)}" rowclass="loginrow-cont" attribute1="placeholder" value1="Password*"/></div>
+						</div>
+					  <div style="float:left; width:100%"> 
+					  <div class="form-row-contents">
+					        <div class="rememberme"><isinputfield formfield="${pdict.CurrentForms.login.rememberme}" type="checkbox"  rowclass="label-inline remember-me-row-cont tickmark"/></div>
+							<a class="forget-password" href="${URLUtils.url('Account-PasswordResetDialog')}" title="${Resource.msg('logininclude.forgotpassword','account',null)}">
+							${Resource.msg('logininclude.forgotpassword','account',null)}
+							</a>
+					</div>
+					 <button type="submit" class="cartLoginButton" value="${Resource.msg('global.continueInCaps','locale',null)}" name="${pdict.CurrentForms.login.cart_login.htmlName}">
+						${Resource.msg('global.continueInCaps','locale',null)}
+					  </button>
+					  </div>
+					<input type="hidden" name="${pdict.CurrentForms.login.secureKeyHtmlName}" value="${pdict.CurrentForms.login.secureKeyValue}"/>
+				</fieldset>
+				</form>
+			</div>
+		</div>
+		</div>
+	</div>
+</isif>

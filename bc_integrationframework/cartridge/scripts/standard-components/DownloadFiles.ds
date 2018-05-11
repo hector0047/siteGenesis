@@ -1,0 +1,169 @@
+/**
+* Demandware Script File
+* 
+*
+* Copies files from a remote FTP-Location
+*
+*   @input ServerUrl : String (S)FTP-Service-URL.
+*   @input UserID : String The User-ID.
+*   @input Password : String The Password.
+*   @input FilePattern : String Input File pattern to search in remote folder(default is  "^[\\w\-]{1,}\\.xml$" (*.xml)).
+*   @input TargetFolder : String Local folder in which will placed files, relatively to IMPEX/.
+*   @input ServerType : String Type of connection (FTP / SFTP).
+*   @input DeleteFile : String When file is uploaded, delete or keep it? ("Delete" / "Keep on server").
+*   @input ExtractArchive : Boolean Defines if files should be extracted after download and being recognized as ZIP file
+*   @input CurrentWorkflowComponentInstance : Object
+*   @input Status : Object Status object
+*   @output ErrorMsg : String An Error message
+*   @output StatusUpdate : Object Updated status object
+*
+*/
+importPackage( dw.system );
+importPackage( dw.net );
+importPackage( dw.io );
+importPackage( dw.util );
+
+importScript("utils/TransferClient.ds");
+
+//file size download limit 200MB
+var MEGABYTE : Number = 1024*1024;
+var FILE_SIZE_DOWNLOAD_LIMIT : Number = 200*MEGABYTE;
+
+var cvLogger : Logger = Logger;
+
+/**
+ * The main function.
+ * 
+ * @param pdict : PipelineDictionary The pipeline dictionary.
+ * 
+ * @returns Number If the given directory or the result is empty, PIPELET_ERROR is returned. Otherwise PIPELET_NEXT.
+ */
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var transferServerClient : Object;
+	var copyResult : boolean = true;
+	pdict.StatusUpdate = pdict.Status;
+	
+	if ( !empty( pdict.CurrentWorkflowComponentInstance ) ) {
+		cvLogger = pdict.CurrentWorkflowComponentInstance;
+	}
+	try {	
+		//Test mandatory paramater
+		if(!empty(pdict.ServerUrl) && !empty(pdict.ServerType) && !empty(pdict.DeleteFile) && !empty(pdict.TargetFolder)) {
+			
+	
+			transferServerClient = new TransferClient(pdict.ServerType, pdict.ServerUrl, pdict.UserID, pdict.Password);
+			var filePattern : string;
+			if(!empty(pdict.FilePattern)) {
+				filePattern = pdict.FilePattern;
+			}
+			else {
+				filePattern = "^[\\w\-]{1,}\\.xml$";
+			}
+		
+			var deleteFile : boolean = false;
+			if(pdict.DeleteFile == "DELETE") {
+				deleteFile = true;
+			}
+			
+			var extractArchive : boolean = pdict.ExtractArchive;
+			
+			//copying process
+	   	 	var copyResult = copyFilesToTarget(transferServerClient, filePattern, pdict.TargetFolder, deleteFile, extractArchive);
+		} else {
+			pdict.ErrorMsg = "one or more mandatory parameters are missing.";
+			return PIPELET_ERROR;
+		}
+		
+		if(transferServerClient != null) {
+			transferServerClient.disconnect();
+		}
+		
+		if(!copyResult) {			
+			pdict.StatusUpdate['noFilesFound'] = true;
+			return PIPELET_NEXT;
+		}
+	} catch ( e ) {
+		pdict.ErrorMsg = e.toString();
+		return PIPELET_ERROR;
+	}    
+	
+	return PIPELET_NEXT;
+}
+
+/**
+*	Copy (and delete) files from a remote FTP-Folder locally
+*	@param transferServerClient 	: Object 	FTP Client used
+*	@param filePattern 	: String 	The pattern for the filenames
+*	@param targetFolder 	: String 	target FTP Folder
+*	@param extractArchive	: Boolean 	Flag if files should be extracted after download and being recognized as ZIP file
+*	@param deleteFile 	: Boolean 	Flag if files should be deleted after successful copying 
+*	
+*	@returns Boolean If files were found at the specified location.
+**/
+function copyFilesToTarget(transferServerClient : Object, 
+							filePattern : string, 
+							targetFolder : string, 
+							deleteFile : boolean,
+							extractArchive: boolean ) : boolean
+{
+	var regExp : RegExp = new RegExp(filePattern);
+	var fileInfoList : Array = transferServerClient.list(transferServerClient.urlObject.path);
+		
+	if(fileInfoList != null && fileInfoList.length > 0)
+	{
+		for(var i : Number = 0; i < fileInfoList.length; i++)
+		{
+			var fileInfo : Object = fileInfoList[i];
+			if(regExp.test(fileInfo.name))
+			{
+				var fileSize : Number = fileInfo.size;
+				if ( fileSize > FILE_SIZE_DOWNLOAD_LIMIT ) {
+					throw new Error( 'FTP download file size limit of 200 MB exceeded for ' + fileInfo.name + '. Actual size is ' + (fileSize/MEGABYTE).toFixed(2) + ' MB.');
+				} else {
+					copyFileToTargetFolder(transferServerClient, targetFolder, fileInfo.name, deleteFile, extractArchive );
+				}
+			}
+			
+		}
+		return true;
+	}
+	
+	return false;
+} 
+/**
+*	Copy (and delete) a file from a remote FTP-Folder locally
+*	@param transferServerClient : Object 	FTP Client used
+*	@param targetFolder 		: String 	target FTP Folder
+*	@param fileName 			: String 	The file to copy
+*	@param deleteFile 			: Boolean	Flag if files should be deleted after successful copying 
+*	@param extractArchive		: Boolean 	Flag if file should be extracted after download and being recognized as ZIP file
+*
+**/
+function copyFileToTargetFolder(transferServerClient : Object, targetFolder : string, fileName : string, deleteFile : boolean, extractArchive : boolean)
+{
+	var targetDirStr : string = targetFolder.charAt(0).equals("/") ? targetFolder  : "/" + targetFolder;
+	var theDir : File = new File("IMPEX/" + targetDirStr);
+	theDir.mkdirs();
+	
+	var theFile : File = new File(theDir.fullPath + "/" + fileName);
+	if (!theFile.exists()) {
+		theFile.createNewFile();	
+	}
+	var remoteFilePath : String = transferServerClient.urlObject.path + fileName;
+	cvLogger.debug('Dwonloading file from ' + remoteFilePath + " to " + theFile.fullPath );
+	transferServerClient.getBinary(remoteFilePath, theFile);
+	
+	if ( extractArchive && fileName.match(/\.[zZ][iI][pP]$/) ) {
+		var rootDirectory : File = new File(theDir.fullPath);
+		theFile.unzip( rootDirectory );
+		theFile.remove();
+	}
+	
+	if(deleteFile)
+	{
+		cvLogger.debug('Deleting file on server: ' + remoteFilePath );
+		transferServerClient.del(remoteFilePath);
+	}
+	 
+}

@@ -1,0 +1,47 @@
+/**
+* This demandware script file runs tests for the MainSteet Communication Class.
+* 
+* @author Demandware
+* @creationdate 2011-07-22
+*
+* @output results : Object
+*
+*/
+importPackage( dw.system );
+importScript("int_mainstreet:library/libMainstreet.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var results : Array = [];
+	try {
+		
+		var mainstreet = new MainStreet();
+		results.push({name: "stubCreated", status: "ok", reason: "stub for communication with mainstreet was created."});
+		
+		var orders = mainstreet.GetOrdersByCustomer("DW1000");
+		if(orders..Orders.length() > 0) {
+			results.push({name: "getCustomerOrders1000", status: "ok", reason: "Fetched "+orders..Orders.length()+" orders from mainstreet for customer 1000."});
+		} else {
+			results.push({name: "getCustomerOrders1000", status: "fail", reason: "Fetched "+orders..Orders.length()+" orders from mainstreet for customer 1000 expected more then 0."});
+		}
+		
+		var order = mainstreet.GetOrderDetail(orders..Orders[0].order_id);
+		if(order.primaryData..Orders[0].order_id == orders..Orders[0].order_id) {
+			results.push({name: "getOrderDetail", status: "ok", reason: "Fetched Order '"+orders..Orders[0].order_id+"' from mainstreet which was the first one of the request before."});
+		} else {
+			results.push({name: "getOrderDetail", status: "fail", reason: "Fail during fetching the order."});
+		}
+		
+		var order = mainstreet.GetOrderDetail("98372456512");
+		if(empty(order)) {
+			results.push({name: "getOrderDetailEmpty", status: "ok", reason: "Could not find order with orderNo '98372456512' from mainstreet."});
+		} else {
+			results.push({name: "getOrderDetailEmpty", status: "fail", reason: "Fail found something with orderNo '98372456512'."});
+		}
+		
+   	} catch(e) {
+		results.push({name: "ErrorThrown", status: "fail", reason: e.message});
+	}
+	pdict.results = results;
+    return PIPELET_NEXT;
+}

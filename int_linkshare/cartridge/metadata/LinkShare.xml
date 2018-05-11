@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+	
+	<type-extension type-id="SitePreferences">
+		<custom-attribute-definitions>
+			<attribute-definition attribute-id="Linkshare_FTP_Hostname">
+                <display-name xml:lang="x-default">Linkshare FTP Server</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="Linkshare_FTP_Password">
+                <display-name xml:lang="x-default">Linkshare FTP Password</display-name>
+                <type>password</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="Linkshare_FTP_Username">
+                <display-name xml:lang="x-default">Linkshare FTP Username</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+			<attribute-definition attribute-id="LS_ERROR_MAIL_FROM">
+                <display-name xml:lang="x-default">List Track ERROR EMAIL FROM MAIL ID</display-name>
+                <type>email</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="LS_ERROR_MAIL_TO">
+                <display-name xml:lang="x-default">List Track ERROR EMAIL TO MAIL ID</display-name>
+                <type>email</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+		</custom-attribute-definitions>
+		<group-definitions>
+			<attribute-group group-id="linkShare">
+                <display-name xml:lang="x-default">Link Share Settings</display-name>
+                <attribute attribute-id="Linkshare_FTP_Hostname"/>
+                <attribute attribute-id="Linkshare_FTP_Username"/>
+                <attribute attribute-id="Linkshare_FTP_Password"/>
+                <attribute attribute-id="LS_ERROR_MAIL_TO"/>
+                <attribute attribute-id="LS_ERROR_MAIL_FROM"/>
+            </attribute-group>
+		</group-definitions>
+	</type-extension>
+
+</metadata>

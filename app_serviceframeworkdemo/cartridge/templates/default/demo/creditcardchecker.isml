@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>Webservice Credit Card Checker Demo</title></head>
+<body style="margin:100px;">
+	Input a credit card # (4111111111111111):
+	<form action="${URLUtils.url('WebserviceDemo-CreditCardChecker')}" method="post">
+		<input name="CreditCard" type="text" value="${pdict.CurrentHttpParameterMap.CreditCard}" />
+		<input type="submit" value="Validate" placeholder="Enter Credit Card"></input>
+	</form>
+	
+	<isif condition="${pdict.CurrentHttpParameterMap.CreditCard.submitted}">
+		<div>Your result:</div>
+		<pre>${JSON.stringify(pdict.Result, null, 2)}</pre>
+		<div>&nbsp;</div>
+		<div><strong>Technical Information:</strong></div>
+		<div>ScriptLog:</div>
+		<div><textarea name="nosubmit1" cols="40" rows="7"><isprint value="${pdict.ScriptLog}"></textarea></div>
+		<div>Webservice Status:</div>
+		<div><textarea name="nosubmit2" cols="40" rows="7"><isprint value="${JSON.stringify(pdict.Status, null, '\t')}"></textarea></div>		
+	</isif>
+</body>
+</html>

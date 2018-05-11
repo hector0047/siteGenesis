@@ -1,0 +1,359 @@
+/**
+* Class which process all of the already parsed images: generates an object with images ready for import and generates a report for the import
+*
+*/
+importPackage( dw.system );
+importPackage( dw.catalog );
+importPackage( dw.util );
+
+importScript( "util/ProcessingLogger.ds" );
+importScript( "util/ManifestImportReportLogger.ds" );
+
+function AmplienceImageMapProcessor() {
+
+	/**
+	 * Product images processed data object
+	 */
+	var _images : Object = null;
+
+	/**
+	 * Gets already processed product images
+	 *
+	 * @return {Object} product images
+	 */
+	this.getProductImages = function() : Object {
+
+		return _images;
+	};
+	
+	/**
+	 * Message map with info for the processing
+	 */
+	 var _messagesMap : Map = null;
+	 
+	/**
+	 * Gets messages map for the processed product images
+	 *
+	 * @return {Map} messages map
+	 */
+	this.getMessagesMap = function() : Map {
+		
+		return _messagesMap;
+	};
+	
+	/**
+	 * Manifest Import Report Logger object
+	 *
+	 * Note: this object is initialized and updated in processAmplienceImages method
+	 */
+	var _manifestImportReportLogger : ManifestImportReportLogger = null;
+	
+	/**
+	 * Gets manifest import report logger object
+	 *
+	 * @return {ManifestImportReportLogger} manifest import report logger object
+	 */
+	this.getManifestImportReportLogger = function() : ManifestImportReportLogger {
+		
+		return _manifestImportReportLogger;
+	};
+
+	/**
+	 * Iterate through amplience images, asign product names, filter not existing ones and generates a report with the result
+	 *
+	 * @param {String} catalogID - Catalog identifier
+	 * @param {Object} amplienceImages - object with already parsed Amplience images
+	 * @param {String} pathPattern - a pattern for images path when export
+	 * @param {Object} viewTypes - a list with view types
+	 *
+	 */
+	this.processAmplienceImages = function(catalogID : String, amplienceImages : Object, pathPattern : String, viewTypes : Object) {
+
+		var catalog : Catalog = CatalogMgr.getCatalog(catalogID);
+		if ( empty(catalog) ) {
+			
+			 throw new Error('Invalid catalog ID: ' + catalogID);
+		}
+		
+		var productsIter : SeekableIterator = ProductMgr.queryProductsInCatalogSorted(catalog);
+		if ( productsIter.count == 0 ) {
+			 throw new Error('No products found in catalog ' + catalogID);
+		}
+		
+		var processingLogger : ProcessingLogger = new ProcessingLogger();
+		var outputImages : Object = new Object();
+		var totalUpdatedProductsCount : Number = 0;
+		
+		// initally, add all sets in notmacthedSets, then remove the founded ones
+		var notMacthedSets = new HashSet();
+		for (set in amplienceImages) {
+		
+			notMacthedSets.add(set);
+		}
+		
+		var manifestImportReportLogger = new ManifestImportReportLogger();
+		
+		while ( productsIter.hasNext() ) {
+
+			var product : Product = productsIter.next();
+			var productLogger : ProductLogger = processingLogger.getProductLogger(product.ID);
+			
+			if ( product.isVariant() ) {
+				 continue;
+			}
+			
+			var processsedProductImage = processSingleProductImages(product, amplienceImages, productLogger, pathPattern, manifestImportReportLogger);
+			if ( !empty(processsedProductImage) ) {
+			
+				var pid = product.ID;
+				outputImages[pid] = processsedProductImage;
+				
+				// update total updated products count
+				++totalUpdatedProductsCount;
+				
+				// remove founded product ID from the not matched sets
+				notMacthedSets.remove(product.ID);	
+			}
+			
+			/**
+			 * add information for products with missing images
+			 */
+			addProductMissingImages(product, processsedProductImage, viewTypes, manifestImportReportLogger);
+		}
+		
+		productsIter.close();
+		
+		// update the total updated products in report logger
+		manifestImportReportLogger.setTotalUpdatedProducts(totalUpdatedProductsCount);
+		
+		// updated not match product sets
+		manifestImportReportLogger.setNotMacthedSets(notMacthedSets);
+
+		_images = outputImages;
+		_messagesMap = processingLogger.getMessagesMap();
+		_manifestImportReportLogger = manifestImportReportLogger;
+	}
+	
+	/**
+	 * Process a product (i.e. asign product name, filter not existing ones and updates the report with the result)
+	 *
+	 * @param {Product} product - it can be Master product or a simple product
+	 * @param {Object} amplienceImages - object with already parsed Amplience images
+	 * @param {ProductLogger} productLogger - logger for a product
+	 * @param {String} pathPattern - a pattern for images path when export
+	 *
+	 * @return {Object} processed image info for a product
+	 *
+	 */
+	var processSingleProductImages = function(product : Product, amplienceImages : Object, productLogger : ProductLogger, pathPattern : String) : Object {
+		
+			var result : Object = null;
+			
+			var pid = product.ID;			
+			if (pid in amplienceImages) {
+				
+				result = new Object();
+				
+				var PVM : ProductVariationModel = product.getVariationModel();
+				
+				for ( var i in amplienceImages[pid] ) {
+					
+					var amplienceGroup = amplienceImages[pid][i];
+					var isValid : Boolean = isAmplienceGroupValid(PVM, amplienceGroup, productLogger);
+
+					if (isValid) {
+
+						result[i] = amplienceImages[pid][i];
+						
+						updateProductImagePaths(product, pathPattern, result[i]);
+						
+					} else {
+						productLogger.error("Invalid attribute value combination - " + amplienceGroup + ".");
+					}
+				}
+			} else {
+				productLogger.error("Product has no images found on Amplience CDN.");
+			}
+			
+			return result;
+	}
+	
+	/**
+	 * Check if the vars defined in Amplience product image are valid
+	 *
+	 * @param {ProductVariationModel} PVM - variation model of a prodcut
+	 * @param {Object} amplienceGroup - group object for Amplience product images
+	 * @param {ProductLogger} productLogger - logger for a product
+	 *
+	 * @return {Boolean} result - true of all of the vars of amplienceGroup are valid
+	 *
+	 */
+	var isAmplienceGroupValid = function(PVM : ProductVariationModel, amplienceGroup : Object, productLogger : ProductLogger) {
+		
+		var result : Boolean = true;
+					
+		for (var amplienceVariation in amplienceGroup.vars) {
+			
+			var PVA : ProductVariationAttribute = PVM.getProductVariationAttribute(amplienceVariation);
+			if ( !empty(PVA) ) {
+
+				// Returns the values for the specified attribute. Only values that actually exist for 
+				// at least one of the master product's currently online and complete variants are returned. 
+				var PVAVs : Collection = PVM.getAllValues(PVA);
+				
+				var attrValid = false;
+				for each (var PVAV : ProductVariationAttributeValue in PVAVs) {
+					
+					if ( PVAV.getID() == amplienceGroup.vars[amplienceVariation] ) {
+						attrValid = true;
+						break;
+					}
+				}
+				
+				if (!attrValid) {
+					
+					result = false;
+					productLogger.error("Invalid variation attribute value for attribute - " + amplienceVariation + " with value - " + amplienceGroup.vars[amplienceVariation]+ ".");
+				}
+				
+			} else {
+				
+				productLogger.error("Invalid variation attribute - " + amplienceVariation + ".");
+			}
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Update image paths according to the pattern path
+	 *
+	 * @param {Product} product - it can be Master product or a simple product
+	 * @param {String} pathPattern - a pattern for images path when export
+	 * @param {Object} productImage - product images object. Note: this object will be updated.
+	 *
+	 */
+	var updateProductImagePaths = function(product : Product, pathPattern : String, productImage : Object) {
+
+		var pathValue : String = pathPattern;
+		
+		/**
+		 * split the path patter into words, i.e. '/name_color' -> ['name', 'color']
+		 */
+		var patternWords : Array = pathPattern.split(/[^A-Za-z]+/).filter( function(str) { return !empty(str) } );
+			
+		for (var i = 0; i < patternWords.length; ++i) {
+
+			// current pattern word, i.e. 'name', 'color'			
+			var patternWord : String = patternWords[i];
+
+			// actual value to replace the pattern word
+			var valueToUpdate : String = (patternWord.toUpperCase() == 'NAME') ? product.name : productImage.vars[patternWord];
+														
+			if ( empty(valueToUpdate) ) {
+					
+				/**
+				 * if there's no value to update, we should remove the pattern word
+				 * Note: if the current word is not fist, we should also remove
+                 * the separator symbol before it, i.e. with 'color' empty: '/name_color' -> '/name'
+				 */
+				if (i > 0) { // check if not first word
+				
+					var sepIndex = pathValue.indexOf(patternWord) - 1;
+					if (sepIndex != -1) {
+						
+						// remove the separator char before the pattern word without value to assign
+						pathValue = pathValue.slice(0, sepIndex) + pathValue.slice(sepIndex + 1, pathValue.length);	
+					}
+					
+					// remove pattern word without value to assign
+					pathValue = pathValue.replace(patternWord, '');
+				}
+				
+			} else { // we have value to assign
+				
+				pathValue = pathValue.replace(patternWord, valueToUpdate);				
+			}
+		}
+		
+		// Update paths for images, spin images, and videos
+		for each ( var image in productImage['images'] ) {
+		
+			image['path'] = image['path'] + pathValue;	
+		}
+		
+		for each ( var spinImage in productImage['spin_images'] ) {
+		
+			spinImage['path'] = spinImage['path'] + pathValue;	
+		}
+		
+		for each ( var video in productImage['videos'] ) {
+		
+			video['path'] = video['path'] + pathValue;	
+		}
+	}
+	
+	/**
+	 * Add missing images for a product to the manifest import report logger
+	 *
+	 * @param {Product} product - currently processed product object
+	 * @param {Object} processedSingleProductImages - processed Amplience images for the product
+	 * @param {Object} viewTypes - images view types
+	 * @param {ManifestImportReportLogger} manifestImportReportLogger - manifest import report logger
+	 *
+	 */
+	var addProductMissingImages = function(product : Product, processedSingleProductImages : Object,
+			viewTypes : Object, manifestImportReportLogger : ManifestImportReportLogger) {
+
+		var PVM : ProductVariationModel = product.getVariationModel();
+		
+		/**
+		 * Iterate through PVA of the newly processed product images
+		 */
+		var pvaIterator = PVM.getProductVariationAttributes().iterator();
+		while ( pvaIterator.hasNext() ) {
+		
+			var PVA = pvaIterator.next();
+			if ( !empty(PVA) ) {
+				
+				/**
+				 * Skip check if we have added for the current image variation from manifest import file
+				 */
+				var pvaIdVal = PVA.getAttributeID();
+				if ( !empty(processedSingleProductImages) && !empty(processedSingleProductImages[pvaIdVal]) ) {
+					
+					continue;
+				}
+				
+				var PVAVs : Collection = PVM.getAllValues(PVA);
+				for each (var PVAV : ProductVariationAttributeValue in PVAVs) {
+					
+					var imageFound : Boolean = false;
+					/**
+					 * iterate through image view types
+					 * if product don't have at least one image
+					 * we log information for product without an image
+					 */
+					for (var viewType : String in viewTypes) {
+					
+						// getImage(viewtype : String) : MediaFile
+						var mediaFile = PVAV.getImage(viewType);
+						if ( !empty(mediaFile) ) {
+						
+							imageFound = true;
+							break;
+						}
+					}
+					
+					if (!imageFound) {
+					
+						var pvavDisplayValue : String = PVAV.getDisplayValue();
+						var pvavId : String = PVAV.getID();
+						// add info for a product without images
+						manifestImportReportLogger.addProductWithoutImage(product.ID, product.name + pvavDisplayValue, product.ID + '_' + pvavId);
+					}
+				}
+			}
+		}
+	}
+}

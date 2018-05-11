@@ -1,0 +1,19 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<ol class="breadcrumb">
+
+	<iscomment>HOME BREADCRUMB</iscomment>
+	<li><a href="${URLUtils.httpHome()}" class="home" title="${Resource.msg('global.home','locale',null)}">${Resource.msg('global.home','locale',null)}</a></li>
+	<iscomment> SHOW CONTENT NAME </iscomment>
+	
+	<iscomment>PANC-1663 Commenting Hometeam code
+	<isif condition="${pdict.Content.getClassificationFolder().getDisplayName() != null && pdict.Content.getClassificationFolder().getID() == 'home-team'}">
+		<li><a href="${URLUtils.url('HomeTeam-Start')}">${pdict.Content.getClassificationFolder().getDisplayName()}</a></li>
+	</isif>
+	</iscomment>
+	
+	<iscomment> SHOW CONTENT NAME </iscomment>
+	<isif condition="${pdict.Content.name != null}">
+		<li>${pdict.Content.name}</li>
+	</isif>
+	
+</ol><!-- END: breadcrumb -->

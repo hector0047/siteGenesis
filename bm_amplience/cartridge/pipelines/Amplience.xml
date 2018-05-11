@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="view">
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Import Manifest DI images in to existing catalog</description>
+        </text-node>
+        <node-display x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="AssignAmplienceImages">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="AssignAmplienceImages" secure="false"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('AmplienceManifestURL')" key="From_0"/>
+          <key-binding alias="AmplienceManifestURL" key="To_0"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('SiteCatalogID')" key="From_1"/>
+          <key-binding alias="SiteCatalogID" key="To_1"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('reportEmailFrom')" key="From_7"/>
+          <key-binding alias="ReportEmailFrom" key="To_7"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('reportEmailTo')" key="From_8"/>
+          <key-binding alias="ReportEmailTo" key="To_8"/>
+          <key-binding alias="(new Date()).toLocaleString()" key="From_9"/>
+          <key-binding alias="ReportStart" key="To_9"/>
+          <key-binding alias="MasterCatalogID" key="To_2"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('MasterCatalogID')" key="From_2"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('ImagePatternSeparator')" key="From_3"/>
+          <key-binding alias="ImagePatternSeparator" key="To_3"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('ImagePattern')" key="From_4"/>
+          <key-binding alias="ImagePattern" key="To_4"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('viewtypes')" key="From_5"/>
+          <key-binding alias="ViewTypes" key="To_5"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.getParameterValue('PathPattern')" key="From_6"/>
+          <key-binding alias="PathPattern" key="To_6"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadAmplienceImageMap.ds"/>
+          <key-binding alias="Logger" key="ScriptLog"/>
+          <key-binding alias="AmplienceManifestURL" key="ManifestURL"/>
+          <key-binding alias="AmplienceImagesMap" key="ProductImagesMap"/>
+          <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="ImagePatternSeparator" key="Separator"/>
+          <key-binding alias="AmplienceProductImages" key="ProductImages"/>
+          <key-binding alias="ImagePattern" key="Attributes"/>
+          <key-binding alias="AmplienceSwatchImages" key="ProductGlobalSwatchImages"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./b3.1">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-2"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/ProcessAmplienceImageMap.ds"/>
+          <key-binding alias="Logger" key="ScriptLog"/>
+          <key-binding alias="AmplienceImagesMap" key="AmplienceProductImagesMap"/>
+          <key-binding alias="SiteCatalogID" key="CatalogID"/>
+          <key-binding alias="ProductImagesToAssign" key="ProductImagesMap"/>
+          <key-binding alias="ProcessingLog" key="ProcessingLog"/>
+          <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="ProductSwatchesToAssign" key="ProductSwatchesMap"/>
+          <key-binding alias="AmplienceProductImages" key="AmplienceProductImages"/>
+          <key-binding alias="ProductImagesToAssign" key="ProductImages"/>
+          <key-binding alias="PathPattern" key="PathPattern"/>
+          <key-binding alias="ManifestReport" key="ManifestReport"/>
+          <key-binding alias="ViewTypes" key="ViewTypes"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b4.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateCatalogImportXML.ds"/>
+          <key-binding alias="MasterCatalogID" key="CatalogID"/>
+          <key-binding alias="ProductImagesToAssign" key="ProductImagesToAssign"/>
+          <key-binding alias="CatalogFileName" key="TargetFileName"/>
+          <key-binding alias="DestinationFolder" key="TargetPath"/>
+          <key-binding alias="GeneratedCatalogFileName" key="GeneratedCatalogFileName"/>
+          <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="ProductSwatchesToAssign" key="ProductSwatchesToAssign"/>
+          <key-binding alias="Logger" key="ScriptLog"/>
+          <key-binding alias="AmplienceSwatchImages" key="ProductGlobalSwatchImagesToAssign"/>
+          <key-binding alias="ViewTypes" key="ViewTypes"/>
+          <key-binding alias="SwatchTemplate" key="SwatchTemplate"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b5.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/SaveProcessingLog.ds"/>
+          <key-binding alias="Logger" key="ScriptLog"/>
+          <key-binding alias="ProcessingLog" key="ProcessingLog"/>
+          <key-binding alias="LogFileName" key="LogFileName"/>
+          <key-binding alias="LogFolder" key="LogFolder"/>
+          <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+          <key-binding alias="DataErrorsCount" key="Errors"/>
+          <key-binding alias="DataWarningsCount" key="Warnings"/>
+          <key-binding alias="GeneratedLogFileName" key="GeneratedLogFileName"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b5" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b6.1/b2.2"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="!empty(GeneratedCatalogFileName)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b6" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="0" y="1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+                <key-binding alias="GeneratedCatalogFileName" key="File"/>
+                <key-binding alias="&quot;catalog.xsd&quot;" key="Schema"/>
+                <key-binding alias="CatalogValidationLog" key="LogFileName"/>
+                <key-binding alias="CatalogValidationErrorCount" key="ErrorCount"/>
+                <key-binding alias="CatalogValidationWarningCount" key="WarningCount"/>
+                <key-binding alias="CatalogValidationStatus" key="Status"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="error">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <pipelet-node pipelet-name="Eval" pipelet-set-identifier="bc_api">
+                      <config-property key="OnError" value="null"/>
+                      <config-property key="Transactional" value="false"/>
+                      <config-property key="Expression" value="&quot;Generated Catalog XML validation failed&quot;"/>
+                      <key-binding alias="AssignImagesErrorMsg" key="Result"/>
+                    </pipelet-node>
+                    <node-display orientation="horizontal" x="1" y="0"/>
+                  </node>
+                  <transition target-connector="in2" target-path="./+1"/>
+                </segment>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="1" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../b3.1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="ImportCatalog" pipelet-set-identifier="bc_api">
+                <key-binding alias="GeneratedCatalogFileName" key="ImportFile"/>
+                <key-binding alias="&quot;MERGE&quot;" key="ImportMode"/>
+                <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+                <key-binding alias="CatalogImportLogFileName" key="LogFileName"/>
+                <key-binding alias="null" key="Status"/>
+                <key-binding alias="null" key="ImportConfiguration"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b3" source-connector="error">
+                <transition target-connector="in2"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="2" y="0"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../b4.1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <key-binding alias="(new Date()).toLocaleString()" key="From_0"/>
+                <key-binding alias="ReportEnd" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="false"/>
+                <config-property key="OnError" value="PIPELET_ERROR"/>
+                <config-property key="ScriptFile" value="amplience/pipelets/SaveDetailedReport.ds"/>
+                <key-binding alias="Logger" key="ScriptLog"/>
+                <key-binding alias="ManifestReport" key="ManifestReport"/>
+                <key-binding alias="ManifestReportURL" key="ManifestReportURL"/>
+                <key-binding alias="AssignImagesErrorMsg" key="ErrorMsg"/>
+                <key-binding alias="ViewTypes" key="ViewTypes"/>
+                <key-binding alias="ReportStart" key="ReportStart"/>
+                <key-binding alias="ReportEnd" key="ReportEnd"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+              <branch basename="b4" source-connector="error">
+                <transition target-connector="in2"/>
+                <segment>
+                  <node>
+                    <join-node/>
+                    <node-display x="2" y="0"/>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <pipelet-node custom-name="Log import error" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="true"/>
+                      <key-binding alias="CurrentWorkflowComponentInstance.addMessage('The catalog import failed. Error: ' + AssignImagesErrorMsg,'ERROR')" key="From_0"/>
+                      <key-binding alias="null" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="2"/>
+                  </node>
+                  <simple-transition/>
+                  <node>
+                    <end-node name="ERROR"/>
+                    <node-display x="0" y="2"/>
+                  </node>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="ReportEmailFrom" key="MailFrom"/>
+                <key-binding alias="&quot;mail/manifestimportsummary&quot;" key="MailTemplate"/>
+                <key-binding alias="ReportEmailTo" key="MailTo"/>
+                <key-binding alias="&quot;Manifest Import Report Summary&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node custom-name="Log successful end" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="true"/>
+                <key-binding alias="CurrentWorkflowComponentInstance.addMessage(&quot;Images assignment finished with &quot; + DataErrorsCount + &quot; data errors and &quot; + DataWarningsCount + &quot; data warnings. See [&quot; + GeneratedLogFileName + &quot;] for details.&quot;,'INFO', [new dw.io.File(GeneratedLogFileName)])" key="From_0"/>
+                <key-binding alias="null" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="-2" y="0"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node custom-name="Log successful end" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <key-binding alias="CurrentWorkflowComponentInstance.addMessage(&quot;No new images have been assigned. Finished with &quot; + DataErrorsCount + &quot; data errors and &quot; + DataWarningsCount + &quot; data warnings. See [&quot; + GeneratedLogFileName + &quot;] for details.&quot;,'INFO', [new dw.io.File(GeneratedLogFileName)])" key="From_0"/>
+          <key-binding alias="null" key="To_0"/>
+          <key-binding alias="null" key="From_1"/>
+          <key-binding alias="null" key="To_1"/>
+          <key-binding alias="null" key="From_2"/>
+          <key-binding alias="null" key="To_2"/>
+          <key-binding alias="null" key="From_3"/>
+          <key-binding alias="null" key="To_3"/>
+          <key-binding alias="null" key="From_4"/>
+          <key-binding alias="null" key="To_4"/>
+          <key-binding alias="null" key="From_5"/>
+          <key-binding alias="null" key="To_5"/>
+          <key-binding alias="null" key="From_6"/>
+          <key-binding alias="null" key="To_6"/>
+          <key-binding alias="null" key="From_7"/>
+          <key-binding alias="null" key="To_7"/>
+          <key-binding alias="null" key="From_8"/>
+          <key-binding alias="null" key="To_8"/>
+          <key-binding alias="null" key="From_9"/>
+          <key-binding alias="null" key="To_9"/>
+        </pipelet-node>
+        <node-display x="-1" y="6"/>
+      </node>
+      <transition target-connector="in2" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <text-node>
+          <description>Migrate Old Amplience Content</description>
+        </text-node>
+        <node-display x="5" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="MigrateOldAmplienceContent">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="MigrateOldAmplienceContent" secure="false"/>
+        <node-display x="5" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/LoadContentAssetsForMigration.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="AssetsForMigration" key="AssetsForMigration"/>
+          <key-binding alias="AssetsForMigrationCount" key="AssetsForMigrationCount"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in2" target-path="./b4.1">
+            <transition-display>
+              <bend-point relative-to="source" x="4" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <decision-node condition-key="AssetsForMigrationCount == 0" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <end-node name="OK"/>
+              <node-display x="0" y="4"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="amplience/pipelets/GenerateMigrateIMAreaImportXML.ds"/>
+          <key-binding alias="null" key="ScriptLog"/>
+          <key-binding alias="ampAreaid" key="ampAreaId"/>
+          <key-binding alias="ampName" key="ampName"/>
+          <key-binding alias="ampHeight" key="ampHeight"/>
+          <key-binding alias="ampWidth" key="ampWidth"/>
+          <key-binding alias="ampAssociatedModule" key="ampAssociatedModule"/>
+          <key-binding alias="GeneratedContentAssetPath" key="GeneratedContentAssetPath"/>
+          <key-binding alias="HttpParameterMap" key="HttpParameterMap"/>
+          <key-binding alias="SelectedAreas" key="selectedAreas"/>
+          <key-binding alias="AssetsForMigration" key="AssetsForMigration"/>
+        </pipelet-node>
+        <node-display x="1" y="1"/>
+        <branch basename="b4" source-connector="error">
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b5.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ValidateXMLFile" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="File"/>
+          <key-binding alias="&quot;library.xsd&quot;" key="Schema"/>
+          <key-binding alias="LibraryValidationLog" key="LogFileName"/>
+          <key-binding alias="LibraryValidationErrorCount" key="ErrorCount"/>
+          <key-binding alias="LibraryValidationWarningCount" key="WarningCount"/>
+          <key-binding alias="LibraryValidationStatus" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b5" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="../b6.1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="ImportContent" pipelet-set-identifier="bc_api">
+          <key-binding alias="GeneratedContentAssetPath" key="ImportFile"/>
+          <key-binding alias="'MERGE'" key="ImportMode"/>
+          <key-binding alias="null" key="Library"/>
+          <key-binding alias="null" key="ErrorCode"/>
+          <key-binding alias="null" key="ErrorMsg"/>
+          <key-binding alias="null" key="LogFileName"/>
+          <key-binding alias="null" key="Status"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b6" source-connector="error">
+          <transition target-connector="in2"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="1" y="0"/>
+            </node>
+            <simple-transition/>
+            <node>
+              <end-node name="ERROR"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node name="OK"/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

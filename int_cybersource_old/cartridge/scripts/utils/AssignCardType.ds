@@ -1,0 +1,64 @@
+/**
+*	This script creates the PaymentCardObject data object and set it to CybersourceCard output object.
+*
+*    @input CreditCardForm : dw.web.FormElement The form containing the credit card data
+*    @input Basket : dw.order.LineItemCtnr  Alternative to readnig from the Form the data can be gather from the basket.  The CvNumber needs to be set then! 
+*    @input ReadFromBasket : Boolean   Flag indicating wether to read from Basket or from the Forms object
+*    @output CybersourceCardType : String
+*/
+importPackage( dw.system );
+importPackage( dw.order);
+importPackage( dw.crypto );
+importClass( dw.util.List );
+importClass( dw.order.PaymentInstrument );
+
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var cardType : String = "";
+	if ( pdict.ReadFromBasket )
+	{
+		var basket : LineItemCtnr = pdict.Basket;
+		var l : List = basket.getPaymentInstruments( dw.order.PaymentInstrument.METHOD_CREDIT_CARD );
+		if( !empty(basket) && !empty(l) && l.length>0 ) {
+			if ( l.length != 1 )
+			{
+				throw "Expected exactly one credit card.  Foun " + l.length + " cards!?";
+			}
+			var paymentInst : PaymentInstrument = l[0];
+			
+			cardType = paymentInst.getCreditCardType();
+		}
+	}
+	else
+	{
+		var creditCardForm : dw.web.FormElement = pdict.CurrentForms.billing.paymentMethods.creditCard;
+		cardType = creditCardForm.type.value;
+	}
+	
+	switch( cardType )
+	{
+		case "Visa": 
+			cardType="001";
+			break;
+		case "MasterCard": 
+			cardType="002";
+			break;
+		case "Amex": 
+			cardType="003";
+			break;
+		case "Discover": 
+			cardType="004";
+			break;
+		case "Maestro": 
+			cardType="042";
+			break;
+		// Diners Club
+		// JCB
+		// Maestro (UK Domestic) and Solo 
+	}
+
+	pdict.CybersourceCardType = cardType;
+	
+    return PIPELET_NEXT;
+}

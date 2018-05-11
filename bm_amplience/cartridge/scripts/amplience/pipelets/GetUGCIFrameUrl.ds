@@ -1,0 +1,40 @@
+/**
+* Get UGC stream edit URL
+*
+* Params:
+*
+* @input StreamID : String
+*
+* @output IFrameURL : String
+* @output ErrorMsg : String
+*
+*/
+
+importPackage( dw.system );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	try {
+		
+		var streamId : String = args.StreamID;
+		
+		/**
+		 * Get Custom Preferences
+		 */
+		var customPreferences = dw.system.Site.getCurrent().getPreferences().custom,
+			ampEditStreamConfig : String = customPreferences['ampEditStream'];
+		
+		var iFrameUrl : String = ampEditStreamConfig.replace('{streamid}', streamId);
+		
+		args.IFrameURL = iFrameUrl;
+
+	}
+	catch(e) {
+		var errMsg = 'GetUGCIFrameUrl.ds : ' + e.message;
+		args.ErrorMsg = errMsg;
+		Logger.error(errMsg);
+		return PIPELET_ERROR;
+	}
+
+   return PIPELET_NEXT;
+}

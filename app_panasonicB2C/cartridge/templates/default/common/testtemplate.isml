@@ -1,0 +1,10 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+
+<div class="status">
+<h1> ${pdict.Status}</h1>
+</div>
+<iscomment>
+
+This template is intentionally empty.
+
+</iscomment>

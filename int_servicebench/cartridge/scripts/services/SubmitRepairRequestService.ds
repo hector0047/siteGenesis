@@ -1,0 +1,119 @@
+importPackage(dw.rpc);
+importPackage(dw.order);
+importPackage(dw.util);
+importPackage(dw.system);
+importPackage(dw.ws);
+
+importScript("int_servicebench:sb/Credentials.ds");
+
+
+var sf = require("bc_serviceframework");
+var SubmitRepairRequestServiceObj = require("../objects/SubmitRepairRequest");
+var HashMap = require("dw/util/HashMap");
+var WSUtil = require("dw/ws/WSUtil");
+ 
+function getSubmitRepairRequestService() {
+	return SubmitRepairRequestService;
+}
+
+
+var SubmitRepairRequestService = sf.getService('AbstractSoapService').extend(
+
+{
+	
+	init: function() {
+		this._super("ServiceBenchSR" , new SubmitRepairRequestServiceObj());
+	},
+	
+	
+	/**
+	 * Initialises the webservice object parsed from the given WSDL File
+	 */
+	initServiceClient: function() {
+		
+		this.webReference = webreferences2.CRMUnitValidationServiceProduction;
+		
+		if ( dw.system.System.getInstanceType() != dw.system.System.PRODUCTION_SYSTEM && !Site.current.preferences.custom.EnableServiceBenchProductionInstance) {
+			this.webReference = webreferences2.CRMUnitValidationServiceTest;
+		}		
+				
+		this.serviceClient = this.webReference.getService("CRMUnitValidationService", "CRMUnitPort");
+	},
+
+	createRequest: function (sbObject) {
+		
+		var secretsMap = new HashMap();
+		secretsMap.put(dw.system.Site.getCurrent().getCustomPreferenceValue("SB_userName"), dw.system.Site.getCurrent().getCustomPreferenceValue("SB_password"));
+		
+		var requestCfg = new HashMap();
+		
+		// define the ws actions to be performed - in this case add a username token
+		requestCfg.put(WSUtil.WS_ACTION, WSUtil.WS_USERNAME_TOKEN);
+		requestCfg.put(WSUtil.WS_USER, dw.system.Site.getCurrent().getCustomPreferenceValue("SB_userName"));
+		requestCfg.put(WSUtil.WS_PASSWORD_TYPE, WSUtil.WS_PW_TEXT );
+		
+		// set the secrets for the request
+		requestCfg.put(WSUtil.WS_SECRETS_MAP, secretsMap);
+		
+		// set the response actions - note: you must explicitly state there is no security action 
+		//   on the response if there is a security action on the request!
+		var responseCfg = new HashMap();
+		responseCfg.put(WSUtil.WS_ACTION, WSUtil.WS_NO_SECURITY);
+		
+		// set the security configurations on the port
+		WSUtil.setWSSecurityConfig(this.serviceClient, requestCfg, responseCfg);
+			
+		var ssName		: String	 = sbObject.sourceSystemName;	
+		var ssVersion	: String	 = sbObject.sourceSystemVersion; 	
+		var modelNumber	: String	 = sbObject.modelNumber;			
+		var serialNumber: String	 = sbObject.serialNumber;		
+		var pDate		: String 	 = sbObject.pDate;				    
+		
+		
+		var submitRRObject : WebReference2 = this.webReference;
+		//var sbService : Stub =  this.serviceClient;
+	
+		// security header
+		//SetCredentials( sbService );
+
+		//Creating SourceSystemInfo object
+		var sourceSystemInfo = new submitRRObject.SourceSystemInfo();
+		sourceSystemInfo.setSourceSystemName(ssName);
+		sourceSystemInfo.setSourceSystemVersion(ssVersion);
+		
+		//Creating UnitValidationRequestDetails object
+		var UnitValidationRequestDetails = new submitRRObject.UnitValidationRequestDetails();
+		UnitValidationRequestDetails.setModel(modelNumber);
+		UnitValidationRequestDetails.setSerial(serialNumber);
+		UnitValidationRequestDetails.setPurchaseDate(pDate);
+		//unitValidationRequestDetails.setServiceAdministrator("92");
+		
+		//Creating status service request
+		var unitValidationRequest = new submitRRObject.UnitValidationRequest();
+		unitValidationRequest.setSourceSystemInfo(sourceSystemInfo);
+		unitValidationRequest.setUnitValidationRequestDetails(UnitValidationRequestDetails);
+	
+		Logger.debug("service bench repair request : " + unitValidationRequest);
+		return unitValidationRequest;
+	
+	},
+	
+	initStatusFromResponse: function () {
+		this.status.code = "OK";
+	},
+		
+	/** 
+	 * Call the service and return the response.
+	 * 
+	 */ 
+	executeServiceCall: function() {	
+		var response = this.serviceClient.unitValidation( this.request );
+		return response;
+	},
+	
+	getDummyResponse: function() : Object {
+		return this.object.dummy();
+	}
+});
+
+sf.registerService('ServiceBenchSR',SubmitRepairRequestService);

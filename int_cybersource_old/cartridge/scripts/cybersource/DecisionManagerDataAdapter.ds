@@ -1,0 +1,70 @@
+importPackage( dw.system );
+
+function DecisionManagerDataAdapter() {	
+	var msXml : XML = <CyberSourceDecisionManagerResponse>
+							<MerchantReferenceCode/>
+							<RequestId/>
+							<ReasonCode/>
+							<Decision/>
+							<AfsResult/>
+							<AfsFactorCode/>
+							<BinCountry/>
+							<IpCountry/>
+							<IpCity/>
+							<IpState/>
+							<IpRoutingMethod/>
+							<DeviceFingerprint>
+								<CookiesEnabled/>
+								<FlashEnabled/>
+								<Hash/>
+								<ImagesEnabled/>
+								<JavascriptEnabled/>
+								<ProxyIPAddress/>
+								<ProxyIPAddressActivities/>
+								<ProxyIPAddressAttributes/>
+								<ProxyServerType/>
+								<TrueIPAddress/>
+								<TrueIPAddressActivities/>
+								<TrueIPAddressAttributes/>
+								<TrueIPAddressCity/>
+								<TrueIPAddressCountry/>
+							</DeviceFingerprint>
+							<RulesTriggered>
+								<RuleResultItem>
+									<Name/>
+									<Decision/>
+								<Evaluation/>
+							<RuleID/>
+						</RuleResultItem>
+				</RulesTriggered>                   
+	</CyberSourceDecisionManagerResponse>;
+		
+	function populateEnvelope(cr) : XML {
+		try
+		{
+			msXml.MerchantReferenceCode = cr.merchantReferenceCode;
+			msXml.RequestId = cr.requestID;
+			msXml.ReasonCode = cr.reasonCode.get();
+			msXml.Decision = cr.decision;
+			if (cr.afsReply!=null) {
+				msXml.AfsResult = cr.afsReply.afsResult!=null ? cr.afsReply.afsResult : "";
+				msXml.AfsFactorCode = cr.afsReply.afsFactorCode!=null ? cr.afsReply.afsFactorCode : "";
+				msXml.IpCountry = cr.afsReply.ipCountry!=null ? cr.afsReply.ipCountry : "";
+				msXml.IpCity = cr.afsReply.ipCity!=null ? cr.afsReply.ipCity : "";
+				msXml.IpState = cr.afsReply.ipState!=null ? cr.afsReply.ipState : "";
+				msXml.IpRoutingMethod = cr.afsReply.ipRoutingMethod!=null ? cr.afsReply.ipRoutingMethod : "";
+			}
+			
+		}
+		catch (error) {
+			var e = error;
+			Logger.error("Unable to create DecisionManager XML for Cybersource RequestID '"+ cr.requestID + "'! "+e);
+		}
+		
+		return msXml;	
+	}
+	
+	return {
+		getDecisionManagerResponse : populateEnvelope
+	};	
+}

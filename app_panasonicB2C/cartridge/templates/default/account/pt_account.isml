@@ -1,0 +1,85 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!doctype html>
+<!--[if lt IE 7]> <html class="ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+
+<head>
+
+	<isscript>var pageContext={title:'My Account', type:'MyAccount', ns:'account'};</isscript>
+	<isinclude template="util/modules"/>
+	
+	<isinclude template="components/header/htmlhead"/>
+	<isinclude template="account/pt_account_UI"/>
+	
+	<iscomment>Add template-specific header information here.</iscomment>	
+	
+</head>
+
+<body>
+
+	<div id="wrapper" class="pt_account">
+		<isinclude url="${URLUtils.url('Home-IncludeHeader','ShippingBanner',false)}"/>
+		
+		<div id="main" role="main" class="page-content clearfix">
+			<isinclude template="components/browsertoolscheck"/>
+			<isif condition="${!empty(pdict.bctext2)}">	
+					<isif condition="${!empty(pdict.bctext3)}">
+						<isif condition="${pdict.CurrentCustomer.registered}">
+							<isbreadcrumbs bcurl1="${URLUtils.https('Account-Show')}" bctext1="${Resource.msg('account.header','account',null)}" bcurl2="${pdict.bcurl2}" bctext2="${pdict.bctext2}" bctext3="${pdict.bctext3}"/>
+						<iselse/>
+			                 <isbreadcrumbs bcurl1="${URLUtils.https('Account-Show')}" bctext1="${Resource.msg('account.login','account',null)}" bcurl2="${pdict.bcurl2}" bctext2="${pdict.bctext2}" bctext3="${pdict.bctext3}"/>
+			            </isif>	
+						<iselse/>
+						<isif condition="${pdict.CurrentCustomer.registered}">
+							<isbreadcrumbs bcurl1="${URLUtils.https('Account-Show')}" bctext1="${Resource.msg('account.header','account',null)}" bctext2="${pdict.bctext2}" />
+						<iselse/>
+		                	 <isbreadcrumbs bcurl1="${URLUtils.https('Account-Show')}" bctext1="${Resource.msg('account.login','account',null)}" bctext2="${pdict.bctext2}"/>
+	            		</isif>
+					</isif>			
+				<iselse/>
+				<isif condition="${pdict.CurrentCustomer.registered}">
+	                     <isbreadcrumbs bctext1="${Resource.msg('account.header','account',null)}"/>
+	               <iselse/>
+	                     <isbreadcrumbs bctext1="${Resource.msg('account.login','account',null)}"/>
+	            </isif>
+			</isif>
+			<div id="secondary" class="nav desktopBlock">
+				<nav>
+					<span class="visually-hidden">${Resource.msg('global.secondarynavheading','locale',null)}</span>
+					<div class="secondary-navigation pnsb2c-sec-nav">  
+						<isinclude url="${URLUtils.url('Account-IncludeNavigation')}"/>
+					</div>
+				</nav>	
+		
+				<div class="account-nav-asset pnsb2c-account-nav-asset">
+					<iscontentasset aid="account-nav-text-prechat"/>
+				</div>	
+						
+			</div>	
+					
+			<div id="primary" class="primary-content">
+				<isreplace/>
+			</div>
+			<div class="mobileBlock">
+				<div class="cart-actions mobileCartActions">
+					<div class="cart-action-left">
+					<iscontentasset aid="account-nav-text-prechat"/>
+					</div>
+				</div>
+			</div>	
+		</div><!-- /main -->
+		
+		<isinclude template="components/footer/footer"/>	
+		<isinclude template="account/pt_account_VARS"/>		
+		<iscomment>Farhan's Dev Team PANC-1672</iscomment>
+		<script type="text/javascript"> 
+			pageTypeCode = "my-account"; 
+ 			pageData = {}; 
+		</script> 
+		<iscomment>End of PANC-1672</iscomment>
+	</div>
+	
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>HTTP Form Post Service Demo</title></head>
+<body style="margin:100px;">
+		
+	<div>Your result:</div>
+	<textarea cols="80" rows="20">${pdict.Result.responseFromServer}</textarea>
+	<div>&nbsp;</div>
+	<div><strong>Technical Information:</strong></div>
+	<div>ScriptLog:</div>
+	<div><textarea cols="50" rows="10"><isprint value="${pdict.ScriptLog}"></textarea></div>
+	<div>Webservice Status:</div>
+	<div><textarea cols="50" rows="10"><isprint value="${JSON.stringify(pdict.Status, null, '\t')}"></textarea></div>		
+	
+</body>
+</html>

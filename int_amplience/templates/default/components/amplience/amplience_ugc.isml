@@ -1,0 +1,17 @@
+<iscomment>
+	Renders Amplience UGC Libs content asset.
+</iscomment>
+
+<isset name="UgcLibsContent" value="${dw.content.ContentMgr.getContent('amp-ugc-libs')}" scope="page" />
+
+<isif condition="${UgcLibsContent != null}">
+<isscript>
+	importScript("amplience/libAmplienceContent.ds");
+	var ampUgcLibsContent = new AmplienceContent( UgcLibsContent );
+	var content = ampUgcLibsContent.getContent();
+</isscript>
+
+<!-- Amplience UGC libs -->
+<isprint value="${content}" encoding="off"/>
+
+</isif>

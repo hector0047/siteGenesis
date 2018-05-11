@@ -1,0 +1,103 @@
+/**
+* Demandware Script File
+* To define input and output parameters, create entries of the form:
+*
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+*
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* For example:
+*
+*-   @input ExampleIn : String This is a sample comment.
+* @output ExampleOut :dw.util.ArrayList;
+*
+*/
+importPackage( dw.net );
+importPackage( dw.order );
+importPackage( dw.web );
+importPackage( dw.io );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.system );
+
+
+function execute( args : PipelineDictionary ) : Number
+{
+
+    var strandsUrl = 'http://bizsolutions.strands.com/api2/recs/item/get.sbs?';
+	
+	var cartString = strandsUrl +'apid=' + dw.crypto.Encoding.toURI(dw.system.Site.current.preferences.custom.StrandsApiID);
+			
+	cartString += '&tpl=' + "PROD-1";
+	//var user = args.User;
+	cartString += '&user=' + "vibha@gmail.com";
+	
+	cartString += '&format=' + "json";
+	
+	cartString += '&metadata=' + "false";
+							
+
+					
+    var eventCart : HTTPClient = new HTTPClient();
+    try
+	{
+    	eventCart.setTimeout(1000);
+    	eventCart.open("GET", cartString);
+    	eventCart.send();   
+    	
+    	var Obj : Object =JSON.parse( eventCart.text);
+    	var response1 : Object = Obj.result.recommendations[0];
+    	var response2 : Object = Obj.result.recommendations[1];
+    	var response3 : Object = Obj.result.recommendations[2];
+    	var response4 : Object = Obj.result.recommendations[3];
+    	var response5 : Object = Obj.result.recommendations[4];
+    	
+    	var responsearray : ArrayList = new ArrayList();
+    	responsearray.add(response1);
+    	responsearray.add(response2);
+    	responsearray.add(response3);
+    	responsearray.add(response4);
+    	responsearray.add(response5);
+    	
+    	args.ExampleOut = responsearray;
+    	
+    }
+    catch(e) 
+    {    	
+    	pdict.ErrorCode = '801';
+		pdict.ErrorLevel = '4';
+    	Logger.error("(Strands Send Cart Error) Request to "+cartString+" failed: {0}", e.message);
+    	return PIPELET_ERROR;
+    }
+    /*
+    
+    
+    	
+    		var jsonData = JSON.parse( eventCart.text);
+			for (var i = 0; i < jsonData.result.recommendations.length; i++) {
+		    var counter = jsonData..result.recommendations[i];
+		    args.ExampleOut = counter;
+		    }
+		    
+		    
+    	
+  	
+    var text : Object = {"result":{"code":0,"description":"Success","reqId":"278181389629654503","recommendations":[{"itemId":"25050730"},{"itemId":"25490259"},{"itemId":"25492705"},{"itemId":"25493657"},{"itemId":"25501802"},{"itemId":"LM-AD240LU"},{"itemId":"DMW-AC1"},{"itemId":"RP-DJS400-Z"},{"itemId":"LM-AF30U3"},{"itemId":"RP-DJS400-A"}],"tpl":"PROD-1"}};
+     	var Obj : Object =JSON.parse(text);
+    
+    	
+    	var responsearray : ArrayList = new ArrayList();
+    	responsearray.add("25050730");
+    	responsearray.add("25490259");
+    	responsearray.add("25492705");
+    	responsearray.add("25493657");
+    	responsearray.add("25501802");
+    	
+    	args.ExampleOut = responsearray;*/
+    	return PIPELET_NEXT;
+}   

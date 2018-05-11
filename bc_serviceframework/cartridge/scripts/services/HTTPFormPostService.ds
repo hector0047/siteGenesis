@@ -1,0 +1,41 @@
+/**
+ * Implements a classic HTTP Post, similar to what a browser would do
+ *
+ * @class
+ * @augments AbstractHTTPService
+ */
+var HTTPFormPostService = require('./AbstractHTTPService').extend(
+/** @lends HTTPFormPostService.prototype */
+{
+	/**
+	*	@constructs HTTPFormPostService
+	*	Initialises the Base service
+	*/
+	init : function() {
+		this._super("HTTPFormPostService", {
+			initFromWebservice: function(response) {
+					this.responseFromServer = response;
+				}
+		});				
+	},
+	
+	createRequest: function (args) {
+		var postBodyArgs : Array = [],
+			postBody = "";
+		
+		for (var p in args) {
+			postBodyArgs.push(dw.util.StringUtils.format("{0}={1}", encodeURIComponent(p), encodeURIComponent(args[p])));
+		}
+		
+		postBody = postBodyArgs.join("&");
+		
+		this.requestHeader = {
+			"Content-Length": postBody.length,			
+			"Content-Type": "application/x-www-form-urlencoded"
+		};
+		
+		return postBody; 
+	}
+});
+
+module.exports = HTTPFormPostService;

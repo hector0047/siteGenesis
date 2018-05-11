@@ -1,0 +1,77 @@
+<iscontent type="text/html" charset="UTF-8"/>
+<isdecorate template="account/pt_account">
+<isinclude template="util/modules"/>
+<isset name="bctext2" value="${Resource.msg('servicebench.submitrepreqheadbred','account',null)}" scope="pdict"/>
+<isset name="purchaseDateErrorClass" value="" scope="page"/>
+<div class="SB-repair-request-page">
+	<h1 id="submit-repair-req-head">${Resource.msg('servicebench.submitrepreqhead','account',null)}</h1>
+	<div class="submit-request-page-declaration">
+		<span class="block-head">
+			Quickly find your warranty status and repair estimate by providing the information below:
+		</span>
+		<span class="block-note">
+			Please note: This online service is available for most consumer carry-in products. If the online service is not applicable to your product, you will be prompted to use our Service Locator or provided with Contact Us information for assistance.
+		</span> 
+	</div>
+	<form action="${URLUtils.continueURL()}" method="post" id="${pdict.CurrentForms.repairsubmit.htmlName}" class="repair-request initial-form">
+	<isif condition="${pdict.CurrentForms.repairsubmit.mnumber.value != null && pdict.Product == null}" >	
+		<div class="error-form sb-error-form">
+			${Resource.msg('checkout.productNotLocatedError','sb_forms',null)}
+		</div>
+	<iselseif condition="${pdict.onlineRepairQualification == '0'}" >
+		<div class="error-form sb-error-form">
+			<span class="error-form-one">${Resource.msg('sb.notEligibleProd','sb_forms',null)}</span><br> <span class="error-form-two"><a href="http://www.servicebench.com/templates/geo_americas/consumer_facing/panasonic_locator/panasonic_locator_results.jsp">Service Locator</a> ${Resource.msg('sb.notEligibleProd1','sb_forms',null)} <a href="${URLUtils.url('CustomerService-ContactUs')}">Contact Us</a> for assistance.</span>
+		</div>
+	</iselseif>
+	<iselseif condition="${pdict.errorComment != null && pdict.errorComment != 'undefined'}" >
+		
+		<isif condition="${pdict.Response.statusDetails.statusDetail[0].errorField == 'purchaseDate'}">
+			<isset name="purchaseDateErrorClass" value="error" scope="page"/>
+			<isset name="purchaseDateError" value="error" scope="page"/>
+		<iselse/>
+			<div class="error-form sb-error-form">
+				<isprint value="${pdict.errorComment}" />
+			</div>
+		</isif>		
+	</iselseif>
+	</isif>
+	<fieldset>
+	 <div class="form-section two-row">
+		<isinputfield formfield="${pdict.CurrentForms.repairsubmit.mnumber}" type="input" requiredtext="${Resource.msg('forms.repairsubmit.mnumber.missing-error','sb_forms',null)}" rowclass="first" attribute1="tabindex" value1="10" requiredtextstar="true"/>
+	 </div>
+	 
+	 <div class="form-section two-row">
+		   <isinputfield formfield="${pdict.CurrentForms.repairsubmit.snumber}" type="input" requiredtext="${Resource.msg('forms.repairsubmit.snumber.missing-error','sb_forms',null)}" rowclass="first" attribute1="tabindex" value1="12"/>
+	    </div>
+	   
+	    <div class="form-section three-row"> 
+	    	<label>Purchase date*</label>
+	    	   <div id="pdateerrorid" class="error-form sb-error-form pdateerror">
+			   		${Resource.msg('sb.purchasedateerror','sb_forms',null)}
+			   </div>
+			  	<div id="leapyearerrorid" class="error-form sb-error-form pdateerror">
+				${Resource.msg('sb.leapyearerror','sb_forms',null)}
+			</div>
+	    	
+	    	<isif condition="${purchaseDateError!=null}">
+				<div class="error-form sb-error-form pdateerror">
+					${Resource.msg('sb.purchasedateerror','sb_forms',null)}
+				</div>
+			</isif>
+			<isinputfield formfield="${pdict.CurrentForms.repairsubmit.day}" xhtmlclass="${purchaseDateErrorClass + ' cexpday'}" type="select" rowclass="day label-removed " requiredtext="${Resource.msg('forms.repairsubmit.day.missing-error','sb_forms',null)}"  attribute1="tabindex" value1="13"/>
+		   	<isinputfield formfield="${pdict.CurrentForms.repairsubmit.month}" xhtmlclass="${purchaseDateErrorClass + '  cexpmonth '}" type="select" rowclass="month label-removed middle-row" requiredtext="${Resource.msg('forms.repairsubmit.month.missing-error','sb_forms',null)}" attribute1="tabindex" value1="14"/>
+			<isinputfield formfield="${pdict.CurrentForms.repairsubmit.year}" xhtmlclass="${purchaseDateErrorClass + ' cexpyear '}" type="select"  rowclass="year label-removed" requiredtext="${Resource.msg('forms.repairsubmit.year.missing-error','sb_forms',null)}" attribute1="tabindex" value1="15"/>
+	  	</div>
+	  
+	  	<div class="btn-msg-holder">
+	  		<button class="button button-blue submit-req-btn" type="submit" name="${pdict.CurrentForms.repairsubmit.save.htmlName}" value="${Resource.msg('global.continuecheckoutbrief','locale',null)}" attribute1="tabindex" value1="16"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></button>
+	  		<iscomment><a href="javascript:void(0)" class="button-blue sb-req-form-btn"><span>${Resource.msg('global.continuecheckoutbrief','locale',null)}</span></a></iscomment>
+	  		<a href= "${URLUtils.url('SBRepairStatus-ShowStatus')}" class="existing-req-holder">
+	  			VIEW EXISTING ONLINE REPAIR REQUESTS
+	  		</a>
+	  	</div>
+			<input type="hidden" name="${pdict.CurrentForms.repairsubmit.secureKeyHtmlName}" value="${pdict.CurrentForms.repairsubmit.secureKeyValue}"/>	
+		</fieldset>
+	</form>
+</div>				 	
+</isdecorate>

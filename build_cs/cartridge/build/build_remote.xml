@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Demandware CS build cartridge - remote tasks" basedir=".">
+	<!--
+       upload_webdav_files
+       ===========================================================================
+       This task will go off and delete the supplied directory and whatever
+       contents it has from the remote server.
+
+       param: webdav.server URL of the server i.e. https://development.example.demandware.net
+       param: webdav.root The directory path to upload to i.e. /on/demandware.servlet/webdav/Sites/ImpEx/
+       param: webdav.username The username to use to login
+       param: webdav.password The password
+	-->
+	<target name="upload_webdav_files">
+		<echo message="Uploading to : https://${host}${webdav.root}" level="info" />
+		<davput url="https://${host}${webdav.root}" userid="${webdav.username}" password="${webdav.password}" lock="false">
+			<fileset dir="${local.upload.root}">
+				<include name="**/**" />
+			</fileset>
+		</davput>
+	</target>
+
+    <!--
+       upload_impex
+       ===========================================================================
+        This task will upload the impex folder from the
+        local ouptut directory up to the server.
+    -->
+    <target name="upload_impex">
+        <echo message="Uploading required files to server" level="info" />
+        <antcall target="upload_webdav_files">
+            <param name="webdav.root" value="${webdav.impex.root}" />
+            <param name="local.upload.root" value="${local.impex.root}" />
+        </antcall>
+    </target>
+
+	<!--
+       deploy_cartridges
+       ===========================================================================
+	   This tasks deploy zipped Cartridges to the given instance
+	-->
+	<target name="deploy_cartridges">
+		<echo message="Deploying cartridges in ZIP file organization ${organization} zipfile ${zipfile} to host ${host} webdav.username ${webdav.username} webdav.password ${webdav.password} buildversion ${buildversion}" />
+		<if>
+			<equals arg1="${twofactor.enabled}" arg2="true" />
+			<then>
+				<deploytask host="${host}" user="${webdav.username}" password="${webdav.password}" organization="${organization}" codeversion="${buildversion}" zipfile="${zipfile}" keystorefile="${keystorefile}" keystorepassword="${keystorepassword}" />
+			</then>
+			<else>
+				<deploytask host="${host}" user="${webdav.username}" password="${webdav.password}" organization="${organization}" codeversion="${buildversion}" zipfile="${zipfile}" />
+			</else>
+		</if>
+	</target>
+
+	<!--
+       activate_build
+       ===========================================================================
+	   This tasks activates the build version on the given instance
+	-->
+	<target name="activate_build">
+		<echo message="Activating build version ${buildversion} on instance ${webdav.server}" />
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-ProcessLogin" logLevel="none" cookiePolicy="rfc2109">
+	          <post name="LoginForm_Login" value="${webdav.username}" />
+	          <post name="LoginForm_Password" value="${webdav.password}" />
+	          <post name="LoginForm_RegistrationDomain" value="Sites" />
+		</httppost>
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-DisplayWelcomePage" logLevel="none" responseProperty="response" />
+		<echo message="Login successful..." />
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewCodeDeployment-Activate" logLevel="none" responseProperty="response" >
+	          <post name="CodeVersionID" value="${buildversion}" />
+		</httppost>
+
+		<condition property="activation.success.message">
+			<matches pattern="Successfully activated version '${buildversion}'" string="${response}" />
+		</condition>
+		<fail message="Could not locate activation success message in response" unless="activation.success.message" />
+	</target>
+
+	<!--
+		set_cartridge_path
+		===========================================================================
+		This tasks sets the names of the active cartridge Path for a site
+		Will only work if project.cartridge.path is set in a property file
+		Defaults to 'Site Genesis' for the site name (can be changed by setting project.cartridge.site.name)
+		Defaults to 'sitegenesis_storefront_richUI:sitegenesis_storefront_core'
+			as the default path to prepend project cartridges to
+			(can be changed by setting default.cartridge.path)
+	-->
+	<target name="set_cartridge_path" 
+			if="project.cartridge.path">
+
+		<!-- this is the path we also prepend to -->
+		<property name="default.cartridge.path" value="sitegenesis_storefront_richUI:sitegenesis_storefront_core" />
+		<!-- THIS REQUIRES THE NAME - NOT THE ID OF THE SITE !!!-->
+		<property name="project.cartridge.site.name" value="Site Genesis" />
+
+		<!-- login to BM -->
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-ProcessLogin" logLevel="none" cookiePolicy="rfc2109">
+			<post name="LoginForm_Login" value="${webdav.username}" />
+			<post name="LoginForm_Password" value="${webdav.password}" />
+			<post name="LoginForm_RegistrationDomain" value="Sites" />
+		</httppost>
+		<!-- 'follow' redirect -->
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-DisplayWelcomePage" logLevel="none" responseProperty="response" />
+
+		<echo message="Will set the cartridge path for site '${project.cartridge.site.name}'@${webdav.server}" />
+		<echo message="to ${project.cartridge.path}:${default.cartridge.path}" />
+
+		<!-- pull the sites listview to grab the repositoryUUID - the site name is part of the regex-->
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewChannelList-ListAll?CurrentMenuItemId=sites" logLevel="none" responseProperty="response" />
+		<propertyregex property="repositoryUUID" input="${response}" regexp="(.+)(a href\=&quot;)(.+\/on\/demandware\.store/.+)(RepositoryUUID\=)(.*)(&quot;)( class\=.+&gt;)(${project.cartridge.site.name})&lt;\/a&gt;.+" select="\5" casesensitive="false" />
+		<!-- climb up to the right view to fill the pipeline dictionary -->
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewChannel-Edit?RepositoryUUID=${repositoryUUID}" logLevel="none" responseProperty="response" />
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewChannelDetails-Edit?RepositoryUUID=${repositoryUUID}" logLevel="none" responseProperty="response" />
+		<!-- preserve the hostnames - they are needed as part of the form -->
+		<propertyregex property="insecure_host" input="${response}" regexp="(.+)(UpdateSite_InsecureHost)(.+value\=&quot;)(.*)(&quot;.+)" select="\4" casesensitive="false" />
+		<propertyregex property="secure_host" input="${response}" regexp="(.+)(UpdateSite_SecureHost)(.+value\=&quot;)(.*)(&quot;.+)" select="\4" casesensitive="false" />
+
+		<!-- now finally set the new cartridge path -->
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewChannelDetails-Update" logLevel="none" responseProperty="response" >
+			<post name="UpdateSite_Cartridges" value="${project.cartridge.path}:${default.cartridge.path}" />
+			<post name="RepositoryUUID" value="${repositoryUUID}" />
+			<post name="instType" value="sandbox" />
+			<post name="UpdateSite_InsecureHost" value="${insecure_host}" />
+			<post name="UpdateSite_SecureHost" value="${secure_host}" />
+		</httppost>
+
+	</target>
+
+	<!--
+	   upload_metadata
+	   ===========================================================================
+	   Upload the meta data XML to the specific folder
+	-->
+	<target name="upload_metadata">
+
+		<!--
+			NOTE: to run this tasks you need to have the demandware-upload-X.X.X.X.jar
+		-->
+
+		<propertyregex property="export.dir" input="${svn.branch}" regexp="^.*https?://(.*@)?[^/]*/(.*)\s*$" replace="\2" casesensitive="false" />
+
+		<if>
+			<equals arg1="${local.metadata.root}" arg2="$${local.metadata.root}" />
+			<then>
+				<property name="local.metadata.root" value="${local.site.target}/meta" />
+			</then>
+		</if>
+		<if>
+			<equals arg1="${local.metadata.filename}" arg2="$${local.metadata.filename}" />
+			<then>
+				<property name="local.metadata.filename" value="Metadata.xml" />
+			</then>
+		</if>
+
+		<property name="local.metadata.outfile" value="${build.project.version}-${local.metadata.filename}" />
+
+		<echo message="Copy metadata XML to output folder: ${local.output.root}/${local.metadata.outfile}" />
+		<copy file="${local.metadata.root}/${local.metadata.filename}" tofile="${local.output.root}/${local.metadata.outfile}" />
+
+		<echo message="Starting web dav put" />
+		<echo message="URL: https://${host}/on/demandware.servlet/webdav/Sites/Impex/src/customization/" />
+		<!-- dont upload the zip version, cause this need to be unpacked on the server -->
+		<davput url="https://${host}/on/demandware.servlet/webdav/Sites/Impex/src/customization/" userid="${webdav.username}" password="${webdav.password}" lock="false">
+			<fileset dir="${local.output.root}">
+				<include name="${local.metadata.outfile}" />
+			</fileset>
+		</davput>
+	</target>
+
+	<!--
+       import_metadata
+       ===========================================================================
+	   This tasks imports the metadata on the given instance
+	-->
+	<target name="import_metadata" depends="upload_metadata" >
+		<echo message="Importing metadata to instance ${webdav.server}" />
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-ProcessLogin" logLevel="none" cookiePolicy="rfc2109">
+	          <post name="LoginForm_Login" value="${webdav.username}" />
+	          <post name="LoginForm_Password" value="${webdav.password}" />
+	          <post name="LoginForm_RegistrationDomain" value="Sites" />
+		</httppost>
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-DisplayWelcomePage" logLevel="none" responseProperty="response" />
+		<echo message="Login successful..." />
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewCustomizationImport-Dispatch" logLevel="none" responseProperty="response" >
+	          <post name="SelectedFile" value="${local.metadata.outfile}" />
+	          <post name="validate" value="Next >>" />
+	          <post name="ProcessPipelineName" value="ProcessObjectTypeImport" />
+	          <post name="ProcessPipelineStartNode" value="Validate" />
+	          <post name="JobName" value="ProcessObjectTypeImpex" />
+	          <post name="JobDescription" value="Validate meta data definitions" />
+		</httppost>
+
+		<propertyregex property="JobConfigurationUUID" input="${response}" regexp="input type=&quot;hidden&quot; name=&quot;JobConfigurationUUID&quot; value=&quot;([^&quot;]+)&quot;" select="\1" casesensitive="false" />
+		<echo message="Using JobConfigurationUUID ${JobConfigurationUUID} for import..." />
+
+		<!-- Wait 10 seconds for the validation to finish -->
+		<sleep seconds="1"/>
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewCustomizationImport-Dispatch" logLevel="none" responseProperty="response" >
+	          <post name="SelectedFile" value="${local.metadata.outfile}" />
+	          <post name="confirmImport" value="Import" />
+	          <post name="ProcessPipelineName" value="ProcessObjectTypeImport" />
+	          <post name="ProcessPipelineStartNode" value="Import" />
+	          <post name="JobName" value="ProcessObjectTypeImpex" />
+	          <post name="JobDescription" value="Import meta data definitions" />
+	          <post name="JobConfigurationUUID" value="${JobConfigurationUUID}" />
+		</httppost>
+
+		<!-- <condition property="import.success.message">
+			<matches pattern="Successfully import version '${build.project.version}'" string="${response}" />
+		</condition>
+		<fail message="Could not locate activation success message in response" unless="activation.success.message" /> -->
+		<echo message="Done importing metadata" />
+	</target>
+
+	<!--
+       import_site
+       ===========================================================================
+	   This tasks imports the site import file on the given instance
+	-->
+	<target name="import_site">
+		<echo message="Importing site_template to instance ${webdav.server}" />
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-ProcessLogin" logLevel="none" cookiePolicy="rfc2109">
+	          <post name="LoginForm_Login" value="${webdav.username}" />
+	          <post name="LoginForm_Password" value="${webdav.password}" />
+	          <post name="LoginForm_RegistrationDomain" value="Sites" />
+		</httppost>
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewApplication-DisplayWelcomePage" logLevel="none" responseProperty="response" />
+		<echo message="Login successful, starting import..." />
+
+		<!-- 
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewSiteImpex-Status" logLevel="none" responseProperty="response" />
+		<propertyregex property="FileURL" input="${response}" regexp="href=&quot;/on/demandware.servlet/webdav/Sites/Impex/src/instance/${site.zip.file}.zip" select="\1" casesensitive="false" />
+	    <assert message="Import file missing...">
+	        <bool>
+	            <isset property="FileURL"/>
+	        </bool>
+	    </assert> -->
+
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewSiteImpex-Dispatch" logLevel="none" responseProperty="response" >
+	          <post name="ImportFileName" value="${site.zip.file}.zip" />
+	          <post name="import" value="OK" />
+	          <post name="realmUse" value="false" />
+		</httppost>
+
+		<waitfor maxwait="10" maxwaitunit="minute" checkevery="10" checkeveryunit="second" timeoutproperty="status.notfinished">
+		    <scriptcondition language="javascript" value="false">
+		    <![CDATA[
+		        project.getTargets().get( "check_site_import_status" ).execute( );
+		        if ( project.getProperty( "status.finished" ) )
+		            self.setValue( true );
+		    ]]>
+			</scriptcondition>
+		</waitfor>		
+		<echo message="Done importing site_template" />
+	</target>
+
+	<target name="check_site_import_status">
+		<echo message="Checking if status is still Running" />
+		<httppost url="https://${webdav.server}/on/demandware.store/Sites-Site/default/ViewSiteImpex-Status" logLevel="none" responseProperty="response" />
+	    <condition property="status.finished">
+	    	<not>
+	            <matches pattern="Running" string="${response}" multiline="true"/>
+	    	</not>
+	    </condition>
+	</target>
+</project>

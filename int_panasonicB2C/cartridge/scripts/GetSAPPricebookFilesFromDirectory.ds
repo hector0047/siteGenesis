@@ -1,0 +1,65 @@
+/*************************************************************************************
+*	FileName : GetSAPPricebookFilesFromDirectory.ds
+*	Description : This script is used to get SAP Pricebook feed files from input source 
+*				  folder based on file pattern.
+*
+***************************************************************************************
+*	Copyright (C) 2016-2017 Panasonic.  All Rights Reserved.
+***************************************************************************************
+*   @input FilePattern : String
+*   @input SourceFolder : String 
+*   @output FilesList : dw.util.ArrayList
+*   @output ErrorMsg : String
+***************************************************************************************/
+
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.io );
+importPackage( dw.web );
+
+function execute( pdict : PipelineDictionary ) : Number {
+	try{
+		var files : ArrayList;
+		files = getSAPFeedFiles(pdict.SourceFolder , pdict.FilePattern);
+		if(files.size()==0){
+			Logger.error("[GetSAPPricebookFilesFromDirectory.ds] Error in file ({0})",Resource.msg('sappricebook.filenotfounderror','sappricebookfeedimport', null));
+			pdict.ErrorMsg = Resource.msg('sappricebook.filenotfounderror','sappricebookfeedimport', null);
+			return PIPELET_ERROR;
+		}else {
+			pdict.FilesList = files;
+		}
+		
+	} catch(ex) {
+		Logger.error("[GetSAPPricebookFilesFromDirectory.ds] Error in file ( {0} )",ex.message);
+		pdict.ErrorMsg = ex.toString();
+		return PIPELET_ERROR;
+	}
+	
+	return PIPELET_NEXT;
+}
+
+/*This function is used to locate files available at source folder according to file pattern */
+
+function getSAPFeedFiles(sourceFolder : String , filePattern : String){
+	var filePath : String = "";
+    var fileList : ArrayList = new ArrayList();
+	var regExp : RegExp = new RegExp(filePattern);
+	if (sourceFolder.charAt(0) == File.SEPARATOR) {
+		sourceFolder = sourceFolder.substring(1);
+	}
+	filePath = File.IMPEX + File.SEPARATOR + sourceFolder;
+	var directory = new File(filePath);
+	fileList.addAll(directory.listFiles(function(file : File) {
+		if (file.isDirectory()) {
+			return false;
+		}
+		
+		if (!empty(filePattern)) {
+			return regExp.test(file.name)
+		}
+		
+		return true;
+	}));
+	return fileList;
+}
+

@@ -1,0 +1,28 @@
+/**
+ * @input TempFolder : String
+ *
+ */
+
+importPackage( dw.io );
+importPackage( dw.net );
+importPackage( dw.system );
+importPackage( dw.util );
+
+function execute( args : PipelineDictionary ) : Number
+{
+	var filteredRemoteFiles : Collection = new ArrayList();
+	var localFiles : Collection = new ArrayList();
+	var folder : File = new File(File.IMPEX+File.SEPARATOR+"src"+File.SEPARATOR+args.TempFolder);
+	var files = folder.listFiles();
+	for each ( var file : File in files )
+	{ 
+		// filter out directories; this will automatically remove the current folder from the list
+		if ( !file.directory && file.getName().indexOf(".zip")!=-1)
+		{
+			var fileZip : File = new File(File.IMPEX+File.SEPARATOR+"src"+File.SEPARATOR+args.TempFolder+"/"+file.name);
+			fileZip.unzip(new File(File.IMPEX+File.SEPARATOR+'src'+File.SEPARATOR+args.TempFolder));
+			fileZip.remove();
+		}
+	}
+	return PIPELET_NEXT;
+}

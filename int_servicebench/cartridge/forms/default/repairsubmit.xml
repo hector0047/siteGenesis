@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<form xmlns="http://www.demandware.com/xml/form/2008-04-19" secure="true">
+
+
+	<!-- Request repair model number -->
+	<field formid="mnumber" label="Model Number" type="string" mandatory="true"  max-length="16"  missing-error="Please enter the Model Number."/>
+	    
+	 <!-- Request repair serial number -->   
+	 <field formid="snumber" label="Serial Number" type="string" mandatory="false"  max-length="16" missing-error="Please enter the Serial Number."/>
+	  
+	 <!-- Request repair  day -->
+	    <field formid="day" label="forms.day" type="string" mandatory="true" 
+			missing-error="Please select a Day.">
+			<options>
+				<option label="forms.day" value=""/>
+				<option label="day.001" value="01"/>
+				<option label="day.002" value="02"/>
+				<option label="day.003" value="03"/>
+				<option label="day.004" value="04"/>
+				<option label="day.005" value="05"/>
+				<option label="day.006" value="06"/>
+				<option label="day.007" value="07"/>
+				<option label="day.008" value="08"/>
+				<option label="day.009" value="09"/>
+				<option label="day.010" value="10"/>
+				<option label="day.011" value="11"/>
+				<option label="day.012" value="12"/>
+				<option label="day.013" value="13"/>
+				<option label="day.014" value="14"/>
+				<option label="day.015" value="15"/>
+				<option label="day.016" value="16"/>
+				<option label="day.017" value="17"/>
+				<option label="day.018" value="18"/>
+				<option label="day.019" value="19"/>
+				<option label="day.020" value="20"/>
+				<option label="day.021" value="21"/>
+				<option label="day.022" value="22"/>
+				<option label="day.023" value="23"/>
+				<option label="day.024" value="24"/>
+				<option label="day.025" value="25"/>
+				<option label="day.026" value="26"/>
+				<option label="day.027" value="27"/>
+				<option label="day.028" value="28"/>
+				<option label="day.029" value="29"/>
+				<option label="day.030" value="30"/>
+				<option label="day.031" value="31"/>
+			</options>
+	</field>
+	
+	<!-- Request repair  month -->
+	  <field formid="month" label="forms.month" type="string" mandatory="true" 
+      	missing-error="creditcard.monthmissingerror">
+        <options>
+        	<option label="forms.month" 	value=""/>
+            <option label="month.january" 	value="01"/>
+            <option label="month.february" 	value="02"/>
+            <option label="month.march" 	value="03"/>
+            <option label="month.april" 	value="04"/>
+            <option label="month.may" 		value="05"/>
+            <option label="month.june" 		value="06"/>
+            <option label="month.july" 		value="07"/>
+            <option label="month.august" 	value="08"/>
+            <option label="month.september" value="09"/>
+            <option label="month.october"   value="10"/>
+            <option label="month.november"  value="11"/>
+            <option label="month.december"  value="12"/>
+        </options>
+    </field>
+    
+    <!-- Request repair  year -->
+    <field formid="year" label="forms.year" type="string" mandatory="true" 
+      	missing-error="creditcard.yearmissingerror">
+        <options>
+        	<option optionid="" label="forms.year" value=""/>
+        	<option optionid="2009" label="year.2009" value="2009"/>
+            <option optionid="2010" label="year.2010" value="2010"/> 
+            <option optionid="2011" label="year.2011" value="2011"/> 
+            <option optionid="2012" label="year.2012" value="2012"/>
+            <option optionid="2013" label="year.2013" value="2013"/>
+            <option optionid="2014" label="year.2014" value="2014"/>
+            <option optionid="2015" label="year.2015" value="2015"/>
+            <option optionid="2016" label="year.2016" value="2016"/>
+            <option optionid="2017" label="year.2017" value="2017"/>
+            <option optionid="2018" label="year.2018" value="2018"/>
+            <option optionid="2019" label="year.2019" value="2019"/>
+            <option optionid="2020" label="year.2020" value="2020"/>
+            <option optionid="2021" label="year.2021" value="2021"/> 
+            <option optionid="2022" label="year.2022" value="2022"/> 
+            <option optionid="2023" label="year.2023" value="2023"/>
+            <option optionid="2024" label="year.2024" value="2024"/>
+            <option optionid="2025" label="year.2025" value="2025"/>
+        </options>
+    </field>
+    
+    <!-- general actions -->
+	<action formid="save" valid-form="true"/>
+</form>
